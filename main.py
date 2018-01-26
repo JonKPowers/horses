@@ -45,7 +45,7 @@ def process_csv_files(file_list, extension='', path=pathlib.Path('data')):
         data_frames.append(pd.read_csv(path / file, header=None, names=name_files[str(extension)]))
         # Move file into processed dir
         try:
-            path.rename(file_path)
+            (path / file).rename(file_path)
         except PermissionError:
             print('Permission denied while moving {} to {}'.format(file, file_path))
     return data_frames
@@ -65,11 +65,12 @@ def merge_and_strip_dfs(df_list, extension):
     return combined_df
 
 
-if __name__ == '__main__':
-    for i in range(1, 7):
-        file_list = generate_file_list(extension=str(i))
-        df_list = process_csv_files(file_list, extension=str(i))
-        combined_df = merge_and_strip_dfs(df_list, extension=str(i))
-        print(combined_df)
+
+# if __name__ == '__main__':
+#     for i in range(1, 7):
+#         file_list = generate_file_list(extension=str(i))
+#         df_list = process_csv_files(file_list, extension=str(i))
+#         combined_df = merge_and_strip_dfs(df_list, extension=str(i))
+#         print(combined_df)
 
 
