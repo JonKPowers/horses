@@ -112,13 +112,13 @@ class DbHandler:
     def __insert_records(self, cursor, table_name, table_data, column_dtypes):
         table_values = table_data.values
         columns = [column_name for column_name, column_dtype in column_dtypes.items()]
-        for i in range(len(column_dtypes)):
+        for i in range(len(table_data)):
             values_string = ""
             for item in table_values[i]:
                 values_string += re.sub(r"'", "\\'", str(item)) + "', '"
             values_string = values_string[:-4]  # Chop off extra "', '"
             sql = "INSERT INTO {} ({}) VALUES ('{}')".format(table_name, ", ".join(columns), values_string)
             sql = re.sub(r"'NULL'", "NULL", sql)  # NULL should be sent in SQL w/o quote marks
-            print(i+1, "of", len(column_dtypes), ":", sql)
+            print(i+1, "of", len(table_data), ":", sql)
             cursor.execute(sql)
         self.mysql.commit()
