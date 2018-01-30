@@ -28,16 +28,24 @@ columns_to_delete = {
     'drf': [s for s in name_files['drf'] if 'reserved' in s]
 }
 
-def main(path='data'):
-    file_paths = [pathlib.Path(path, file) for file in os.listdir(path)]
-    file_paths = [file for file in file_paths if file.is_file()]
+def main(file_to_process='None', path='data'):
+    if file_to_process is None:
+        file_paths = []
+        file_paths.append(pathlib.Path(path, file_to_process))
+    else:
+        file_paths = [pathlib.Path(path, file) for file in os.listdir(path)]
+        file_paths = [file for file in file_paths if file.is_file()]
     db = database_functions.DbHandler()
     db.initialize_db()
     i = 1
     for file in file_paths:
         print('Processing {} ({} of {})'.format(file, i, len(file_paths)))
-        table_data, extension = process_csv_file(file)
-
+        try:
+            table_data, extension = process_csv_file(file)
+        except FileNotFoundError as e:
+            print('There was a problem finding the file {}:'.format(file))
+            print('\t', e)
+            continue
         column_dtypes = table_data.dtypes
         db.initialize_table(extension+'_data', table_data, column_dtypes)
         db.add_to_table(extension+'_data', table_data, column_dtypes)
