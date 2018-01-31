@@ -13,8 +13,10 @@ def tidy_it_up(table_data, extension):
         table_data['about_dist_flag'] = table_data['about_dist_flag'].replace('A', 1)
         table_data['all_weather_flag'] = table_data['all_weather_flag'].replace('A', 1)
         table_data['chute_start_flag'] = table_data['chute_start_flag'].replace('C', 1)
+        table_data['chute_start_flag'] = table_data['chute_start_flag'].replace('N', 0)
         table_data['off_turf_flag'] = table_data['off_turf_flag'].replace('O', 1)
         table_data['off_turf_dist_change'] = table_data['off_turf_dist_change'].replace('Y', 1)
+        table_data['off_turf_dist_change'] = table_data['off_turf_dist_change'].replace('N', 0)
 
         # *********************************************
         # Fill and na's with NULL for MYSQL transfer
@@ -27,6 +29,7 @@ def tidy_it_up(table_data, extension):
         table_data['disqualified_flag'] = table_data['disqualified_flag'].replace('Y', 1)
         table_data['corrected_weight'] = table_data['corrected_weight'].replace('Y', 1)
         table_data['claimed_flag'] = table_data['claimed_flag'].replace('Y', 1)
+        table_data['claimed_flag'] = table_data['claimed_flag'].replace('N', 0)
         table_data['dead_heat_flag'] = table_data['dead_heat_flag'].replace('DH', 1)
 
 

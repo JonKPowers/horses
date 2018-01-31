@@ -264,7 +264,7 @@ file_2_columns = [      ##      Start file (1 record per start)
 'reserved34',           ##      34                                              0- Non-favorite
 'reserved35',           ##      35
 'disqualified_flag',    ##      36      CHARACTER                               Y- Disqualified
-'disqulaified_placing', ##      37      NUMERIC                         2       Official placing if Dq'd, otherwise: 0
+'disqualified_placing', ##      37      NUMERIC                         2       Official placing if Dq'd, otherwise: 0
 'weight',               ##      38      NUMERIC                         4
 'corrected_weight',     ##      39      CHARACTER                       1       Y- if different than program weight
 'overweight_amt',       ##      40      NUMERIC                         3       OW= (Weight carried - Program weight)

@@ -28,8 +28,8 @@ columns_to_delete = {
     'drf': [s for s in name_files['drf'] if 'reserved' in s]
 }
 
-def main(file_to_process='None', path='data'):
-    if file_to_process is None:
+def main(file_to_process='', path='data'):
+    if file_to_process:
         file_paths = []
         file_paths.append(pathlib.Path(path, file_to_process))
     else:
@@ -46,9 +46,8 @@ def main(file_to_process='None', path='data'):
             print('There was a problem finding the file {}:'.format(file))
             print('\t', e)
             continue
-        column_dtypes = table_data.dtypes
-        db.initialize_table(extension+'_data', table_data, column_dtypes)
-        db.add_to_table(extension+'_data', table_data, column_dtypes)
+        db.initialize_table(extension+'_data', extension)
+        db.add_to_table(extension+'_data', table_data, column_names=list(table_data))
         i += 1
         processed_dir = file.parent / (extension+'_file')
         processed_dir.mkdir(exist_ok = True)
