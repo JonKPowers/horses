@@ -15,7 +15,7 @@ name_files = {
     '4': file_definitions.file_4_columns,
     '5': file_definitions.file_5_columns,
     '6': file_definitions.file_6_columns,
-    'drf': file_definitions.past_perf_columns,
+    'DRF': file_definitions.past_perf_columns,
 }
 
 columns_to_delete = {
@@ -25,7 +25,7 @@ columns_to_delete = {
     '4': [s for s in name_files['4'] if 'reserved' in s],
     '5': [s for s in name_files['5'] if 'reserved' in s],
     '6': [s for s in name_files['6'] if 'reserved' in s],
-    'drf': [s for s in name_files['drf'] if 'reserved' in s]
+    'DRF': [s for s in name_files['DRF'] if 'reserved' in s]
 }
 
 def main(file_to_process='', path='data'):

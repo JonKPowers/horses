@@ -133,4 +133,55 @@ def tidy_it_up(table_data, extension):
         # Fill the rest with 'NULL'
         table_data = table_data.fillna('NULL')
 
+    if extension == 'DRF':
+        print('Tidying .DRF file (past performances) ...')
+
+        # *********************************************
+        # Field with [value]/NaN flags
+        table_data['allweather_surface'] = table_data['allweather_surface'].replace('A', 1)
+        table_data['past_bar_shoe_1'] = table_data['past_bar_shoe_1'].replace('r', 1)
+        table_data['past_bar_shoe_2'] = table_data['past_bar_shoe_2'].replace('r', 1)
+        table_data['past_bar_shoe_3'] = table_data['past_bar_shoe_3'].replace('r', 1)
+        table_data['past_bar_shoe_4'] = table_data['past_bar_shoe_4'].replace('r', 1)
+        table_data['past_bar_shoe_5'] = table_data['past_bar_shoe_5'].replace('r', 1)
+        table_data['past_bar_shoe_6'] = table_data['past_bar_shoe_6'].replace('r', 1)
+        table_data['past_bar_shoe_7'] = table_data['past_bar_shoe_7'].replace('r', 1)
+        table_data['past_bar_shoe_8'] = table_data['past_bar_shoe_8'].replace('r', 1)
+        table_data['past_bar_shoe_9'] = table_data['past_bar_shoe_9'].replace('r', 1)
+        table_data['past_bar_shoe_10'] = table_data['past_bar_shoe_10'].replace('r', 1)
+        table_data['past_sealed_track_indicator_1'] = table_data['past_sealed_track_indicator_1'].replace('s', 1)
+        table_data['past_sealed_track_indicator_2'] = table_data['past_sealed_track_indicator_2'].replace('s', 1)
+        table_data['past_sealed_track_indicator_3'] = table_data['past_sealed_track_indicator_3'].replace('s', 1)
+        table_data['past_sealed_track_indicator_4'] = table_data['past_sealed_track_indicator_4'].replace('s', 1)
+        table_data['past_sealed_track_indicator_5'] = table_data['past_sealed_track_indicator_5'].replace('s', 1)
+        table_data['past_sealed_track_indicator_6'] = table_data['past_sealed_track_indicator_6'].replace('s', 1)
+        table_data['past_sealed_track_indicator_7'] = table_data['past_sealed_track_indicator_7'].replace('s', 1)
+        table_data['past_sealed_track_indicator_8'] = table_data['past_sealed_track_indicator_8'].replace('s', 1)
+        table_data['past_sealed_track_indicator_9'] = table_data['past_sealed_track_indicator_9'].replace('s', 1)
+        table_data['past_sealed_track_indicator_10'] = table_data['past_sealed_track_indicator_10'].replace('s', 1)
+        table_data['past_all_weather_flag_1'] = table_data['past_all_weather_flag_1'].replace('A', 1)
+        table_data['past_all_weather_flag_2'] = table_data['past_all_weather_flag_2'].replace('A', 1)
+        table_data['past_all_weather_flag_3'] = table_data['past_all_weather_flag_3'].replace('A', 1)
+        table_data['past_all_weather_flag_4'] = table_data['past_all_weather_flag_4'].replace('A', 1)
+        table_data['past_all_weather_flag_5'] = table_data['past_all_weather_flag_5'].replace('A', 1)
+        table_data['past_all_weather_flag_6'] = table_data['past_all_weather_flag_6'].replace('A', 1)
+        table_data['past_all_weather_flag_7'] = table_data['past_all_weather_flag_7'].replace('A', 1)
+        table_data['past_all_weather_flag_8'] = table_data['past_all_weather_flag_8'].replace('A', 1)
+        table_data['past_all_weather_flag_9'] = table_data['past_all_weather_flag_9'].replace('A', 1)
+        table_data['past_all_weather_flag_10'] = table_data['past_all_weather_flag_10'].replace('A', 1)
+
+
+
+        # *********************************************
+        # Character fields to make null
+
+        # **********************************************
+        # FIELD DTYPES TO FIX
+        #   'claimed_trainer_middle' from FLOAT to VARCHAR(255)
+
+
+        # **********************************************
+        # Fill the rest with 'NULL'
+        table_data = table_data.fillna('NULL')
+
     return table_data

@@ -14,6 +14,7 @@ class DbHandler:
             '4': column_dtypes.col_4_dtypes,
             '5': column_dtypes.col_5_dtypes,
             '6': column_dtypes.col_6_dtypes,
+            'DRF': column_dtypes.past_performances_dtypes,
         }
 
     def initialize_db(self):

@@ -839,7 +839,7 @@ past_perf_columns = [   ## Up to date as of 4/28/2014
 'past_days_since_last_7',   ##      272     NUMERIC         9999                    4
 'past_days_since_last_8',   ##      273     NUMERIC         9999                    4
 'past_days_since_last_9',   ##      274     NUMERIC         9999                    4
-'reserved275',              ##      275                                             (# days since prev. race
+'maybe_reservd275',              ##      275                                             (# days since prev. race
                             ##                                                      for 10th race back might
                             ##                                                      not be available)
 'past_track_code_1',        ##      276     CHARACTER                       30
@@ -882,7 +882,7 @@ past_perf_columns = [   ## Up to date as of 4/28/2014
 'past_track_cond_5',        ##      310     CHARACTER       XX              2
 'past_track_cond_6',        ##      311     CHARACTER       XX              2
 'past_track_cond_7',        ##      312     CHARACTER       XX              2
-'past_track_cond-8',        ##      313     CHARACTER       XX              2
+'past_track_cond_8',        ##      313     CHARACTER       XX              2
 'past_track_cond_9',        ##      314     CHARACTER       XX              2
 'past_track_cond_10',       ##      315     CHARACTER       XX              2
 
@@ -970,16 +970,16 @@ past_perf_columns = [   ## Up to date as of 4/28/2014
 'past_race_name_10',        ##      385
 
 ##      Medication
-'past_medication_1',        ##      386     NUMBERIC        9       1       See also field #62
-'past_medication_2',        ##      387     NUMBERIC        9       1       0=None
-'past_medication_3',        ##      388     NUMBERIC        9       1       1=Lasix
-'past_medication_4',        ##      389     NUMBERIC        9       1       2=Bute
-'past_medication_5',        ##      390     NUMBERIC        9       1       3=Bute & Lasix
-'past_medication_6',        ##      391     NUMBERIC        9       1
-'past_medication_7',        ##      392     NUMBERIC        9       1
-'past_medication_8',        ##      393     NUMBERIC        9       1
-'past_medication_9',        ##      394     NUMBERIC        9       1
-'past_medication_10',       ##      395     NUMBERIC        9       1
+'past_medication_1',        ##      386     NUMERIC        9       1       See also field #62
+'past_medication_2',        ##      387     NUMERIC        9       1       0=None
+'past_medication_3',        ##      388     NUMERIC        9       1       1=Lasix
+'past_medication_4',        ##      389     NUMERIC        9       1       2=Bute
+'past_medication_5',        ##      390     NUMERIC        9       1       3=Bute & Lasix
+'past_medication_6',        ##      391     NUMERIC        9       1
+'past_medication_7',        ##      392     NUMERIC        9       1
+'past_medication_8',        ##      393     NUMERIC        9       1
+'past_medication_9',        ##      394     NUMERIC        9       1
+'past_medication_10',       ##      395     NUMERIC        9       1
 
 ##      Trip Comment
 'past_trip_comment_1',      ##      396     CHARACTER               100
@@ -1132,16 +1132,16 @@ past_perf_columns = [   ## Up to date as of 4/28/2014
 'past_odds_9',              ##      524     NUMERIC         9999.99 7
 'past_odds_10',             ##      525     NUMERIC         9999.99 7
 
-'past_entry_1',             ##      526     CHARACTIER      X       1       e- entry
-'past_entry_2',             ##      527     CHARACTIER      X       1
-'past_entry_3',             ##      528     CHARACTIER      X       1
-'past_entry_4',             ##      529     CHARACTIER      X       1
-'past_entry_5',             ##      530     CHARACTIER      X       1
-'past_entry_6',             ##      531     CHARACTIER      X       1
-'past_entry_7',             ##      532     CHARACTIER      X       1
-'past_entry_8',             ##      533     CHARACTIER      X       1
-'past_entry_9',             ##      534     CHARACTIER      X       1
-'past_entry_10',            ##      535     CHARACTIER      X       1
+'past_entry_1',             ##      526     CHARACTER      X       1       e- entry
+'past_entry_2',             ##      527     CHARACTER      X       1
+'past_entry_3',             ##      528     CHARACTER      X       1
+'past_entry_4',             ##      529     CHARACTER      X       1
+'past_entry_5',             ##      530     CHARACTER      X       1
+'past_entry_6',             ##      531     CHARACTER      X       1
+'past_entry_7',             ##      532     CHARACTER      X       1
+'past_entry_8',             ##      533     CHARACTER      X       1
+'past_entry_9',             ##      534     CHARACTER      X       1
+'past_entry_10',            ##      535     CHARACTER      X       1
 
 'past_race_class_1',        ##      536     CHARACTER               25
 'past_race_class_2',        ##      537     CHARACTER               25
@@ -1231,7 +1231,7 @@ past_perf_columns = [   ## Up to date as of 4/28/2014
 'past_call_pos_stretch_7',  ##      612     CHARACTER                       2
 'past_call_pos_stretch_8',  ##      613     CHARACTER                       2
 'past_call_pos_stretch_9',  ##      614     CHARACTER                       2
-'past_call_pos_stretch_10'  ##      615     CHARACTER                       2
+'past_call_pos_stretch_10',  ##      615     CHARACTER                       2
 
 'past_call_pos_finish_1',   ##      616     CHARACTER                       2
 'past_call_pos_finish_2',   ##      617     CHARACTER                       2
