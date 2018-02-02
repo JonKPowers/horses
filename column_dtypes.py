@@ -676,7 +676,7 @@ past_performances_dtypes = {  ## Up to date as of 4/28/2014
 'past_show_9': 'VARCHAR(255)',
 'past_show_10': 'VARCHAR(255)',
 
-##      Winner, PLcae, and Show Weight Carried
+##      Winner, Place, and Show Weight Carried
 
 'past_win_weight_1': 'INT',
 'past_win_weight_2': 'INT',
