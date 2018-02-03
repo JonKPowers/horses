@@ -4,7 +4,7 @@ import re
 
 
 class DbHandler:
-    def __init__(self, db='horses_test', name_files=None):
+    def __init__(self, db='horses_test'):
         self.db = db
         self.mysql = None
         self.column_dtypes = {
@@ -63,6 +63,34 @@ class DbHandler:
         # TO DO
         # Check whether tabel looks like it has the right number of columns and column names
 
+    def initialize_pp_table(self, pp_object):
+        """Checks to see if a table exists. If not, creates it."""
+        self.mysql = self.__connect()
+        table_exists = None
+        try:
+            with self.mysql.cursor() as cursor:
+                self.__use_db(cursor)
+                sql = "SELECT count(*) FROM information_schema.TABLES "
+                sql += "WHERE (TABLE_SCHEMA = '{}') AND (TABLE_NAME = '{}')".format(self.db, pp_object.table_name)
+                cursor.execute(sql)
+                table_exists = [item for item in cursor][0][0]
+
+                if table_exists:
+                    print("Table {} already exists--skipping creation step.".format(pp_object.table_name))
+                elif table_exists == None:
+                    print("There was an error determining if table {} exists".format(pp_object.table_name), end="")
+                    print("table_exists still at default value--skipping creation step.")
+                elif table_exists == 0:
+                    self.__create_table2(cursor, pp_object)
+                else:
+                    print("There was a problem checking whether {} exists".format(pp_object.table_name), end="")
+                    print("--unexpected table_exists value.")
+        finally:
+            self.mysql.close()
+        # TO DO
+        # Check whether tabel looks like it has the right number of columns and column names
+
+
 
     def add_to_table(self, table_name, table_data, column_names):
         self.mysql = self.__connect()
@@ -111,8 +139,48 @@ class DbHandler:
         #   Maybe pull those 'extras' out from a separate function that
         #   returns the extra stuff based on the table_
 
+    def __create_table2(self, cursor, obj):
+        data_type = None
+        sql = "CREATE TABLE {} (".format(obj.table_name)
+        sql += "id INT NOT NULL AUTO_INCREMENT, "
+        for column_name, column_dtype in obj.dtypes.items():
+            sql += "{} {}, ".format(column_name, column_dtype)
+        sql += "PRIMARY KEY (id)"
+        if obj.unique_key:
+            sql += ", UNIQUE ("
+            for key in obj.unique_key:
+                sql += key + ', '
+            sql = sql[:-2]  # Chop off last ', '
+            sql += ")"
+        if obj.foreign_key:
+            sql += ", FOREIGN KEY("
+            sql += list(obj.foreign_key)[0]
+            sql += ") REFERENCES "
+            sql += list(obj.foreign_key.values())[0]
+        sql += ')'          # ... and balance parentheses before sending.
+        print(sql)
+        cursor.execute(sql)
+        self.mysql.commit()
+        # -----------------TO DO----------------------
+        #   Need to add primary/unique key constraints.
+        #   Maybe pull those 'extras' out from a separate function that
+        #   returns the extra stuff based on the table_
+
     def __insert_records(self, cursor, table_name, table_data, column_names):
         table_values = table_data.values
+        for i in range(len(table_data)):
+            values_string = ""
+            for item in table_values[i]:
+                values_string += re.sub(r"'", "\\'", str(item)) + "', '"
+            values_string = values_string[:-4]  # Chop off extra "', '"
+            sql = "INSERT INTO {} ({}) VALUES ('{}')".format(table_name, ", ".join(column_names), values_string)
+            sql = re.sub(r"'NULL'", "NULL", sql)  # NULL should be sent in SQL w/o quote marks
+            print(i+1, "of", len(table_data), ":", sql)
+            cursor.execute(sql)
+        self.mysql.commit()
+
+    def __insert_records2(self, cursor, table_name, table_data, table_structure):
+        table_values = table_data[list(table_structure.values())]
         for i in range(len(table_data)):
             values_string = ""
             for item in table_values[i]:

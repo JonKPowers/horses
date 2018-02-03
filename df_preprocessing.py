@@ -116,10 +116,7 @@ def tidy_it_up(table_data, extension):
     if extension == '6':
         print('Tidying .6 file (footnotes) ...')
 
-        # *********************************************
-        # Field with [value]/NaN flags
-        # TO DO:
-        #   (1) Run through these columns and replace the flags with int(1)
+
 
         # *********************************************
         # Character fields to make null
@@ -137,38 +134,59 @@ def tidy_it_up(table_data, extension):
         print('Tidying .DRF file (past performances) ...')
 
         # *********************************************
+        # Items that are marked with negative values for special meaning:
+        # Workout times:
+        for i in range(1, 11):
+            table_data['workout_time_{}'.format(i)] = table_data['workout_time_{}'.format(i)].abs()
+        for i in range(1, 11):
+            table_data['workout_distance_{}'.format(i)] = table_data['workout_distance_{}'.format(i)].abs()
+        table_data['distance'] = table_data['distance'].abs()
+
+        # *********************************************
         # Field with [value]/NaN flags
+
+        table_data['apprentice_wgt_alw'] = table_data['apprentice_wgt_alw'].fillna(0)
+
+        table_data['statebread_flag'] = table_data['statebread_flag'].replace('s', 1)
+        table_data['today_nasal_strip_chg'] = table_data['today_nasal_strip_chg'].replace(9, 'NULL')
+        table_data['todays_meds_new'] = table_data['todays_meds_new'].replace(9, 'NULL')
+        table_data['todays_meds_old'] = table_data['todays_meds_old'].replace(9, 'NULL')
+        table_data['equipment_change'] = table_data['equipment_change'].replace(9, 'NULL')
         table_data['allweather_surface'] = table_data['allweather_surface'].replace('A', 1)
-        table_data['past_bar_shoe_1'] = table_data['past_bar_shoe_1'].replace('r', 1)
-        table_data['past_bar_shoe_2'] = table_data['past_bar_shoe_2'].replace('r', 1)
-        table_data['past_bar_shoe_3'] = table_data['past_bar_shoe_3'].replace('r', 1)
-        table_data['past_bar_shoe_4'] = table_data['past_bar_shoe_4'].replace('r', 1)
-        table_data['past_bar_shoe_5'] = table_data['past_bar_shoe_5'].replace('r', 1)
-        table_data['past_bar_shoe_6'] = table_data['past_bar_shoe_6'].replace('r', 1)
-        table_data['past_bar_shoe_7'] = table_data['past_bar_shoe_7'].replace('r', 1)
-        table_data['past_bar_shoe_8'] = table_data['past_bar_shoe_8'].replace('r', 1)
-        table_data['past_bar_shoe_9'] = table_data['past_bar_shoe_9'].replace('r', 1)
-        table_data['past_bar_shoe_10'] = table_data['past_bar_shoe_10'].replace('r', 1)
-        table_data['past_sealed_track_indicator_1'] = table_data['past_sealed_track_indicator_1'].replace('s', 1)
-        table_data['past_sealed_track_indicator_2'] = table_data['past_sealed_track_indicator_2'].replace('s', 1)
-        table_data['past_sealed_track_indicator_3'] = table_data['past_sealed_track_indicator_3'].replace('s', 1)
-        table_data['past_sealed_track_indicator_4'] = table_data['past_sealed_track_indicator_4'].replace('s', 1)
-        table_data['past_sealed_track_indicator_5'] = table_data['past_sealed_track_indicator_5'].replace('s', 1)
-        table_data['past_sealed_track_indicator_6'] = table_data['past_sealed_track_indicator_6'].replace('s', 1)
-        table_data['past_sealed_track_indicator_7'] = table_data['past_sealed_track_indicator_7'].replace('s', 1)
-        table_data['past_sealed_track_indicator_8'] = table_data['past_sealed_track_indicator_8'].replace('s', 1)
-        table_data['past_sealed_track_indicator_9'] = table_data['past_sealed_track_indicator_9'].replace('s', 1)
-        table_data['past_sealed_track_indicator_10'] = table_data['past_sealed_track_indicator_10'].replace('s', 1)
-        table_data['past_all_weather_flag_1'] = table_data['past_all_weather_flag_1'].replace('A', 1)
-        table_data['past_all_weather_flag_2'] = table_data['past_all_weather_flag_2'].replace('A', 1)
-        table_data['past_all_weather_flag_3'] = table_data['past_all_weather_flag_3'].replace('A', 1)
-        table_data['past_all_weather_flag_4'] = table_data['past_all_weather_flag_4'].replace('A', 1)
-        table_data['past_all_weather_flag_5'] = table_data['past_all_weather_flag_5'].replace('A', 1)
-        table_data['past_all_weather_flag_6'] = table_data['past_all_weather_flag_6'].replace('A', 1)
-        table_data['past_all_weather_flag_7'] = table_data['past_all_weather_flag_7'].replace('A', 1)
-        table_data['past_all_weather_flag_8'] = table_data['past_all_weather_flag_8'].replace('A', 1)
-        table_data['past_all_weather_flag_9'] = table_data['past_all_weather_flag_9'].replace('A', 1)
-        table_data['past_all_weather_flag_10'] = table_data['past_all_weather_flag_10'].replace('A', 1)
+
+        for i in range(1, 11):
+            table_data['past_special_chute_{}'.format(i)] = table_data['past_special_chute_{}'.format(i)].replace('c', 1)
+            table_data['past_special_chute_{}'.format(i)] = table_data['past_special_chute_{}'.format(i)].fillna(0)
+
+        for i in range(1, 11):
+            table_data['past_bar_shoe_{}'.format(i)] = table_data['past_bar_shoe_{}'.format(i)].replace('r', 1)
+            table_data['past_bar_shoe_{}'.format(i)] = table_data['past_bar_shoe_{}'.format(i)].fillna(0)
+
+        for i in range(1, 11):
+            table_data['past_sealed_track_indicator_{}'.format(i)] = \
+                table_data['past_sealed_track_indicator_{}'.format(i)].replace('s', 1)
+            table_data['past_sealed_track_indicator_{}'.format(i)] = \
+                table_data['past_sealed_track_indicator_{}'.format(i)].fillna(0)
+
+        for i in range(1, 11):
+            table_data['past_all_weather_flag_{}'.format(i)] = table_data['past_all_weather_flag_{}'.format(i)].replace('A', 1)
+            table_data['past_all_weather_flag_{}'.format(i)] = table_data['past_all_weather_flag_{}'.format(i)].fillna(0)
+
+        for i in range(1, 11):
+            table_data['past_equipment_{}'.format(i)] = table_data['past_equipment_{}'.format(i)].replace('b', 1)
+            table_data['past_equipment_{}'.format(i)] = table_data['past_equipment_{}'.format(i)].fillna(0)
+
+        for i in range(1, 11):
+            table_data['past_entry_{}'.format(i)] = table_data['past_entry_{}'.format(i)].replace('e', 1)
+            table_data['past_entry_{}'.format(i)] = table_data['past_entry_{}'.format(i)].fillna(0)
+
+        for i in range(1, 11):
+            table_data['past_claimed_code_{}'.format(i)] = table_data['past_claimed_code_{}'.format(i)].replace('e', 1)
+            table_data['past_claimed_code_{}'.format(i)] = table_data['past_claimed_code_{}'.format(i)].fillna(0)
+
+        for i in range(1, 11):
+            table_data['past_statebred_flag_{}'.format(i)] = table_data['past_statebred_flag_{}'.format(i)].replace('e', 1)
+            table_data['past_statebred_flag_{}'.format(i)] = table_data['past_statebred_flag_{}'.format(i)].fillna(0)
 
 
 
