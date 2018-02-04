@@ -16,6 +16,7 @@ class DbHandler:
             '6': column_dtypes.col_6_dtypes,
             'DRF': column_dtypes.past_performances_dtypes,
         }
+        self.initialize_db()
 
     def initialize_db(self):
         """Checks to see if db exists. If not, creates it."""
@@ -63,7 +64,7 @@ class DbHandler:
         # TO DO
         # Check whether tabel looks like it has the right number of columns and column names
 
-    def initialize_pp_table(self, pp_object):
+    def initialize_pp_table(self, table_name, dtypes, unique_key, foreign_key):
         """Checks to see if a table exists. If not, creates it."""
         self.mysql = self.__connect()
         table_exists = None
@@ -71,19 +72,19 @@ class DbHandler:
             with self.mysql.cursor() as cursor:
                 self.__use_db(cursor)
                 sql = "SELECT count(*) FROM information_schema.TABLES "
-                sql += "WHERE (TABLE_SCHEMA = '{}') AND (TABLE_NAME = '{}')".format(self.db, pp_object.table_name)
+                sql += "WHERE (TABLE_SCHEMA = '{}') AND (TABLE_NAME = '{}')".format(self.db, table_name)
                 cursor.execute(sql)
                 table_exists = [item for item in cursor][0][0]
 
                 if table_exists:
-                    print("Table {} already exists--skipping creation step.".format(pp_object.table_name))
+                    print("Table {} already exists--skipping creation step.".format(table_name))
                 elif table_exists == None:
-                    print("There was an error determining if table {} exists".format(pp_object.table_name), end="")
+                    print("There was an error determining if table {} exists".format(table_name), end="")
                     print("table_exists still at default value--skipping creation step.")
                 elif table_exists == 0:
-                    self.__create_table2(cursor, pp_object)
+                    self.__create_table2(cursor, table_name, dtypes, unique_key, foreign_key)
                 else:
-                    print("There was a problem checking whether {} exists".format(pp_object.table_name), end="")
+                    print("There was a problem checking whether {} exists".format(table_name), end="")
                     print("--unexpected table_exists value.")
         finally:
             self.mysql.close()
@@ -98,6 +99,15 @@ class DbHandler:
             with self.mysql.cursor() as cursor:
                 self.__use_db(cursor)
                 self.__insert_records(cursor, table_name, table_data, column_names)
+        finally:
+            self.mysql.close()
+
+    def add_to_table2(self, table_name, table_data, sql_col_names):
+        self.mysql = self.__connect()
+        try:
+            with self.mysql.cursor() as cursor:
+                self.__use_db(cursor)
+                self.__insert_records2(cursor, table_name, table_data, sql_col_names)
         finally:
             self.mysql.close()
         # ---------------TO DO---------------------------
@@ -139,24 +149,24 @@ class DbHandler:
         #   Maybe pull those 'extras' out from a separate function that
         #   returns the extra stuff based on the table_
 
-    def __create_table2(self, cursor, obj):
+    def __create_table2(self, cursor, table_name, dtypes, unique_key, foreign_key):
         data_type = None
-        sql = "CREATE TABLE {} (".format(obj.table_name)
+        sql = "CREATE TABLE {} (".format(table_name)
         sql += "id INT NOT NULL AUTO_INCREMENT, "
-        for column_name, column_dtype in obj.dtypes.items():
+        for column_name, column_dtype in dtypes.items():
             sql += "{} {}, ".format(column_name, column_dtype)
         sql += "PRIMARY KEY (id)"
-        if obj.unique_key:
+        if unique_key:
             sql += ", UNIQUE ("
-            for key in obj.unique_key:
+            for key in unique_key:
                 sql += key + ', '
             sql = sql[:-2]  # Chop off last ', '
             sql += ")"
-        if obj.foreign_key:
+        if foreign_key:
             sql += ", FOREIGN KEY("
-            sql += list(obj.foreign_key)[0]
+            sql += list(foreign_key)[0]
             sql += ") REFERENCES "
-            sql += list(obj.foreign_key.values())[0]
+            sql += list(foreign_key.values())[0]
         sql += ')'          # ... and balance parentheses before sending.
         print(sql)
         cursor.execute(sql)
@@ -179,15 +189,18 @@ class DbHandler:
             cursor.execute(sql)
         self.mysql.commit()
 
-    def __insert_records2(self, cursor, table_name, table_data, table_structure):
-        table_values = table_data[list(table_structure.values())]
+    def __insert_records2(self, cursor, table_name, table_data, sql_col_names):
         for i in range(len(table_data)):
             values_string = ""
-            for item in table_values[i]:
+            for item in table_data[i:i+1].values[0]:
                 values_string += re.sub(r"'", "\\'", str(item)) + "', '"
             values_string = values_string[:-4]  # Chop off extra "', '"
-            sql = "INSERT INTO {} ({}) VALUES ('{}')".format(table_name, ", ".join(column_names), values_string)
+            sql = "INSERT INTO {} ({}) VALUES ('{}')".format(table_name, ", ".join(sql_col_names), values_string)
             sql = re.sub(r"'NULL'", "NULL", sql)  # NULL should be sent in SQL w/o quote marks
             print(i+1, "of", len(table_data), ":", sql)
-            cursor.execute(sql)
+            try:
+                cursor.execute(sql)
+            except IntegrityError as e:
+                print(e)
+
         self.mysql.commit()

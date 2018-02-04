@@ -1,27 +1,39 @@
-import past_perf_db_structure as db_struct
-import database_functions as db_functions
+import past_perf_db_structure as tables
 from def_objects import file_dtypes
 
-def create_db_schema(structure_object):
-    """This takes in a dict with information about how a table should be constructed
-    and outputs a dict with the keys being the column name and the values being
-    the SQL data type that the columns should have."""
-    schema_object = {}
-    extension = structure_object['extension']
-    fields = structure_object['db_fields']
-    multi_entry_table = any(item for item in list(fields.values()) if '{}' in item)
-    for key, value in fields.items():
-        schema_object[key] = file_dtypes[extension][value.format('1') if multi_entry_table else value]
-    return schema_object
+pp_tables = [
+    tables.horses_info_table,
+    tables.trainers_info_table,
+    tables.jockey_info_table,
+    tables.owner_info_table,
+    tables.workouts_table,
+    tables.race_info_table,
+    tables.horses_race_table,
+    tables.horses_pp_table,
+    tables.horses_stats_table,
+    tables.trainer_stats_table,
+    tables.jockey_stats_table,
+    tables.tj_combo_stats_table,
+    tables.owner_stats_table,
+]
 
 class PastPerfData:
+    def process_data(self, df, db_handler):
+        print('Adding data to {} in {}'.format(self.table_name, db_handler.db))
+        table_data = df[self.df_col_names]
+        db_handler.initialize_pp_table(self.table_name, self.dtypes, self.unique_key, self.foreign_key)
+        if not self.multi_entry_table:
+            db_handler.add_to_table2(self.table_name, table_data, self.sql_col_names)
+        else:
+            
+
     def __create_dtype_info(self, structure_dict):
         """This takes in a dict with information about how a table should be constructed
         and outputs a dict with the keys being the column name and the values being
         the SQL data type that the columns should have."""
         dtype_info = {}
         extension = self.extension
-        fields = self.sql_table_cols
+        fields = self.table_structure
         for key, value in fields.items():
             dtype_info[key] = file_dtypes[extension][value.format('1') if self.multi_entry_table else value]
         return dtype_info
@@ -31,8 +43,9 @@ class PastPerfData:
         self.unique_key = structure_dict['unique_key']
         self.foreign_key = structure_dict['foreign_key']
         self.extension = structure_dict['extension']
-        self.sql_table_cols = structure_dict['db_fields']
-        self.df_table_cols = list(self.sql_table_cols.values())
-        self.multi_entry_table = any(item for item in list(self.sql_table_cols.values()) if '{} in item')
+        self.table_structure = structure_dict['db_fields']
+        self.sql_col_names = [sql_col for sql_col, df_col in self.table_structure.items()]
+        self.df_col_names = [df_col for sql_col, df_col in self.table_structure.items()]
+        self.multi_entry_table = any(item for item in self.df_col_names if '{}' in item)
         self.dtypes = self.__create_dtype_info(structure_dict)
 

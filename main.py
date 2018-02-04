@@ -1,7 +1,7 @@
-import csv_processing_functions as processor
 import df_preprocessing as cleaner
 import database_functions
 from def_objects import file_structure as name_files
+import past_perf_functions as pp
 
 import os
 import pathlib
@@ -26,7 +26,6 @@ def main(file_to_process='', path='data'):
         file_paths = [pathlib.Path(path, file) for file in os.listdir(path)]
         file_paths = [file for file in file_paths if file.is_file()]
     db = database_functions.DbHandler()
-    db.initialize_db()
     i = 1
     for file in file_paths:
         print('Processing {} ({} of {})'.format(file, i, len(file_paths)))
@@ -44,8 +43,6 @@ def main(file_to_process='', path='data'):
         print('Moving {} to {}\n'.format(file.name, processed_dir))
         file.rename(processed_dir / file.name)
 
-
-
 def process_csv_file(file):
     extension = re.search(r'(?<=\.).+$', str(file))[0]
     #   Read the data in and run it through the cleaner
@@ -55,3 +52,30 @@ def process_csv_file(file):
     for column in columns_to_delete[str(extension)]:
         del table_data[column]
     return table_data, extension
+
+def process_drf_files(file_to_process='', path='data'):
+    if file_to_process:
+        file_paths = []
+        file_paths.append(pathlib.Path(path, file_to_process))
+    else:
+        file_paths = [pathlib.Path(path, file) for file in os.listdir(path)]
+        file_paths = [file for file in file_paths if file.is_file()]
+    db = database_functions.DbHandler()
+    pp_handlers = []
+    for table in pp.pp_tables:
+        pp_handlers.append(pp.PastPerfData(table))
+    i = 1
+    for file in file_paths:
+        print('Processing {} ({} of {})'.format(file, i, len(file_paths)))
+        try:
+            table_data, extension = process_csv_file(file)
+        except FileNotFoundError as e:
+            print('There was a problem finding the file {}:'.format(file))
+            print('\t', e)
+            continue
+        for handler in pp_handlers:
+            handler.process_data(table_data, db)
+
+
+
+

@@ -1,4 +1,4 @@
-horse_table_structure = {
+horses_info_table = {
     'table_name': 'horses_info',
     'extension' : 'DRF',
 
@@ -27,7 +27,7 @@ horse_table_structure = {
     ],
 }
 
-trainer_table_structure = {
+trainers_info_table = {
     'table_name': 'trainers_info',
     'extension': 'DRF',
 
@@ -42,7 +42,7 @@ trainer_table_structure = {
     'foreign_key': {}
 }
 
-jockey_table_structure = {
+jockey_info_table = {
     'table_name': 'jockey_info',
     'extension': 'DRF',
 
@@ -57,7 +57,7 @@ jockey_table_structure = {
     'foreign_key': {}
 }
 
-owner_table_structure = {
+owner_info_table = {
     'table_name': 'owner_info',
     'extension': 'DRF',
 
@@ -72,7 +72,7 @@ owner_table_structure = {
     'foreign_key': {}
 }
 
-workout_table_structure = {
+workouts_table = {
     'table_name': 'workouts',
     'extension': 'DRF',
 
@@ -102,7 +102,7 @@ workout_table_structure = {
     }
 }
 
-race_info_table_structure = {
+race_info_table = {
     'table_name': 'race_info',
     'extension': 'DRF',
 
@@ -165,7 +165,7 @@ race_info_table_structure = {
     'foreign_key': {},
 }
 
-horse_current_race_table_structure = {
+horses_race_table = {
     'table_name': 'horses_race',
     'extension': 'DRF',
 
@@ -206,10 +206,12 @@ horse_current_race_table_structure = {
         'horse_name',
     ],
 
-    'foreign_key': {}
+    'foreign_key': {
+        'horse_name': 'horses_info(horse_name)'
+    }
 }
 
-horse_pp_table_sructure = {
+horses_pp_table = {
     'table_name': 'horse_pps',
     'extension': 'DRF',
 
@@ -339,10 +341,12 @@ horse_pp_table_sructure = {
         'race_num',
     ],
 
-    'foreign_key': {}
+    'foreign_key': {
+        'horse_name': 'horses_info(horse_name)'
+    }
 }
 
-horse_stats_table_structure = {
+horses_stats_table = {
     'table_name': 'horses_stats',
     'extension': 'DRF',
 
@@ -443,10 +447,12 @@ horse_stats_table_structure = {
         'horse_name',
     ],
 
-    'foreign_key': {}
+    'foreign_key': {
+        'horse_name': 'horses_info(horse_name)'
+    }
 }
 
-trainer_stats_table_structure = {
+trainer_stats_table = {
     'table_name': 'trainer_stats',
     'extension': 'DRF',
 
@@ -480,7 +486,7 @@ trainer_stats_table_structure = {
     'foreign_key': {}
 }
 
-jockey_stats_table_structure = {
+jockey_stats_table = {
     'table_name': 'jockey_stats',
     'extension': 'DRF',
 
@@ -523,7 +529,7 @@ jockey_stats_table_structure = {
     'foreign_key': {}
 }
 
-trainer_jockey_stats_table_structure = {
+tj_combo_stats_table = {
     'table_name': 'tj_combo_stats',
     'extension': 'DRF',
 
@@ -555,7 +561,7 @@ trainer_jockey_stats_table_structure = {
     'foreign_key': {}
 }
 
-owner_stats_table_structure = {
+owner_stats_table = {
     'table_name': 'owner_stats',
     'extension': 'DRF',
 
