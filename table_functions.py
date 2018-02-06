@@ -1,26 +1,33 @@
-import past_perf_db_structure as tables
+import past_perf_db_structure as tables0
+import db_structure_results as tables1
 from def_objects import file_dtypes
 
 import logging
 
-pp_tables = [
-    tables.horses_info_table,
-    tables.trainers_info_table,
-    tables.jockey_info_table,
-    tables.owner_info_table,
-    tables.workouts_table,
-    tables.race_info_table,
-    tables.horses_race_table,
-    tables.horses_pp_table,
-    tables.horses_stats_table,
-    tables.switches_table,
-    tables.trainer_stats_table,
-    tables.jockey_stats_table,
-    tables.tj_combo_stats_table,
-    tables.owner_stats_table,
+tables = [
+    tables1.race_general_results_table,
+    tables1.race_notes_table,
+    tables1.race_horse_info_table,
+    tables1.horse_breeding_info_table,
+    tables1.race_payoffs_itm_table,
+    tables1.race_payoffs_exotic_table,
+    tables0.horses_info_table,
+    tables0.trainers_info_table,
+    tables0.jockey_info_table,
+    tables0.owner_info_table,
+    tables0.workouts_table,
+    tables0.race_info_table,
+    tables0.horses_race_table,
+    tables0.horses_pp_table,
+    tables0.horses_stats_table,
+    tables0.switches_table,
+    tables0.trainer_stats_table,
+    tables0.jockey_stats_table,
+    tables0.tj_combo_stats_table,
+    tables0.owner_stats_table,
 ]
 
-class PastPerfData:
+class TableHandler:
     def process_data(self, df, db_handler):
         logging.debug('Adding data to {} in {}'.format(self.table_name, db_handler.db))
         if not self.table_initialized:

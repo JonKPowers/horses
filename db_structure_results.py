@@ -1,4 +1,3 @@
-results_tables
 race_general_results_table = {
     'table_name': 'race_general_results',
     'extension' : '1',
