@@ -31,16 +31,20 @@ def main(file_to_process='', path='data'):
         file_paths = [file for file in file_paths if file.is_file()]
     db = database_functions.DbHandler()
     i = 1
+    table_initialized: {'1': False, '2': False, '3': False, '4': False, '5': False, '6': False,}
     for file in file_paths:
         logging.debug('Processing {} ({} of {})'.format(file, i, len(file_paths)))
         # print('Processing {} ({} of {})'.format(file, i, len(file_paths)))
         try:
             table_data, extension = process_csv_file(file)
         except FileNotFoundError as e:
+            logging.info('File {} not found during process_csv_file()'.format(e))
             print('There was a problem finding the file {}:'.format(file))
             print('\t', e)
             continue
-        db.initialize_table(extension+'_data', extension)
+        if not table_initialized[extension]:
+            db.initialize_table(extension+'_data', extension)
+            table_initialized[extension] = True
         db.add_to_table(extension+'_data', table_data, column_names=list(table_data))
         i += 1
         processed_dir = file.parent / (extension+'_file')

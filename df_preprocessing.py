@@ -8,9 +8,14 @@ def tidy_it_up(table_data, extension):
         # Flag fixes
 
         table_data['about_dist_flag'] = table_data['about_dist_flag'].replace('A', 1)
+
         table_data['all_weather_flag'] = table_data['all_weather_flag'].replace('A', 1)
+        table_data['all_weather_flag'] = table_data['all_weather_flag'].fillna(0)
+
         table_data['chute_start_flag'] = table_data['chute_start_flag'].replace('C', 1)
         table_data['chute_start_flag'] = table_data['chute_start_flag'].replace('N', 0)
+        table_data['chute_start_flag'] = table_data['chute_start_flag'].fillna(0)
+
         table_data['off_turf_flag'] = table_data['off_turf_flag'].replace('O', 1)
         table_data['off_turf_dist_change'] = table_data['off_turf_dist_change'].replace('Y', 1)
         table_data['off_turf_dist_change'] = table_data['off_turf_dist_change'].replace('N', 0)
@@ -23,8 +28,13 @@ def tidy_it_up(table_data, extension):
         print('Tidying .2 file ...')
 
         table_data['nonbetting_flag'] = table_data['nonbetting_flag'].replace('Y', 1)
+        table_data['nonbetting_flag'] = table_data['nonbetting_flag'].fillna(0)
+
         table_data['disqualified_flag'] = table_data['disqualified_flag'].replace('Y', 1)
+
         table_data['corrected_weight'] = table_data['corrected_weight'].replace('Y', 1)
+        table_data['corrected_weight'] = table_data['corrected_weight'].fillna(0)
+
         table_data['claimed_flag'] = table_data['claimed_flag'].replace('Y', 1)
         table_data['claimed_flag'] = table_data['claimed_flag'].replace('N', 0)
         table_data['dead_heat_flag'] = table_data['dead_heat_flag'].replace('DH', 1)

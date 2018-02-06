@@ -1,5 +1,7 @@
 To Do-
 	(1) Add double check in trainer_stats for duplicate entries to confirm that data is identical on tainer/date item.
+	(2) If run_up_dist in .1 files is 250, need to check notes/comments to see if there's a longer run-up distance (250 is max on BRIS database, apparently).
+	(3) Combine tables and put in consistency checking to confirm that info is consistent across these data sources.
 
 
 CTX0422.DRF-

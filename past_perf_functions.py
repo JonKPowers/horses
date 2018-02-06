@@ -23,7 +23,9 @@ pp_tables = [
 class PastPerfData:
     def process_data(self, df, db_handler):
         logging.debug('Adding data to {} in {}'.format(self.table_name, db_handler.db))
-        db_handler.initialize_pp_table(self.table_name, self.dtypes, self.unique_key, self.foreign_key)
+        if not self.table_initialized:
+            db_handler.initialize_pp_table(self.table_name, self.dtypes, self.unique_key, self.foreign_key)
+            self.table_initialized = True
         if self.multi_entry_table:
             for i in range(1, 11):
                 col_names = [item.format(i) for item in self.df_col_names]
@@ -47,6 +49,7 @@ class PastPerfData:
 
     def __init__(self, structure_dict):
         self.table_name = structure_dict['table_name']
+        self.table_initialized = False
         self.unique_key = structure_dict['unique_key']
         self.foreign_key = structure_dict['foreign_key']
         self.extension = structure_dict['extension']

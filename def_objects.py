@@ -218,7 +218,7 @@ file_structure = {
         'jockey_middle_name',   ##      16      CHARACTER                       15
         'reserved17',           ##      17
         'trainer_name',         ##      18      CHARACTER                       30      Abbreviated
-        'trainer__last_name',   ##      19      CHARACTER                       80
+        'trainer_last_name',   ##      19      CHARACTER                       80
         'trainer_first_name',   ##      20      CHARACTER                       15
         'trainer_middle_name',  ##      21      CHARACTER                       15
         'trip_comment',         ##      22      CHARACTER                       22
@@ -2306,7 +2306,7 @@ file_dtypes = {
         'jockey_first_name': 'VARCHAR(255)',
         'jockey_middle_name': 'VARCHAR(255)',
         'trainer_name': 'VARCHAR(255)',
-        'trainer__last_name': 'VARCHAR(255)',
+        'trainer_last_name': 'VARCHAR(255)',
         'trainer_first_name': 'VARCHAR(255)',
         'trainer_middle_name': 'VARCHAR(255)',
         'trip_comment': 'VARCHAR(255)',
