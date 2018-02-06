@@ -1,7 +1,7 @@
 import column_dtypes
 import pymysql.cursors
 import re
-
+import logging
 
 class DbHandler:
     def __init__(self, db='horses_test'):
@@ -77,7 +77,7 @@ class DbHandler:
                 table_exists = [item for item in cursor][0][0]
 
                 if table_exists:
-                    print("Table {} already exists--skipping creation step.".format(table_name))
+                    logging.debug("Table {} already exists--skipping creation step.".format(table_name))
                 elif table_exists == None:
                     print("There was an error determining if table {} exists".format(table_name), end="")
                     print("table_exists still at default value--skipping creation step.")
@@ -193,14 +193,16 @@ class DbHandler:
         for i in range(len(table_data)):
             values_string = ""
             for item in table_data[i:i+1].values[0]:
-                values_string += re.sub(r"'", "\\'", str(item)) + "', '"
+                escaped_item = re.sub(r"(['\\])", r'\\\1', str(item))
+                cleaned_item = re.sub(u"\uFFFD", '', escaped_item)
+                values_string += cleaned_item + "', '"
             values_string = values_string[:-4]  # Chop off extra "', '"
             sql = "INSERT INTO {} ({}) VALUES ('{}')".format(table_name, ", ".join(sql_col_names), values_string)
             sql = re.sub(r"'NULL'", "NULL", sql)  # NULL should be sent in SQL w/o quote marks
-            print(i+1, "of", len(table_data), ":", sql)
+            logging.debug('{} of {}: {}'.format(i+1,len(table_data), sql))
             try:
                 cursor.execute(sql)
-            except IntegrityError as e:
-                print(e)
-
+            except (pymysql.err.ProgrammingError, pymysql.err.IntegrityError) as e:
+                logging.info('Error adding entry: \n\t{}'.format(e))
+        # Have it return something if the operation raises an error and move the file into a problem file folder.
         self.mysql.commit()

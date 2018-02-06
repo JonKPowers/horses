@@ -1,0 +1,6 @@
+To Do-
+	(1) Add double check in trainer_stats for duplicate entries to confirm that data is identical on tainer/date item.
+
+
+CTX0422.DRF-
+	(1) row 20, past_claimed_code_1 was 'v'; changed to 'c'

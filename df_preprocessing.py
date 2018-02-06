@@ -1,6 +1,3 @@
-# ----------------------------------------------------------------
-#   Items to do for processing csv/pd.df items
-#       (1) .1--about_dist_flag should be changed to 0 or 1 (from NaN or 'A')
 
 def tidy_it_up(table_data, extension):
     extension = str(extension)
@@ -181,11 +178,12 @@ def tidy_it_up(table_data, extension):
             table_data['past_entry_{}'.format(i)] = table_data['past_entry_{}'.format(i)].fillna(0)
 
         for i in range(1, 11):
-            table_data['past_claimed_code_{}'.format(i)] = table_data['past_claimed_code_{}'.format(i)].replace('e', 1)
+            table_data['past_claimed_code_{}'.format(i)] = table_data['past_claimed_code_{}'.format(i)].replace('c', 1)
+            table_data['past_claimed_code_{}'.format(i)] = table_data['past_claimed_code_{}'.format(i)].replace('v', 1)
             table_data['past_claimed_code_{}'.format(i)] = table_data['past_claimed_code_{}'.format(i)].fillna(0)
 
         for i in range(1, 11):
-            table_data['past_statebred_flag_{}'.format(i)] = table_data['past_statebred_flag_{}'.format(i)].replace('e', 1)
+            table_data['past_statebred_flag_{}'.format(i)] = table_data['past_statebred_flag_{}'.format(i)].replace('s', 1)
             table_data['past_statebred_flag_{}'.format(i)] = table_data['past_statebred_flag_{}'.format(i)].fillna(0)
 
 

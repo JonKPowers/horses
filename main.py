@@ -7,6 +7,9 @@ import os
 import pathlib
 import re
 import pandas as pd
+import logging
+
+logging.basicConfig(filename='main_py.log', filemode='w', level=logging.INFO)
 
 columns_to_delete = {
     '1': [s for s in name_files['1'] if 'reserved' in s],
@@ -19,6 +22,7 @@ columns_to_delete = {
 }
 
 def main(file_to_process='', path='data'):
+    logging.debug('main() started with file_to_process={} and path={}'.format(file_to_process, path))
     if file_to_process:
         file_paths = []
         file_paths.append(pathlib.Path(path, file_to_process))
@@ -28,7 +32,8 @@ def main(file_to_process='', path='data'):
     db = database_functions.DbHandler()
     i = 1
     for file in file_paths:
-        print('Processing {} ({} of {})'.format(file, i, len(file_paths)))
+        logging.debug('Processing {} ({} of {})'.format(file, i, len(file_paths)))
+        # print('Processing {} ({} of {})'.format(file, i, len(file_paths)))
         try:
             table_data, extension = process_csv_file(file)
         except FileNotFoundError as e:
@@ -54,18 +59,20 @@ def process_csv_file(file):
     return table_data, extension
 
 def process_drf_files(file_to_process='', path='data'):
+    logging.debug('process_drf_files() started with file_to_process={} and path={}'.format(file_to_process, path))
     if file_to_process:
         file_paths = []
         file_paths.append(pathlib.Path(path, file_to_process))
     else:
         file_paths = [pathlib.Path(path, file) for file in os.listdir(path)]
-        file_paths = [file for file in file_paths if file.is_file()]
-    db = database_functions.DbHandler()
+        file_paths = [file for file in file_paths if re.search(r'\.DRF$', file.name)]
+    db = database_functions.DbHandler('horses_pp')
     pp_handlers = []
     for table in pp.pp_tables:
         pp_handlers.append(pp.PastPerfData(table))
     i = 1
     for file in file_paths:
+        logging.info('Processing {} ({} of {})'.format(file, i, len(file_paths)))
         print('Processing {} ({} of {})'.format(file, i, len(file_paths)))
         try:
             table_data, extension = process_csv_file(file)
@@ -75,6 +82,11 @@ def process_drf_files(file_to_process='', path='data'):
             continue
         for handler in pp_handlers:
             handler.process_data(table_data, db)
+        processed_dir = file.parent / (extension+'_file')
+        processed_dir.mkdir(exist_ok = True)
+        logging.info('Moving {} to {}\n'.format(file.name, processed_dir))
+        file.rename(processed_dir / file.name)
+        i += 1
 
 
 

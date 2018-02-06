@@ -432,6 +432,25 @@ horses_stats_table = {
         'life_on_wet_places': 'life_wet_places',
         'life_on_wet_shows': 'life_wet_shows',
         'life_on_wet_earnings': 'life_wet_earned',
+    },
+
+    'unique_key': [
+        'date',
+        'horse_name',
+    ],
+
+    'foreign_key': {
+        'horse_name': 'horses_info(horse_name)'
+    }
+}
+
+switches_table = {
+    'table_name': 'switches',
+    'extension': 'DRF',
+
+    'db_fields': {
+        'date': 'date',
+        'horse_name': 'horse_name',
 
         'claim_trainer_switch_date': 'past_claim_trainer_switch_date_{}',
         'claim_trainer_switch_info_1': 'past_claim_trainer_switch_1_{}',
@@ -442,10 +461,7 @@ horses_stats_table = {
 
     },
 
-    'unique_key': [
-        'date',
-        'horse_name',
-    ],
+    'unique_key': [],
 
     'foreign_key': {
         'horse_name': 'horses_info(horse_name)'
@@ -572,8 +588,8 @@ owner_stats_table = {
     },
 
     'unique_key': [
-        'date',
         'owner',
+        'silks'
     ],
 
     'foreign_key': {}

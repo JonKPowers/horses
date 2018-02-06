@@ -1896,7 +1896,7 @@ file_structure = {
         'best_bris_speed_fast',             ##      1178    NUMERIC         999     3
         'best_bris_speed_turf',             ##      1179    NUMERIC         999     3
         'best_bris_speed_off_track',        ##      1180    NUMERIC         999     3
-        'best_bris_speed__at_distance',     ##      1181    NUMERIC         999     3
+        'best_bris_speed_at_distance',     ##      1181    NUMERIC         999     3
 
         ## Bar Shoe WHAT DOES THIS MEAN?
         'past_bar_shoe_1',                  ##      1182    CHARACTER       X       1       r- bar shoe
