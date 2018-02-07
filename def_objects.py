@@ -218,7 +218,7 @@ file_structure = {
         'jockey_middle_name',   ##      16      CHARACTER                       15
         'reserved17',           ##      17
         'trainer_name',         ##      18      CHARACTER                       30      Abbreviated
-        'trainer_last_name',   ##      19      CHARACTER                       80
+        'trainer_last_name',    ##      19      CHARACTER                       80
         'trainer_first_name',   ##      20      CHARACTER                       15
         'trainer_middle_name',  ##      21      CHARACTER                       15
         'trip_comment',         ##      22      CHARACTER                       22

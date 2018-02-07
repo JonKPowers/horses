@@ -44,7 +44,7 @@ def main(file_to_process='', path='data'):
         #---> Need to add something to catch non-covered filetypes, like a pdf
 
     # Create the database handler
-    db = database_functions.DbHandler(db='horses_test0')
+    db = database_functions.DbHandler(db='horses_data')
 
     # Create the table handlers
     for table in tbl.tables:
@@ -53,10 +53,12 @@ def main(file_to_process='', path='data'):
 
     # Initialize some counter/tracking variables
     i = 1
-    table_initialized: {'1': False, '2': False, '3': False, '4': False, '5': False, '6': False, 'DRF': False}
+    valid_extensions = ['1', '2', '3', '4', '5', '6', 'DRF']
 
     # Process each csv file, then run it through its table handler to add to db
     for file in file_paths:
+        if file.suffix[1:] not in valid_extensions:
+            continue
         logging.debug('Processing {} ({} of {})'.format(file, i, len(file_paths)))
         print('Processing {} ({} of {})'.format(file, i, len(file_paths)))
 
@@ -69,17 +71,10 @@ def main(file_to_process='', path='data'):
             print('\t', e)
             continue
 
-        # Create the table if it doesn't exist
-        if not table_initialized[extension]:
-            db.initialize_table(extension+'_data', extension)
-            table_initialized[extension] = True
-
-
         # For each file, run it through the handlers for its file type
+        print('Adding {} info to database ...'.format(file))
         for handler in df_handlers[extension]:
             handler.process_data(table_data, db)
-
-        db.add_to_table(extension+'_data', table_data, column_names=list(table_data))
 
         # Move the processed file to its processed-file directory
         processed_dir = file.parent / (extension+'_file')

@@ -63,7 +63,7 @@ race_general_results_table = {
         'distance_fraction_4': 'fraction_4_dist',
         'distance_fraction_5': 'fraction_5_dist',
 
-        'distance_start_call': 'state_call_dist',
+        'distance_start_call': 'start_call_dist',
         'distance_first_call': 'call_dist_first',
         'distance_second_call': 'call_dist_second',
         'distance_third_call': 'call_dist_third',
@@ -143,7 +143,7 @@ race_horse_info_table = {
         'claimed_trainer_id': 'claimed_trainer_id',
         'claimed_trainer_first': 'claimed_trainer_first',
         'claimed_trainer_middle': 'claimed_trainer_middle',
-        'claimed_trainer_last': 'claimed_trainer_lastst',
+        'claimed_trainer_last': 'claimed_trainer_last',
 
         'odds': 'odds',
         'favorite': 'favorite_flag',
@@ -157,7 +157,7 @@ race_horse_info_table = {
 
         'weight': 'weight',
         'weight_corrected': 'corrected_weight',
-        'weight_overweight_amt': 'overweigh_amt',
+        'weight_overweight_amt': 'overweight_amt',
 
         'medication': 'medication_codes',
         'equipment': 'equipment_code',
@@ -172,7 +172,7 @@ race_horse_info_table = {
         'trainer_name': 'trainer_name',
         'trainer_first': 'trainer_first_name',
         'trainer_middle': 'trainer_middle_name',
-        'trainer_last': 'trainer_first_last',
+        'trainer_last': 'trainer_last_name',
 
         'owner_id': 'owner_id',
         'owner_name': 'owner_name',
@@ -194,7 +194,7 @@ race_horse_info_table = {
         'lead_1st_call': '1st_call_lead',
         'lead_2d_call': '2d_call_lead',
         'lead_3d_call': '3d_call_lead',
-        'lead_stretch_call': 'stretch_call_lead',
+        'lead_stretch_call': 'stretch_lead',
         'lead_finish': 'finish_lead',
 
         'beaten_start': 'start_beaten',
@@ -238,8 +238,8 @@ horse_breeding_info_table = {
         'program_num': 'program_number',
 
         'horse_name': 'horse_name',
-        'foreign_bred': 'foreign_bred_code',
-        'state_bred': 'state_bred_code',
+        'foreign_bred': 'foreignbred_code',
+        'state_bred': 'statebred_code',
 
         'breeder': 'breeder',
         'color': 'color',
@@ -277,7 +277,7 @@ race_payoffs_itm_table = {
         'horse_name': 'horse_name',
         'program_num': 'program_number',
         'foreign_bred': 'foreign_bred_code',
-        'state_bred': 'state_bred_code',
+        'state_bred': 'statebred_code',
 
         'payout_win': 'win_payout',
         'payout_place': 'place_payout',
