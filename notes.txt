@@ -2,7 +2,23 @@ To Do-
 	(1) Add double check in trainer_stats for duplicate entries to confirm that data is identical on tainer/date item.
 	(2) If run_up_dist in .1 files is 250, need to check notes/comments to see if there's a longer run-up distance (250 is max on BRIS database, apparently).
 	(3) Combine tables and put in consistency checking to confirm that info is consistent across these data sources.
+	(4) In .6 data, need to combine all the comment snippets into a larger block. Not sure what the MYSQL datatype would be for that.
+	(5) Add 'bullet' workout indicator.
+	(6) Fix date data format.
+	(7) Work on documentation.
+	(8) Pull out QH races into separate DB
+	(9) Pull out time_final == 0 races
+	(10) pull out null entries for _1:_10 features.
+	(11) add source file entry to tables to aid in tracking data issues back to original file.
+	(12) date formatting for past_claim_trainer_switch_date (this field is a weirdo already... need to figure it out).
+
 
 
 CTX0422.DRF-
 	(1) row 20, past_claimed_code_1 was 'v'; changed to 'c'
+
+LRL06172017.2-
+	(2) row 7, trip_comment string was not quoted and had a weird quote mark in it.
+
+Errata/Data issues:
+	(1) race_general_results[84544]: AQU, 2006/12/16, race 8. Has weird distance of 1830.4. Maybe try to pull a PDF of race results.

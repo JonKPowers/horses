@@ -10,11 +10,11 @@ def tidy_it_up(table_data, extension):
         table_data['about_dist_flag'].replace('A', 1, inplace=True)
 
         table_data['all_weather_flag'].replace('A', 1, inplace=True)
-        table_data['all_weather_flag'].fillna(0)
+        table_data['all_weather_flag'].fillna(0, inplace=True)
 
         table_data['chute_start_flag'].replace('C', 1, inplace=True)
         table_data['chute_start_flag'].replace('N', 0, inplace=True)
-        table_data['chute_start_flag'].fillna(0)
+        table_data['chute_start_flag'].fillna(0, inplace=True)
 
         table_data['off_turf_flag'].replace('O', 1, inplace=True)
         table_data['off_turf_dist_change'].replace('Y', 1, inplace=True)
@@ -22,7 +22,7 @@ def tidy_it_up(table_data, extension):
 
         # *********************************************
         # Fill and na's with NULL for MYSQL transfer
-        table_data = table_data.fillna('NULL')
+        table_data.fillna('NULL', inplace=True)
 
     if extension == '2':
         print('Tidying .2 file ...')
@@ -58,7 +58,7 @@ def tidy_it_up(table_data, extension):
 
         # **********************************************
         # Fill the rest with 'NULL'
-        table_data = table_data.fillna('NULL', inplace=True)
+        table_data.fillna('NULL', inplace=True)
 
     if extension == '3':
         print('Tidying .3 file (ITM payoffs) ...')
@@ -78,7 +78,7 @@ def tidy_it_up(table_data, extension):
 
         # **********************************************
         # Fill the rest with 'NULL'
-        table_data = table_data.fillna('NULL', inplace=True)
+        table_data.fillna('NULL', inplace=True)
 
     if extension == '4':
         print('Tidying .4 file (exotic payoffs) ...')

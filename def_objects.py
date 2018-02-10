@@ -2232,7 +2232,7 @@ file_structure = {
 file_dtypes = {
     '1': {
         'track_code': 'VARCHAR(255)',
-        'date': 'INT',
+        'date': 'DATE',
         'race_num': 'INT',
         'day_evening_flag': 'VARCHAR(255)',
         'distance': 'FLOAT',
@@ -2290,7 +2290,7 @@ file_dtypes = {
 
     '2': {
         'track_code': 'VARCHAR(255)',
-        'date': 'INT',
+        'date': 'DATE',
         'race_num': 'INT',
         'day_evening_flag': 'VARCHAR(255)',
         'horse_name': 'VARCHAR(255)',
@@ -2373,7 +2373,7 @@ file_dtypes = {
 
     '3': {
         'track_code': 'VARCHAR(255)',
-        'date': 'INT',
+        'date': 'DATE',
         'race_num': 'INT',
         'day_evening_flag': 'VARCHAR(255)',
         'horse_name': 'VARCHAR(255)',
@@ -2387,7 +2387,7 @@ file_dtypes = {
 
     '4': {
         'track_code': 'VARCHAR(255)',
-        'date': 'INT',
+        'date': 'DATE',
         'race_num': 'INT',
         'day_evening_flag': 'VARCHAR(255)',
         'wager_type': 'VARCHAR(255)',
@@ -2401,7 +2401,7 @@ file_dtypes = {
 
     '5': {
         'track_code': 'VARCHAR(255)',
-        'date': 'INT',
+        'date': 'DATE',
         'race_num': 'INT',
         'day_evening_flag': 'VARCHAR(255)',
         'horse_name': 'VARCHAR(255)',
@@ -2410,7 +2410,7 @@ file_dtypes = {
         'program_number': 'VARCHAR(255)',
         'breeder': 'VARCHAR(255)',
         'color': 'VARCHAR(255)',
-        'foal_date': 'INT',
+        'foal_date': 'DATE',
         'age': 'INT',
         'sex': 'VARCHAR(255)',
         'sire': 'VARCHAR(255)',
@@ -2420,7 +2420,7 @@ file_dtypes = {
 
     '6': {
         'track_code': 'VARCHAR(255)',
-        'date': 'INT',
+        'date': 'DATE',
         'race_num': 'INT',
         'day_evening_flag': 'VARCHAR(255)',
         'footnote_sequence': 'INT',
@@ -2429,7 +2429,7 @@ file_dtypes = {
 
     'DRF': {
         'track': 'VARCHAR(255)',
-        'date': 'VARCHAR(255)',
+        'date': 'DATE',
         'race': 'INT',
         'post_position': 'INT',
         'entry': 'VARCHAR(255)',
@@ -2542,18 +2542,18 @@ file_dtypes = {
         'lifetime_earned': 'INT',
 
         #      Recent Workouts
-        'workout_date_1': 'INT',
-        'workout_date_2': 'INT',
-        'workout_date_3': 'INT',
-        'workout_date_4': 'INT',
-        'workout_date_5': 'INT',
-        'workout_date_6': 'INT',
-        'workout_date_7': 'INT',
-        'workout_date_8': 'INT',
-        'workout_date_9': 'INT',
-        'workout_date_10': 'INT',
-        'workout_date_11': 'INT',
-        'workout_date_12': 'INT',
+        'workout_date_1': 'DATE',
+        'workout_date_2': 'DATE',
+        'workout_date_3': 'DATE',
+        'workout_date_4': 'DATE',
+        'workout_date_5': 'DATE',
+        'workout_date_6': 'DATE',
+        'workout_date_7': 'DATE',
+        'workout_date_8': 'DATE',
+        'workout_date_9': 'DATE',
+        'workout_date_10': 'DATE',
+        'workout_date_11': 'DATE',
+        'workout_date_12': 'DATE',
 
         'workout_time_1': 'FLOAT',
         'workout_time_2': 'FLOAT',
@@ -2706,16 +2706,16 @@ file_dtypes = {
 
         #      *** Horse's Past Performace Data for last 10 races ***
         #      For each of the last 10 races (most recent to furthest back):
-        'past_race_date_1': 'VARCHAR(255)',
-        'past_race_date_2': 'VARCHAR(255)',
-        'past_race_date_3': 'VARCHAR(255)',
-        'past_race_date_4': 'VARCHAR(255)',
-        'past_race_date_5': 'VARCHAR(255)',
-        'past_race_date_6': 'VARCHAR(255)',
-        'past_race_date_7': 'VARCHAR(255)',
-        'past_race_date_8': 'VARCHAR(255)',
-        'past_race_date_9': 'VARCHAR(255)',
-        'past_race_date_10': 'VARCHAR(255)',
+        'past_race_date_1': 'DATE',
+        'past_race_date_2': 'DATE',
+        'past_race_date_3': 'DATE',
+        'past_race_date_4': 'DATE',
+        'past_race_date_5': 'DATE',
+        'past_race_date_6': 'DATE',
+        'past_race_date_7': 'DATE',
+        'past_race_date_8': 'DATE',
+        'past_race_date_9': 'DATE',
+        'past_race_date_10': 'DATE',
 
         'past_days_since_last_1': 'INT',
         'past_days_since_last_2': 'INT',
