@@ -1,6 +1,6 @@
-import df_preprocessing as cleaner
-import database_functions
-from def_objects import file_structure as name_files
+import tidy_it_up as tidy
+import db_functions
+from csv_definitions import file_structure as name_files
 import table_functions as tbl
 
 import os
@@ -31,6 +31,7 @@ df_handlers = {
     'DRF': []
 }
 
+
 def main(file_to_process='', path='data'):
     logging.debug('main() started with file_to_process={} and path={}'.format(file_to_process, path))
 
@@ -41,10 +42,9 @@ def main(file_to_process='', path='data'):
     else:
         file_paths = [pathlib.Path(path, file) for file in os.listdir(path)]
         file_paths = [file for file in file_paths if file.is_file()]
-        #---> Need to add something to catch non-covered filetypes, like a pdf
 
     # Create the database handler
-    db = database_functions.DbHandler(db='horses_data')
+    db = db_functions.DbHandler(db='horses_data')
 
     # Create the table handlers
     for table in tbl.tables:
@@ -78,22 +78,24 @@ def main(file_to_process='', path='data'):
 
         # Move the processed file to its processed-file directory
         processed_dir = file.parent / (extension+'_file')
-        processed_dir.mkdir(exist_ok = True)
+        processed_dir.mkdir(exist_ok=True)
         print('Moving {} to {}\n'.format(file.name, processed_dir))
         file.rename(processed_dir / file.name)
 
         # Increment our progress-tracking counter
         i += 1
 
+
 def process_csv_file(file):
     extension = re.search(r'(?<=\.).+$', str(file))[0]
     #   Read the data in and run it through the cleaner
     table_data = pd.read_csv(file, header=None, names=name_files[str(extension)])
-    table_data = cleaner.tidy_it_up(table_data, extension)
+    table_data = tidy.tidy_it_up(table_data, extension)
     #   Strip out unused columns
     for column in columns_to_delete[str(extension)]:
         del table_data[column]
     return table_data, extension
+
 
 def process_drf_files(file_to_process='', path='data'):
     logging.debug('process_drf_files() started with file_to_process={} and path={}'.format(file_to_process, path))
@@ -103,7 +105,7 @@ def process_drf_files(file_to_process='', path='data'):
     else:
         file_paths = [pathlib.Path(path, file) for file in os.listdir(path)]
         file_paths = [file for file in file_paths if re.search(r'\.DRF$', file.name)]
-    db = database_functions.DbHandler('horses_pp')
+    db = db_functions.DbHandler('horses_pp')
     pp_handlers = []
     for table in tbl.tables:
         pp_handlers.append(tbl.TableHandler(table))

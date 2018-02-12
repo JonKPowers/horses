@@ -1,6 +1,6 @@
-import past_perf_db_structure as tables0
+import db_structure_past_perf as tables0
 import db_structure_results as tables1
-from def_objects import file_dtypes
+from csv_definitions import file_dtypes
 
 import logging
 
