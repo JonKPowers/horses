@@ -44,7 +44,7 @@ def main(file_to_process='', path='data'):
         file_paths = [file for file in file_paths if file.is_file()]
 
     # Create the database handler
-    db = db_functions.DbHandler(db='horses_data')
+    db = db_functions.DbHandler(db='horses_data2')
 
     # Create the table handlers
     for table in tbl.tables:
@@ -54,11 +54,27 @@ def main(file_to_process='', path='data'):
     # Initialize some counter/tracking variables
     i = 1
     valid_extensions = ['1', '2', '3', '4', '5', '6', 'DRF']
+    check_for_duplicates = True
 
     # Process each csv file, then run it through its table handler to add to db
     for file in file_paths:
+        # Only process the file if it's a valid file type
         if file.suffix[1:] not in valid_extensions:
+            logging.info('File {} not a valid file type--skipping'.format(file.name))
             continue
+
+        # Check if file has already been processed; if so, ask whether to process it again
+        if check_for_duplicates:
+            file_already_processed = (file.parent / (file.suffix[1:] + '_file') / file.name).exists()
+            if file_already_processed:
+                print('It looks like {} has already been processed.'.format(file.name))
+                move_on = input('Should we skip this file? [Y/n] ').lower()
+                if move_on == 'n':
+                    pass
+                else:
+                    print('Skipping {} ... '.format(file.name))
+                    continue
+
         logging.debug('Processing {} ({} of {})'.format(file, i, len(file_paths)))
         print('Processing {} ({} of {})'.format(file, i, len(file_paths)))
 
@@ -74,7 +90,7 @@ def main(file_to_process='', path='data'):
         # For each file, run it through the handlers for its file type
         print('Adding {} info to database ...'.format(file))
         for handler in df_handlers[extension]:
-            handler.process_data(table_data, db)
+            handler.process_data(table_data, db, file.name)
 
         # Move the processed file to its processed-file directory
         processed_dir = file.parent / (extension+'_file')
@@ -86,6 +102,7 @@ def main(file_to_process='', path='data'):
         i += 1
 
 
+
 def process_csv_file(file):
     extension = re.search(r'(?<=\.).+$', str(file))[0]
     #   Read the data in and run it through the cleaner
@@ -95,37 +112,6 @@ def process_csv_file(file):
     for column in columns_to_delete[str(extension)]:
         del table_data[column]
     return table_data, extension
-
-
-def process_drf_files(file_to_process='', path='data'):
-    logging.debug('process_drf_files() started with file_to_process={} and path={}'.format(file_to_process, path))
-    if file_to_process:
-        file_paths = []
-        file_paths.append(pathlib.Path(path, file_to_process))
-    else:
-        file_paths = [pathlib.Path(path, file) for file in os.listdir(path)]
-        file_paths = [file for file in file_paths if re.search(r'\.DRF$', file.name)]
-    db = db_functions.DbHandler('horses_pp')
-    pp_handlers = []
-    for table in tbl.tables:
-        pp_handlers.append(tbl.TableHandler(table))
-    i = 1
-    for file in file_paths:
-        logging.info('Processing {} ({} of {})'.format(file, i, len(file_paths)))
-        print('Processing {} ({} of {})'.format(file, i, len(file_paths)))
-        try:
-            table_data, extension = process_csv_file(file)
-        except FileNotFoundError as e:
-            print('There was a problem finding the file {}:'.format(file))
-            print('\t', e)
-            continue
-        for handler in pp_handlers:
-            handler.process_data(table_data, db)
-        processed_dir = file.parent / (extension+'_file')
-        processed_dir.mkdir(exist_ok = True)
-        logging.info('Moving {} to {}\n'.format(file.name, processed_dir))
-        file.rename(processed_dir / file.name)
-        i += 1
 
 
 

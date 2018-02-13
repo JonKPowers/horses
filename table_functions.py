@@ -28,25 +28,26 @@ tables = [
 ]
 
 class TableHandler:
-    def process_data(self, df, db_handler):
+    def process_data(self, df, db_handler, file_name=''):
         logging.debug('Adding data to {} in {}'.format(self.table_name, db_handler.db))
         if not self.table_initialized:
-            db_handler.initialize_pp_table(self.table_name, self.dtypes, self.unique_key, self.foreign_key)
+            db_handler.initialize_table(self.table_name, self.dtypes, self.unique_key, self.foreign_key)
             self.table_initialized = True
         if self.multi_entry_table:
             for i in range(1, 11):
                 col_names = [item.format(i) for item in self.df_col_names]
                 table_data = df[col_names]
-                db_handler.add_to_table2(self.table_name, table_data, self.sql_col_names)
+                db_handler.add_to_table(self.table_name, table_data, self.sql_col_names, file_name)
         else:
             table_data = df[self.df_col_names]
-            db_handler.add_to_table2(self.table_name, table_data, self.sql_col_names)
+            db_handler.add_to_table(self.table_name, table_data, self.sql_col_names, file_name)
 
 
-    def __create_dtype_info(self, structure_dict):
+    def __create_dtype_info(self):
         """This takes in a dict with information about how a table should be constructed
         and outputs a dict with the keys being the column name and the values being
         the SQL data type that the columns should have."""
+
         dtype_info = {}
         extension = self.extension
         fields = self.table_structure
@@ -64,6 +65,6 @@ class TableHandler:
         self.sql_col_names = [sql_col for sql_col, df_col in self.table_structure.items()]
         self.df_col_names = [df_col for sql_col, df_col in self.table_structure.items()]
         self.multi_entry_table = any(item for item in self.df_col_names if '{}' in item)
-        self.dtypes = self.__create_dtype_info(structure_dict)
+        self.dtypes = self.__create_dtype_info()
 
 
