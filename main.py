@@ -8,6 +8,7 @@ import pathlib
 import re
 import pandas as pd
 import logging
+import datetime
 
 logging.basicConfig(filename='main_py.log', filemode='w', level=logging.INFO)
 
@@ -34,6 +35,7 @@ df_handlers = {
 
 def main(file_to_process='', path='data'):
     logging.debug('main() started with file_to_process={} and path={}'.format(file_to_process, path))
+    start_time = datetime.datetime.now()
 
     # Make the list of files to process
     if file_to_process:
@@ -58,6 +60,8 @@ def main(file_to_process='', path='data'):
 
     # Process each csv file, then run it through its table handler to add to db
     for file in file_paths:
+        file_start = datetime.datetime.now()
+
         # Only process the file if it's a valid file type
         if file.suffix[1:] not in valid_extensions:
             logging.info('File {} not a valid file type--skipping'.format(file.name))
@@ -65,17 +69,20 @@ def main(file_to_process='', path='data'):
 
         # Check if file has already been processed; if so, ask whether to process it again
         if check_for_duplicates:
-            file_already_processed = (file.parent / (file.suffix[1:] + '_file') / file.name).exists()
+            file_already_processed = (file.parent / (file.suffix[1:] + '_file') /
+                                      file.name).exists()
             if file_already_processed:
                 print('It looks like {} has already been processed.'.format(file.name))
-                move_on = input('Should we skip this file? [Y/n] ').lower()
+                move_on = input('Should we skip this file? [Y/n/no to (a)ll duplicates] ').lower()
                 if move_on == 'n':
                     pass
+                if move_on == 'a':
+                    check_for_duplicates = False
                 else:
                     print('Skipping {} ... '.format(file.name))
                     continue
 
-        logging.debug('Processing {} ({} of {})'.format(file, i, len(file_paths)))
+        logging.info('Processing {} ({} of {})'.format(file, i, len(file_paths)))
         print('Processing {} ({} of {})'.format(file, i, len(file_paths)))
 
         # Put the csv data into a dataframe
@@ -95,11 +102,21 @@ def main(file_to_process='', path='data'):
         # Move the processed file to its processed-file directory
         processed_dir = file.parent / (extension+'_file')
         processed_dir.mkdir(exist_ok=True)
-        print('Moving {} to {}\n'.format(file.name, processed_dir))
+        print('Moving {} to {}'.format(file.name, processed_dir))
         file.rename(processed_dir / file.name)
 
         # Increment our progress-tracking counter
+        print('Time to process {}: {}'.format(file.name, str(datetime.datetime.now() - file_start)))
+        print('Elapsed time:', str(datetime.datetime.now() - start_time), '\n')
         i += 1
+
+    end_time = datetime.datetime.now()
+
+    print("Start time:", str(start_time))
+    print("End time:", str(end_time))
+    print("Total time:", str(end_time - start_time))
+
+
 
 
 

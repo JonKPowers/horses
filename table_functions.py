@@ -37,6 +37,19 @@ class TableHandler:
             for i in range(1, 11):
                 col_names = [item.format(i) for item in self.df_col_names]
                 table_data = df[col_names]
+
+                # Pull out columns for past workouts/races that have no data
+                drop_cols = []
+                try:            #This would fail for tables that don't have 2 not_null restrictions
+                    drop_cols = [j for j in range(len(table_data)) if
+                                 table_data[j:j+1][self.not_null[0].format(i)].values[0] == 'NULL' and
+                                 table_data[j:j+1][self.not_null[1].format(i)].values[0] == 'NULL']
+                except IndexError:
+                    pass
+
+                table_data.drop(drop_cols, inplace=True)
+
+                # Send dataframe to be added to the database
                 db_handler.add_to_table(self.table_name, table_data, self.sql_col_names, file_name)
         else:
             table_data = df[self.df_col_names]
@@ -60,6 +73,7 @@ class TableHandler:
         self.table_initialized = False
         self.unique_key = structure_dict['unique_key']
         self.foreign_key = structure_dict['foreign_key']
+        self.not_null = structure_dict['not_null']
         self.extension = structure_dict['extension']
         self.table_structure = structure_dict['db_fields']
         self.sql_col_names = [sql_col for sql_col, df_col in self.table_structure.items()]

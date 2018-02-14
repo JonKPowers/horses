@@ -39,7 +39,7 @@ class DbHandler:
                 table_exists = [item for item in cursor][0][0]
 
                 if table_exists:
-                    logging.debug("Table {} already exists--skipping creation step.".format(table_name))
+                    logging.info("Table {} already exists--skipping creation step.".format(table_name))
                 elif table_exists is None:
                     print("There was an error determining if table {} exists".format(table_name), end="")
                     print("table_exists still at default value--skipping creation step.")
@@ -63,7 +63,6 @@ class DbHandler:
             self.mysql.close()
         # ---------------TO DO---------------------------
         #   Run some checks to see if the data looks like the right shape, etc.
-        #   Add some logging
 
     # Hidden methods ------------------------
 
@@ -123,11 +122,12 @@ class DbHandler:
                                                              values_string)
             sql = re.sub(r"'NULL'", "NULL", sql)                        # NULL should be sent in SQL w/o quote marks
             # print('{} of {}: {}'.format(i+1,len(table_data), sql))
-            logging.info('{} of {}: {}'.format(i+1, len(table_data), sql))
+            logging.debug('{} of {}: {}'.format(i+1, len(table_data), sql))
             try:
                 cursor.execute(sql)
             except (pymysql.err.ProgrammingError, pymysql.err.IntegrityError) as e:
                 logging.info('Error adding entry: \n\t{}'.format(e))
+                logging.info('\t{} of {}: {}'.format(i+1, len(table_data), sql))
 
         self.mysql.commit()
 

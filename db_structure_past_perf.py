@@ -22,9 +22,9 @@ horses_info_table = {
         'foaling_month',
     ],
 
-    'foreign_key': [
+    'foreign_key': {},
 
-    ],
+    'not_null': [],
 }
 
 trainers_info_table = {
@@ -39,7 +39,10 @@ trainers_info_table = {
         'trainer_name',
     ],
 
-    'foreign_key': {}
+    'foreign_key': {},
+
+    'not_null': [],
+
 }
 
 jockey_info_table = {
@@ -54,7 +57,9 @@ jockey_info_table = {
         'jockey_name',
     ],
 
-    'foreign_key': {}
+    'foreign_key': {},
+
+    'not_null': [],
 }
 
 owner_info_table = {
@@ -69,7 +74,9 @@ owner_info_table = {
         'owner_name',
     },
 
-    'foreign_key': {}
+    'foreign_key': {},
+
+    'not_null': [],
 }
 
 workouts_table = {
@@ -99,7 +106,12 @@ workouts_table = {
 
     'foreign_key': {
         'horse_name': 'horses_info(horse_name)',
-    }
+    },
+
+    'not_null': [
+        'workout_date_{}',
+        'workout_track_{}',
+    ],
 }
 
 race_info_table = {
@@ -163,6 +175,8 @@ race_info_table = {
     ],
 
     'foreign_key': {},
+
+    'not_null': [],
 }
 
 horses_race_table = {
@@ -208,7 +222,9 @@ horses_race_table = {
 
     'foreign_key': {
         'horse_name': 'horses_info(horse_name)'
-    }
+    },
+
+    'not_null': [],
 }
 
 horses_pp_table = {
@@ -343,7 +359,12 @@ horses_pp_table = {
 
     'foreign_key': {
         'horse_name': 'horses_info(horse_name)'
-    }
+    },
+
+    'not_null': [
+        'past_race_date_{}',
+        'past_track_code_{}',
+    ],
 }
 
 horses_stats_table = {
@@ -441,7 +462,9 @@ horses_stats_table = {
 
     'foreign_key': {
         'horse_name': 'horses_info(horse_name)'
-    }
+    },
+
+    'not_null': [],
 }
 
 switches_table = {
@@ -465,7 +488,9 @@ switches_table = {
 
     'foreign_key': {
         'horse_name': 'horses_info(horse_name)'
-    }
+    },
+
+    'not_null': [],
 }
 
 trainer_stats_table = {
@@ -499,7 +524,9 @@ trainer_stats_table = {
         'trainer',
     ],
 
-    'foreign_key': {}
+    'foreign_key': {},
+
+    'not_null': [],
 }
 
 jockey_stats_table = {
@@ -542,7 +569,9 @@ jockey_stats_table = {
         'jockey',
     ],
 
-    'foreign_key': {}
+    'foreign_key': {},
+
+    'not_null': [],
 }
 
 tj_combo_stats_table = {
@@ -574,7 +603,9 @@ tj_combo_stats_table = {
         'jockey',
     ],
 
-    'foreign_key': {}
+    'foreign_key': {},
+
+    'not_null': [],
 }
 
 owner_stats_table = {
@@ -592,5 +623,7 @@ owner_stats_table = {
         'silks'
     ],
 
-    'foreign_key': {}
+    'foreign_key': {},
+
+    'not_null': [],
 }
