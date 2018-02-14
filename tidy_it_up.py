@@ -8,15 +8,21 @@ def tidy_it_up(table_data, extension):
         # Flag fixes
 
         table_data['about_dist_flag'].replace('A', 1, inplace=True)
+        table_data['about_dist_flag'].fillna(0, inplace=True)
 
         table_data['all_weather_flag'].replace('A', 1, inplace=True)
         table_data['all_weather_flag'].fillna(0, inplace=True)
+
+        table_data['state_bred_flag'].replace('S', 1, inplace=True)
+        table_data['state_bred_flag'].fillna(0, inplace=True)
 
         table_data['chute_start_flag'].replace('C', 1, inplace=True)
         table_data['chute_start_flag'].replace('N', 0, inplace=True)
         table_data['chute_start_flag'].fillna(0, inplace=True)
 
         table_data['off_turf_flag'].replace('O', 1, inplace=True)
+        table_data['off_turf_flag'].fillna(0, inplace=True)
+
         table_data['off_turf_dist_change'].replace('Y', 1, inplace=True)
         table_data['off_turf_dist_change'].replace('N', 0, inplace=True)
 
@@ -31,6 +37,8 @@ def tidy_it_up(table_data, extension):
         table_data['nonbetting_flag'].fillna(0, inplace=True)
 
         table_data['disqualified_flag'].replace('Y', 1, inplace=True)
+        table_data['disqualified_flag'].fillena(0, inplace=True)
+
 
         table_data['corrected_weight'].replace('Y', 1, inplace=True)
         table_data['corrected_weight'].fillna(0, inplace=True)
@@ -155,11 +163,18 @@ def tidy_it_up(table_data, extension):
         table_data['apprentice_wgt_alw'].fillna(0, inplace=True)
 
         table_data['statebread_flag'].replace('s', 1, inplace=True)
+        table_data['statebread_flag'].fillna(0, inplace=True)
+
         table_data['today_nasal_strip_chg'].replace(9, 'NULL', inplace=True)
         table_data['todays_meds_new'].replace(9, 'NULL', inplace=True)
         table_data['todays_meds_old'].replace(9, 'NULL', inplace=True)
         table_data['equipment_change'].replace(9, 'NULL', inplace=True)
+
         table_data['allweather_surface'].replace('A', 1, inplace=True)
+        table_data['allweather_surface'].fillna(0, inplace=True)
+
+        table_data['bris_run_style'].replace('NA', None, inplace=True)
+
 
         for i in range(1, 11):
             table_data['past_special_chute_{}'.format(i)].replace('c', 1, inplace=True)
@@ -193,6 +208,10 @@ def tidy_it_up(table_data, extension):
         for i in range(1, 11):
             table_data['past_statebred_flag_{}'.format(i)].replace('s', 1, inplace=True)
             table_data['past_statebred_flag_{}'.format(i)].fillna(0, inplace=True)
+
+        for i in range(1, 11):
+            table_data['past_restricted_or_qualified_{}'.format(i)].replace('R', 1, inplace=True)
+            table_data['past_restricted_or_qualified_{}'.format(i)].fillna(0, inplace=True)
 
 
 

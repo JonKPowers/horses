@@ -11,6 +11,25 @@ To Do-
 	(10) pull out null entries for _1:_10 features.
 	(11) add source file entry to tables to aid in tracking data issues back to original file.
 	(12) date formatting for past_claim_trainer_switch_date (this field is a weirdo already... need to figure it out).
+	(13) Should we pull out items where race_info.track != race_info.simulcast_track? If these races are already somewhere else, probably don't want to duplicate them.
+	(14) The fraction times for some of the races is 0
+	(15) Only look at TBs... separate out QHs
+	(16) Flatten medication and equipment codes.
+	(16.1) Flatten track conditions and surface types.
+	(16.2) Flatten age/sex restrictions
+	(16.3) flatten race_general_results race_restrictions
+	(17) Beaten lengths seem to have 99.99 as an "out of range" entry.
+	(18) Add jockey/trainer/owner additional info from horses_race_info table to jockey/trainer/owner tables.
+	(19) Populate an all_horses db with breeding info, etc.
+	(20) The .DRF program_post_pos seems to be null over entire data set.
+	(21) best_BRIS_* in .DRF seems to have a lot of 0 values that maybe should be changed to NaNs in preprocessing. Check what's going on with this and maybe add a line to the preprocessor to address this.
+	(22) in jockey_stats, it seems like the current meet record might be a lifetime record.
+	(23) There are four entries in owner_stats that have owner and silks all null. Find out what's going on with this.
+	(24) Add nonbetting flag to race_general_results (and probably delete it from the other table where it is. horses_race_info?)
+	(25) In race_general_results, race_grade seems to have zero for nongraded races rather than NaN. Consider and correct.
+	(26) Can the race_conditions_* fields be concatenated into a single field? Is there a blob type that can accomodate this?
+	(27) There are some steeplechase races (run over National Fences)
+	(28) I think breed should probably be moved from race_horse_info to race_info
 
 
 

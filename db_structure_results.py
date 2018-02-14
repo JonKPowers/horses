@@ -233,9 +233,6 @@ horse_breeding_info_table = {
         'track': 'track_code',
         'date': 'date',
         'race_num': 'race_num',
-        'day_evening_flag': 'day_evening_flag',
-
-        'program_num': 'program_number',
 
         'horse_name': 'horse_name',
         'foreign_bred': 'foreignbred_code',

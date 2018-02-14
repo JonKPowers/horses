@@ -189,7 +189,7 @@ horses_race_table = {
         'race_num': 'race',
         'horse_name': 'horse_name',
         'program_num': 'program_number',
-        'entry': 'entry',
+        'coupled_entry': 'entry',
 
         'morning_line': 'morning_line',
         'post_position': 'post_position',
@@ -235,6 +235,7 @@ horses_pp_table = {
         'horse_name': 'horse_name',
 
         'race_date': 'past_race_date_{}',
+
         'track_code': 'past_track_code_{}',
         'track_code_BRIS': 'past_BRIS_track_code_{}',
         'race_num': 'past_race_number_{}',
@@ -316,25 +317,22 @@ horses_pp_table = {
         'show_margin': 'past_show_margin_{}',
 
         'start_call_position': 'past_call_pos_start_{}',
-        'start_call_margin_lead_or_beaten': 'past_lead_margin_start_{}',
-        'start_call_beaten_lengths': 'past_beaten_lengths_start_{}',
-
         '1st_call_position': 'past_call_pos_first_{}',
-        '1st_call_lead_or_beaten_margin': 'past_lead_margin_first_call_{}',
-        '1st_call_beaten_lengths': 'past_beaten_lengths_first_call_{}',
-
         '2d_call_position': 'past_call_pos_second_{}',
-        '2d_call_lead_or_beaten_margin': 'past_lead_margin_second_call_{}',
-        '2d_call_beaten_lengths': 'past_beaten_lengths_second_call_{}',
-
         'gate_call_position': 'past_call_pos_gate_{}',
-
         'stretch_call_position': 'past_call_pos_stretch_{}',
-        'stretch_call_lead_or_beaten_margin': 'past_lead_margin_stretch_call_{}',
-        'stretch_call_beaten_lengths': 'past_beaten_lengths_stretch_call_{}',
-
         'finish_position': 'past_call_pos_finish_{}',
+
+        'start_call_lead_or_beaten_margin': 'past_lead_margin_start_{}',
+        '1st_call_lead_or_beaten_margin': 'past_lead_margin_first_call_{}',
+        '2d_call_lead_or_beaten_margin': 'past_lead_margin_second_call_{}',
+        'stretch_call_lead_or_beaten_margin': 'past_lead_margin_stretch_call_{}',
         'finish_lead_or_beaten_margin': 'past_lead_margin_finish_{}',
+
+        'start_call_beaten_lengths': 'past_beaten_lengths_start_{}',
+        '1st_call_beaten_lengths': 'past_beaten_lengths_first_call_{}',
+        '2d_call_beaten_lengths': 'past_beaten_lengths_second_call_{}',
+        'stretch_call_beaten_lengths': 'past_beaten_lengths_stretch_call_{}',
         'finish_beaten_lengths': 'past_beaten_lengths_finish_{}',
 
         'money_position': 'past_money_pos_{}',
