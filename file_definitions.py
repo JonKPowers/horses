@@ -23,7 +23,7 @@ file_1_columns = [      ##      Race file (1 record per race)
                         ##                                                      T- Main turf
                         ##                                                      t- inner turf
 'surface_new_style',    ##      9       CHARACTER                       1       A- Main All-weather (exclues dirt)
-                        ##                                                      D- Main dirft (excludes all weather)
+                        ##                                                      D- Main dirt (excludes all weather)
                         ##                                                      d- inner dirt
                         ##                                                      T- Turf
                         ##                                                      t- inner turf
