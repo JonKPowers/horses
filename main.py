@@ -46,7 +46,7 @@ def main(file_to_process='', path='data'):
         file_paths = [file for file in file_paths if file.is_file()]
 
     # Create the database handler
-    db = db_functions.DbHandler(db='horses_data2')
+    db = db_functions.DbHandler(db='horses_data3')
 
     # Create the table handlers
     for table in tbl.tables:

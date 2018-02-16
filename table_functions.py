@@ -41,9 +41,11 @@ class TableHandler:
                 # Pull out columns for past workouts/races that have no data
                 drop_cols = []
                 try:            #This would fail for tables that don't have 2 not_null restrictions
+                    check_col_0 = table_data.columns.get_loc(self.not_null[0].format(i))
+                    check_col_1 = table_data.columns.get_loc(self.not_null[1].format(i))
                     drop_cols = [j for j in range(len(table_data)) if
-                                 table_data[j:j+1][self.not_null[0].format(i)].values[0] == 'NULL' and
-                                 table_data[j:j+1][self.not_null[1].format(i)].values[0] == 'NULL']
+                                 table_data.iloc[j:j+1, check_col_0:check_col_0 + 1].values[0] == 'NULL' and
+                                 table_data.iloc[j:j+1, check_col_1:check_col_1 + 1].values[0] == 'NULL']
                 except IndexError:
                     pass
 

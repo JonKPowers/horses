@@ -37,7 +37,7 @@ def tidy_it_up(table_data, extension):
         table_data['nonbetting_flag'].fillna(0, inplace=True)
 
         table_data['disqualified_flag'].replace('Y', 1, inplace=True)
-        table_data['disqualified_flag'].fillena(0, inplace=True)
+        table_data['disqualified_flag'].fillna(0, inplace=True)
 
 
         table_data['corrected_weight'].replace('Y', 1, inplace=True)
@@ -111,16 +111,16 @@ def tidy_it_up(table_data, extension):
     if extension == '5':
         print('Tidying .5 file (breeding info)...')
         where_bred = []
-        foreign_bred = list(table_data['foreign_bred_code'])
-        state_bred = list(table_data['state_bred_code'])
-        foreign_bred_null = list(table_data['foreign_bred'].isnull())
+        foreign_bred = list(table_data['foreignbred_code'])
+        state_bred = list(table_data['statebred_code'])
+        foreign_bred_null = list(table_data['foreignbred_code'].isnull())
 
         for i in range(len(foreign_bred)):
             if foreign_bred_null[i]:
                 where_bred.append(state_bred[i])
             else:
                 where_bred.append(foreign_bred[i])
-            table_data['where_bred'] = where_bred
+        table_data['where_bred'] = where_bred
 
         table_data.fillna('NULL', inplace=True)
 
@@ -209,7 +209,20 @@ def tidy_it_up(table_data, extension):
             table_data['past_restricted_or_qualified_{}'.format(i)].replace('R', 1, inplace=True)
             table_data['past_restricted_or_qualified_{}'.format(i)].fillna(0, inplace=True)
 
+        for i in range(1, 11):
+            table_data['past_call_pos_start_{}'.format(i)].replace(r'[A-Za-z?*]+', 'NULL', regex=True, inplace=True)
 
+        for i in range(1, 11):
+            table_data['past_call_pos_first_{}'.format(i)].replace(r'[A-Za-z?*]+', 'NULL', regex=True, inplace=True)
+
+        for i in range(1, 11):
+            table_data['past_call_pos_second_{}'.format(i)].replace(r'[A-Za-z?*]+', 'NULL', regex=True, inplace=True)
+
+        for i in range(1, 11):
+            table_data['past_call_pos_stretch_{}'.format(i)].replace(r'[A-Za-z?*]+', 'NULL', regex=True, inplace=True)
+
+        for i in range(1, 11):
+            table_data['past_call_pos_finish_{}'.format(i)].replace(r'[A-Za-z?*]+', 'NULL', regex=True, inplace=True)
 
         # *********************************************
         # Character fields to make null

@@ -100,7 +100,7 @@ class DbHandler:
                 sql += ") REFERENCES "
                 sql += constraint[1]
         sql += ')'          # ... and balance parentheses before sending.
-        logging.info('Creating table {}:\n\t{}').format(table_name, sql)
+        logging.info('Creating table {}:\n\t{}'.format(table_name, sql))
         try:
             cursor.execute(sql)
         except pymysql.err.ProgrammingError:
