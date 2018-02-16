@@ -77,7 +77,7 @@ race_general_results_table = {
         'race_num',
     ],
 
-    'foreign_key':  {},
+    'foreign_key':  [],
 
     'not_null': [],
 }
@@ -103,7 +103,7 @@ race_notes_table = {
         'note_seq',
     ],
 
-    'foreign_key':  {},
+    'foreign_key':  [],
 
     'not_null': [],
 }
@@ -127,8 +127,9 @@ race_horse_info_table = {
 
         'birth_year': 'birth_year',
         'foreign_bred': 'foreign_bred_code',
+
         'state_bred': 'state_bred_code',
-        'breed': 'breed',
+        'race_breed': 'breed',
 
         'earnings': 'earnings',
 
@@ -220,7 +221,7 @@ race_horse_info_table = {
         'horse_name',
     ],
 
-    'foreign_key':  {},
+    'foreign_key':  [],
 
     'not_null': [],
 }
@@ -256,7 +257,7 @@ horse_breeding_info_table = {
         'horse_name',
     ],
 
-    'foreign_key':  {},
+    'foreign_key':  [],
 
     'not_null': [],
 }
@@ -289,7 +290,7 @@ race_payoffs_itm_table = {
         'horse_name',
     ],
 
-    'foreign_key':  {},
+    'foreign_key':  [],
 
     'not_null': [],
 }
@@ -322,7 +323,7 @@ race_payoffs_exotic_table = {
         'wager_type',
     ],
 
-    'foreign_key':  {},
+    'foreign_key':  [],
 
     'not_null': [],
 }

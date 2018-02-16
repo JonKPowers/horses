@@ -37,12 +37,8 @@ class DbHandler:
                 sql += "WHERE (TABLE_SCHEMA = '{}') AND (TABLE_NAME = '{}')".format(self.db, table_name)
                 cursor.execute(sql)
                 table_exists = [item for item in cursor][0][0]
-
                 if table_exists:
                     logging.info("Table {} already exists--skipping creation step.".format(table_name))
-                elif table_exists is None:
-                    print("There was an error determining if table {} exists".format(table_name), end="")
-                    print("table_exists still at default value--skipping creation step.")
                 elif table_exists == 0:
                     self.__create_table(cursor, table_name, dtypes, unique_key, foreign_key)
                 else:
@@ -84,6 +80,7 @@ class DbHandler:
         self.mysql.commit()
 
     def __create_table(self, cursor, table_name, dtypes, unique_key, foreign_key):
+        logging.info('Creating table {}'.format(table_name))
         sql = "CREATE TABLE {} (".format(table_name)
         sql += "id INT NOT NULL AUTO_INCREMENT, "
         sql += "source_file VARCHAR(255), "
@@ -97,13 +94,18 @@ class DbHandler:
             sql = sql[:-2]  # Chop off last ', '
             sql += ")"
         if foreign_key:
-            sql += ", FOREIGN KEY("
-            sql += list(foreign_key)[0]
-            sql += ") REFERENCES "
-            sql += list(foreign_key.values())[0]
+            for constraint in foreign_key:
+                sql += ", FOREIGN KEY("
+                sql += constraint[0]
+                sql += ") REFERENCES "
+                sql += constraint[1]
         sql += ')'          # ... and balance parentheses before sending.
-        print(sql)
-        cursor.execute(sql)
+        logging.info('Creating table {}:\n\t{}').format(table_name, sql)
+        try:
+            cursor.execute(sql)
+        except pymysql.err.ProgrammingError:
+            print('Error creating table {}'.format(table_name))
+            logging.info('Error creating table{}:\n\t{}'.format(table_name, sql))
         self.mysql.commit()
         # -----------------TO DO----------------------
         #   Need to add primary/unique key constraints.

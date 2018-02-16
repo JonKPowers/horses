@@ -15,9 +15,17 @@ To Do-
 	(14) The fraction times for some of the races is 0
 	(15) Only look at TBs... separate out QHs
 	(16) Flatten medication and equipment codes.
+		- race_horse_info.medication, .equipment
+		- 
 	(16.1) Flatten track conditions and surface types.
 	(16.2) Flatten age/sex restrictions
+		-race_info.age_sex_restrictions
 	(16.3) flatten race_general_results race_restrictions
+	(16.4) flatten race descriptions
+		-race_info.race_description_equibase, .race_classification
+		-race_info.race_type
+	(16.5) flatten run description
+		-workouts.run_description
 	(17) Beaten lengths seem to have 99.99 as an "out of range" entry.
 	(18) Add jockey/trainer/owner additional info from horses_race_info table to jockey/trainer/owner tables.
 	(19) Populate an all_horses db with breeding info, etc.
@@ -28,9 +36,27 @@ To Do-
 	(24) Add nonbetting flag to race_general_results (and probably delete it from the other table where it is. horses_race_info?)
 	(25) In race_general_results, race_grade seems to have zero for nongraded races rather than NaN. Consider and correct.
 	(26) Can the race_conditions_* fields be concatenated into a single field? Is there a blob type that can accomodate this?
+		-race_info.race_cond_*
+	(26.1) Concatenate wager types
+		-race_info.wager_types_*
+	(26.2) Concatenate race notes
+		-race_notes.note
+
+
 	(27) There are some steeplechase races (run over National Fences)
 	(28) I think breed should probably be moved from race_horse_info to race_info
+	(29) TJ Combo ROI stats seems to be capped on the downside to -2. Is this supposed to be an average? Is this a factor? 
+	(30) Make track_type uniform. Make track_condition uniform
+	(31) There are 107 duplicate+ names in horses_info.
+		-See SELECT horse_name, COUNT(*) as count from horses_info GROUP BY horse_name HAVING count > 1;
+	(32) horse_id numbers from race_horse_info (.2 files) should be merged into general horses info table.
 
+
+Possible questions-
+	(1) How often do favorites end up winning? What's the ROI?
+	(2) Does weight carried make much difference? (What is the horse's weight?)
+	(3) What is the speed difference between TB and QH over similar distances?
+	(4) Why do GP And WO dominate the carryover amounts on exotics?
 
 
 CTX0422.DRF-

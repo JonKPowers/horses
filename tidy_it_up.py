@@ -110,22 +110,18 @@ def tidy_it_up(table_data, extension):
 
     if extension == '5':
         print('Tidying .5 file (breeding info)...')
+        where_bred = []
+        foreign_bred = list(table_data['foreign_bred_code'])
+        state_bred = list(table_data['state_bred_code'])
+        foreign_bred_null = list(table_data['foreign_bred'].isnull())
 
-        # *********************************************
-        # Field with [value]/NaN flags
-        # TO DO:
-        #   (1) Run through these columns and replace the flags with int(1)
+        for i in range(len(foreign_bred)):
+            if foreign_bred_null[i]:
+                where_bred.append(state_bred[i])
+            else:
+                where_bred.append(foreign_bred[i])
+            table_data['where_bred'] = where_bred
 
-        # *********************************************
-        # Character fields to make null
-
-        # **********************************************
-        # FIELD DTYPES TO FIX
-        #   'claimed_trainer_middle' from FLOAT to VARCHAR(255)
-
-
-        # **********************************************
-        # Fill the rest with 'NULL'
         table_data.fillna('NULL', inplace=True)
 
     if extension == '6':

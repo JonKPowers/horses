@@ -2690,7 +2690,7 @@ file_dtypes = {
         'life_earnings_alw': 'INT',
         'best_bris_speed_alw': 'INT',
         'low_claiming_price': 'INT',
-        'statebread_flag': 'VARCHAR(255)',
+        'statebread_flag': 'INT',
 
         'wager_type_1': 'VARCHAR(255)',
         'wager_type_2': 'VARCHAR(255)',
