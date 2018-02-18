@@ -29,7 +29,7 @@ class dbHandler:
             cursor.execute(sql_query)
             results = list(cursor)
             results_cols = [item[0] for item in cursor.description]
-        return results
+        return results, results_cols
 
     def create_database(self, database_name):
         with SQLConnection(self.user, self.password) as db:

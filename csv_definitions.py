@@ -2247,7 +2247,7 @@ file_dtypes = {
         'race_grade': 'INT',
         'age_sex_restrictions': 'VARCHAR(255)',
         'race_restrict_code': 'VARCHAR(255)',
-        'state_bred_flag': 'VARCHAR(255)',
+        'state_bred_flag': 'INT',
         'abbrev_race_class': 'VARCHAR(255)',
         'breed_of_race': 'VARCHAR(255)',
         'country_code': 'VARCHAR(255)',

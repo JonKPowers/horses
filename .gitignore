@@ -1,0 +1,5 @@
+# Ignore files in the data directory... that's for home, not git
+data/
+*.zip
+main_py.log
+__*

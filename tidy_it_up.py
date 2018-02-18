@@ -26,6 +26,8 @@ def tidy_it_up(table_data, extension):
         table_data['off_turf_dist_change'].replace('Y', 1, inplace=True)
         table_data['off_turf_dist_change'].replace('N', 0, inplace=True)
 
+        table_data['race_grade'].replace(0, 'NULL', inplace=True)
+
         # *********************************************
         # Fill and na's with NULL for MYSQL transfer
         table_data.fillna('NULL', inplace=True)
@@ -150,6 +152,8 @@ def tidy_it_up(table_data, extension):
         for i in range(1, 11):
             table_data['workout_time_{}'.format(i)] = table_data['workout_time_{}'.format(i)].abs()
         for i in range(1, 11):
+            table_data['past_distance_{}'.format(i)] = table_data['past_distance_{}'.format(i)].abs()
+        for i in range(1, 11):
             table_data['workout_distance_{}'.format(i)] = table_data['workout_distance_{}'.format(i)].abs()
         table_data['distance'] = table_data['distance'].abs()
 
@@ -187,6 +191,15 @@ def tidy_it_up(table_data, extension):
         for i in range(1, 11):
             table_data['past_all_weather_flag_{}'.format(i)].replace('A', 1, inplace=True)
             table_data['past_all_weather_flag_{}'.format(i)].fillna(0, inplace=True)
+
+        # Convert surface-type field in PP data to "new" surface-type style
+        # (code is 'A' for all-weather dirt track and 'D' for non-all-weather)
+        for i in range(1, 11):
+            surface_field = table_data.columns.get_loc(f'past_surface_{i}')
+            all_weather_field = table_data.columns.get_loc(f'past_all_weather_flag_{i}')
+            for j in range(len(table_data)):
+                if table_data.iloc[j, all_weather_field] == 1:
+                    table_data.iloc[j, surface_field] = 'A'
 
         for i in range(1, 11):
             table_data['past_equipment_{}'.format(i)].replace('b', 1, inplace=True)

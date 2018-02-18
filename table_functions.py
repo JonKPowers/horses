@@ -57,7 +57,6 @@ class TableHandler:
             table_data = df[self.df_col_names]
             db_handler.add_to_table(self.table_name, table_data, self.sql_col_names, file_name)
 
-
     def __create_dtype_info(self):
         """This takes in a dict with information about how a table should be constructed
         and outputs a dict with the keys being the column name and the values being
