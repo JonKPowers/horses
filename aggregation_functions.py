@@ -481,6 +481,8 @@ class df_pps:
     def __init__(self, df_pps, df_results):
         self.df_pps = df_pps
         self.df_results = df_results
+        self.processed_pps_data = []
+        self.processed_result_data = []
         self.processed_data = []
         self.processed_column_names = [
             'source_file',
@@ -494,7 +496,6 @@ class df_pps:
             'coupled_entry',
 
             'days_since_last_race',
-
             'weight',
 
             'odds',
@@ -502,7 +503,8 @@ class df_pps:
 
             'disqualified',
             'disqualified_placing',
-            'weight',
+
+
             'weight_corrected_flag',
             'overweight_amount',
             'weight_allowance',
@@ -562,7 +564,7 @@ class df_pps:
             'lead_beaten_lengths_1st_call',
             'lead_beaten_lengths_2d_call',
             'lead_beaten_lengths_3d_call',
-            'lead_beaten_lengths_gate_call'
+            'lead_beaten_lengths_gate_call',
             'lead_beaten_lengths_stretch_call',
             'lead_beaten_lengths_finish',
 
@@ -576,14 +578,13 @@ class df_pps:
 
             'trip_comment',
             'trip_comment_extra',
-
-            'odds',
-            'favorite_flag',
             'extended_start_comment',
+
+            'weight',
         ]
         self.process_pp_data()
         self.process_results_data()
-        self.processed_df = pd.DataFrame(self.processed_data, columns=self.processed_column_names)
+        # self.processed_df = pd.DataFrame(self.processed_data, columns=self.processed_column_names)
 
     def process_results_data(self):
             for i in range(len(self.df_results)):
@@ -608,7 +609,7 @@ class df_pps:
                 row_data.append(self.df_results['disqualified'][i])             # disqualified
                 row_data.append(self.df_results['disqualified_placing'][i])     # disqualified_placing
 
-                row_data.append(self.df_results['weight'][i])                   # weight
+
                 row_data.append(self.df_results['weight_corrected'][i])         # weight_corrected_flag
                 row_data.append(self.df_results['weight_overweight_amt'][i])    # overweight_amount
                 row_data.append(None)                                           # weight_allowance
@@ -711,10 +712,12 @@ class df_pps:
                 row_data.append(None)                                               # trip_comment_extra
                 row_data.append(None)                                               # extended_start_comment
 
+                row_data.append(self.df_results['weight'][i])                       # weight
+
 
 
                 # Add the data to the main data list
-                self.processed_data.append(row_data)
+                self.processed_result_data.append(row_data)
 
     def process_pp_data(self):
             # ***************Assumptions***************************
@@ -744,10 +747,10 @@ class df_pps:
                 row_data.append(None)                                           # disqualified
                 row_data.append(None)                                           # disqualified_placing
 
-                row_data.append(self.df_pps['weight'])                          # weight
+
                 row_data.append(None)                                           # weight_corrected
                 row_data.append(None)                                           # overweight_amount
-                row_data.append(self.df_pps['weight_allowance'])                # weight_allowance
+                row_data.append(self.df_pps['weight_allowance'][i])             # weight_allowance
 
                 row_data.append(self.df_pps['medication'][i])                   # medication
                 row_data.append(self.df_pps['medication_bute'][i])              # bute
@@ -795,10 +798,13 @@ class df_pps:
                     row_data.append(self.df_pps[f'{call}_call_position'][i])    # position_start_call
                                                                                 # position_1st_call
                                                                                 # position_2d_call
+
                 row_data.append(None)                                           # position_3d_call
+
                 calls = ['gate', 'stretch', 'finish']                           # position_gate_call
-                                                                                # position_stretch_call
-                                                                                # position_finish_unofficial
+                for call in calls:                                              # position_stretch_call
+                    row_data.append(self.df_pps[f'{call}_call_position'][i])    # position_finish_unofficial
+
                 row_data.append(None)                                           # position_finish_official
                 row_data.append(None)                                           # dead_heat_flag
 
@@ -837,11 +843,10 @@ class df_pps:
                 row_data.append(self.df_pps['trip_comment'][i])                 # trip_comment
                 row_data.append(self.df_pps['trip_comment_extra'][i])           # trip_comment_extra
 
-                row_data.append(self.df_pps['odds'][i])                         # odds
-                row_data.append(self.df_pps['favorite'][i])                     # favorite_flag
                 row_data.append(self.df_pps['extended_start_comment'][i])       # extended_start_comment
+                row_data.append(self.df_pps['weight'][i])  # weight
 
-                self.processed_data.append(row_data)
+                self.processed_pps_data.append(row_data)
 
 
 
