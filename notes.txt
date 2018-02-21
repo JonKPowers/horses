@@ -50,6 +50,9 @@ To Do-
 	(31) There are 107 duplicate+ names in horses_info.
 		-See SELECT horse_name, COUNT(*) as count from horses_info GROUP BY horse_name HAVING count > 1;
 	(32) horse_id numbers from race_horse_info (.2 files) should be merged into general horses info table.
+	(33) Add an 'about distance' flag column to DRF files for past_distance_* columns that are negative.
+
+	(34) Need to ask what the 'V' code is under equipment codes in results files. V is missing from the comprehensive charts definition sheet. Also, what is the difference between L (Bar Shoes) and R (Bar SHoe)? Also between A (Aluminum pads) and J (Aluminum pad)
 
 
 Possible questions-
@@ -57,6 +60,15 @@ Possible questions-
 	(2) Does weight carried make much difference? (What is the horse's weight?)
 	(3) What is the speed difference between TB and QH over similar distances?
 	(4) Why do GP And WO dominate the carryover amounts on exotics?
+
+Bad Data:
+	(1) 8f races that have 0 as a final time.
+		-GP 2014-09-07 Race 8
+		-GP 2014-12-14 Race 1
+		-BEL 2017-09-10 Race 4
+		-MNR 2017-07-16
+
+
 
 
 CTX0422.DRF-
@@ -67,3 +79,11 @@ LRL06172017.2-
 
 Errata/Data issues:
 	(1) race_general_results[84544]: AQU, 2006/12/16, race 8. Has weird distance of 1830.4. Maybe try to pull a PDF of race results.
+
+
+
+Fractions-
+	1760Y (8f):
+		1st: 440 (2f)
+		2d: 880 (4f)
+		3d: 1320 (6f)

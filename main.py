@@ -2,6 +2,7 @@ import tidy_it_up as tidy
 import db_functions
 from csv_definitions import file_structure as name_files
 import table_functions as tbl
+import features
 
 import os
 import pathlib
@@ -125,6 +126,7 @@ def process_csv_file(file):
     #   Read the data in and run it through the cleaner
     table_data = pd.read_csv(file, header=None, names=name_files[str(extension)])
     table_data = tidy.tidy_it_up(table_data, extension)
+    table_data = features.add_features(table_data, extension)
     #   Strip out unused columns
     for column in columns_to_delete[str(extension)]:
         del table_data[column]

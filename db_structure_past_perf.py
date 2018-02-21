@@ -261,6 +261,8 @@ horses_pp_table = {
         'special_chute': 'past_special_chute_{}',
         'blinkers': 'past_equipment_{}',
         'medication': 'past_medication_{}',
+        'medication_lasix': 'past_medication_{}_lasix',
+        'medication_bute': 'past_medication_{}_bute',
         'front_wraps': 'past_front_wraps_{}',
         'bar_shoe': 'past_bar_shoe_{}',
         'start_code': 'past_start_code_{}',
@@ -321,19 +323,19 @@ horses_pp_table = {
         '2d_call_position': 'past_call_pos_second_{}',
         'gate_call_position': 'past_call_pos_gate_{}',
         'stretch_call_position': 'past_call_pos_stretch_{}',
-        'finish_position': 'past_call_pos_finish_{}',
+        'finish_call_position': 'past_call_pos_finish_{}',
 
         'start_call_lead_or_beaten_margin': 'past_lead_margin_start_{}',
         '1st_call_lead_or_beaten_margin': 'past_lead_margin_first_call_{}',
         '2d_call_lead_or_beaten_margin': 'past_lead_margin_second_call_{}',
         'stretch_call_lead_or_beaten_margin': 'past_lead_margin_stretch_call_{}',
-        'finish_lead_or_beaten_margin': 'past_lead_margin_finish_{}',
+        'finish_call_lead_or_beaten_margin': 'past_lead_margin_finish_{}',
 
         'start_call_beaten_lengths': 'past_beaten_lengths_start_{}',
         '1st_call_beaten_lengths': 'past_beaten_lengths_first_call_{}',
         '2d_call_beaten_lengths': 'past_beaten_lengths_second_call_{}',
         'stretch_call_beaten_lengths': 'past_beaten_lengths_stretch_call_{}',
-        'finish_beaten_lengths': 'past_beaten_lengths_finish_{}',
+        'finish_call_beaten_lengths': 'past_beaten_lengths_finish_{}',
 
         'money_position': 'past_money_pos_{}',
 

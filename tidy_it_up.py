@@ -47,24 +47,9 @@ def tidy_it_up(table_data, extension):
 
         table_data['claimed_flag'].replace('Y', 1, inplace=True)
         table_data['claimed_flag'].replace('N', 0, inplace=True)
+
         table_data['dead_heat_flag'].replace('DH', 1, inplace=True)
-
-
-
-        # *********************************************
-        # Field with [value]/NaN flags
-        # TO DO:
-        #   (1) Run through these columns and replace the flags with int(1)
-
-        # *********************************************
-        # Character fields to make null
-
-        table_data['claimed_trainer_middle'].fillna('NULL', inplace=True)
-
-        # **********************************************
-        # FIELD DTYPES TO FIX
-        #   'claimed_trainer_middle' from FLOAT to VARCHAR(255)
-
+        table_data['dead_heat_flag'].fillna(0, inplace=True)
 
         # **********************************************
         # Fill the rest with 'NULL'
@@ -72,42 +57,10 @@ def tidy_it_up(table_data, extension):
 
     if extension == '3':
         print('Tidying .3 file (ITM payoffs) ...')
-
-        # *********************************************
-        # Field with [value]/NaN flags
-        # TO DO:
-        #   (1) Run through these columns and replace the flags with int(1)
-
-        # *********************************************
-        # Character fields to make null
-
-        # **********************************************
-        # FIELD DTYPES TO FIX
-        #   'claimed_trainer_middle' from FLOAT to VARCHAR(255)
-
-
-        # **********************************************
-        # Fill the rest with 'NULL'
         table_data.fillna('NULL', inplace=True)
 
     if extension == '4':
         print('Tidying .4 file (exotic payoffs) ...')
-
-        # *********************************************
-        # Field with [value]/NaN flags
-        # TO DO:
-        #   (1) Run through these columns and replace the flags with int(1)
-
-        # *********************************************
-        # Character fields to make null
-
-        # **********************************************
-        # FIELD DTYPES TO FIX
-        #   'claimed_trainer_middle' from FLOAT to VARCHAR(255)
-
-
-        # **********************************************
-        # Fill the rest with 'NULL'
         table_data.fillna('NULL', inplace=True)
 
     if extension == '5':
@@ -128,19 +81,6 @@ def tidy_it_up(table_data, extension):
 
     if extension == '6':
         print('Tidying .6 file (footnotes) ...')
-
-
-
-        # *********************************************
-        # Character fields to make null
-
-        # **********************************************
-        # FIELD DTYPES TO FIX
-        #   'claimed_trainer_middle' from FLOAT to VARCHAR(255)
-
-
-        # **********************************************
-        # Fill the rest with 'NULL'
         table_data.fillna('NULL', inplace=True)
 
     if extension == 'DRF':
@@ -177,20 +117,27 @@ def tidy_it_up(table_data, extension):
 
 
         for i in range(1, 11):
-            table_data['past_special_chute_{}'.format(i)].replace('c', 1, inplace=True)
-            table_data['past_special_chute_{}'.format(i)].fillna(0, inplace=True)
+            table_data[f'past_special_chute_{i}'].replace('c', 1, inplace=True)
+            table_data[f'past_special_chute_{i}'].fillna(0, inplace=True)
 
         for i in range(1, 11):
-            table_data['past_bar_shoe_{}'.format(i)].replace('r', 1, inplace=True)
-            table_data['past_bar_shoe_{}'.format(i)].fillna(0, inplace=True)
+            table_data[f'past_bar_shoe_{i}'].replace('r', 1, inplace=True)
+            table_data[f'past_bar_shoe_{i}'].fillna(0, inplace=True)
 
         for i in range(1, 11):
-            table_data['past_sealed_track_indicator_{}'.format(i)].replace('s', 1, inplace=True)
-            table_data['past_sealed_track_indicator_{}'.format(i)].fillna(0, inplace=True)
+            table_data[f'past_start_code_{i}'].replace('X', 1, inplace=True)
+            table_data[f'past_start_code_{i}'].fillna(0, inplace=True)
 
         for i in range(1, 11):
-            table_data['past_all_weather_flag_{}'.format(i)].replace('A', 1, inplace=True)
-            table_data['past_all_weather_flag_{}'.format(i)].fillna(0, inplace=True)
+            table_data[f'past_sealed_track_indicator_{i}'].replace('s', 1, inplace=True)
+            table_data[f'past_sealed_track_indicator_{i}'].fillna(0, inplace=True)
+
+        for i in range(1, 11):
+            table_data[f'past_all_weather_flag_{i}'].replace('A', 1, inplace=True)
+            table_data[f'past_all_weather_flag_{i}'].fillna(0, inplace=True)
+
+        for i in range(1, 11):
+            table_data[f'past_weight_allowance_{i}'].fillna(0, inplace=True)
 
         # Convert surface-type field in PP data to "new" surface-type style
         # (code is 'A' for all-weather dirt track and 'D' for non-all-weather)

@@ -2,7 +2,7 @@ race_general_results_table = {
     'table_name': 'race_general_results',
     'extension' : '1',
 
-    'db_fields' : {
+    'db_fields': {
         'track': 'track_code',
         'date': 'date',
         'race_num': 'race_num',
@@ -124,6 +124,7 @@ race_horse_info_table = {
         'program_number': 'program_number',
         'post_position': 'post_position',
         'coupled_entry': 'coupled_flag',
+        'nonbetting': 'nonbetting_flag',
 
         'birth_year': 'birth_year',
         'foreign_bred': 'foreign_bred_code',
@@ -148,7 +149,6 @@ race_horse_info_table = {
 
         'odds': 'odds',
         'favorite': 'favorite_flag',
-        'nonbetting': 'nonbetting_flag',
         'payout_win': 'win_payout',
         'payout_place': 'place_payout',
         'payout_show': 'show_payout',
@@ -161,7 +161,39 @@ race_horse_info_table = {
         'weight_overweight_amt': 'overweight_amt',
 
         'medication': 'medication_codes',
+        'adjunct_bleeder_meds': 'meds_adjunct_bleeder',
+        'bute': 'meds_bute',
+        'lasix': 'meds_lasix',
+
         'equipment': 'equipment_code',
+        'equip_running_ws': 'running_ws',
+        'equip_screens': 'screens',
+        'equip_shields': 'shields',
+        'equip_aluminum_pads': 'aluminum_pads',
+        'equip_blinkers': 'blinkers',
+        'equip_mud_calks': 'mud_calks',
+        'equip_glued_shoes': 'glued_shoes',
+        'equip_inner_rims': 'inner_rims',
+        'equip_front_bandages': 'front_bandages',
+        'equip_goggles': 'goggles',
+        'equip_outer_rims': 'outer_rims',
+        'equip_inserts': 'inserts',
+        'equip_aluminum_pad': 'aluminum_pad',
+        'equip_flipping_halter': 'flipping_halter',
+        'equip_bar_shoes': 'bar_shoes',
+        'equip_blocks': 'blocks',
+        'equip_no_whip': 'no_whip',
+        'equip_blinkers_off': 'blinkers_off',
+        'equip_pads': 'pads',
+        'equip_nasal_strip_off': 'nasal_strip_off',
+        'equip_bar_shoe': 'bar_shoe',
+        'equip_nasal_strip': 'nasal_strip',
+        'equip_turndowns': 'turndowns',
+        'equip_spurs': 'spurs',
+        'equip_equipment_item': 'equipment_item',
+        'equip_queens_plates': 'queens_plates',
+        'equip_no_shoes': 'no_shoes',
+        'equip_tongue_tie': 'tongue_tie',
 
         'jockey_id': 'jockey_id',
         'jockey': 'jockey_name',
@@ -196,21 +228,21 @@ race_horse_info_table = {
         'lead_2d_call': '2d_call_lead',
         'lead_3d_call': '3d_call_lead',
         'lead_stretch_call': 'stretch_lead',
-        'lead_finish': 'finish_lead',
+        'lead_finish_call': 'finish_lead',
 
-        'beaten_start': 'start_beaten',
+        'beaten_start_call': 'start_beaten',
         'beaten_1st_call': '1st_call_beaten',
         'beaten_2d_call': '2d_call_beaten',
         'beaten_3d_call': '3d_call_beaten',
         'beaten_stretch_call': 'stretch_call_beaten',
-        'beaten_finish': 'finish_beaten',
+        'beaten_finish_call': 'finish_beaten',
 
-        'margin_start': 'start_margin',
+        'margin_start_call': 'start_margin',
         'margin_1st_call': '1st_call_margin',
         'margin_2d_call': '3d_call_margin',
         'margin_3d_call': '2d_call_margin',
         'margin_stretch_call': 'stretch_call_margin',
-        'margin_finish': 'finish_margin'
+        'margin_finish_call': 'finish_margin'
 
     },
 
