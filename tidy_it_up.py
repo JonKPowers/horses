@@ -90,11 +90,28 @@ def tidy_it_up(table_data, extension):
         # Items that are marked with negative values for special meaning:
         # Workout times:
         for i in range(1, 11):
-            table_data['workout_time_{}'.format(i)] = table_data['workout_time_{}'.format(i)].abs()
+            past_bullet_flag = []
+            for j in range(len(table_data)):
+                if table_data[f'workout_time_{i}'][j] < 0:
+                    past_bullet_flag.append(1)
+                else:
+                    past_bullet_flag.append(0)
+            table_data[f'workout_time_{i}_bullet'] = past_bullet_flag
+
         for i in range(1, 11):
-            table_data['past_distance_{}'.format(i)] = table_data['past_distance_{}'.format(i)].abs()
+            table_data[f'workout_time_{i}'] = table_data['workout_time_{i}'].abs()
         for i in range(1, 11):
-            table_data['workout_distance_{}'.format(i)] = table_data['workout_distance_{}'.format(i)].abs()
+            past_about_distance = []
+            for j in range(len(table_data)):
+                if table_data[f'past_distance_{i}'][j] < 0:
+                    past_about_distance.append(1)
+                else:
+                    past_about_distance.append(0)
+            table_data[f'past_distance_{i}_about_flag'] = past_about_distance
+        for i in range(1, 11):
+            table_data[f'past_distance_{i}'] = table_data['past_distance_{i}'].abs()
+        for i in range(1, 11):
+            table_data[f'workout_distance_{i}'] = table_data[f'workout_distance_{i}'].abs()
         table_data['distance'] = table_data['distance'].abs()
 
         # *********************************************
@@ -149,40 +166,40 @@ def tidy_it_up(table_data, extension):
                     table_data.iloc[j, surface_field] = 'A'
 
         for i in range(1, 11):
-            table_data['past_equipment_{}'.format(i)].replace('b', 1, inplace=True)
-            table_data['past_equipment_{}'.format(i)].fillna(0, inplace=True)
+            table_data[f'past_equipment_{i}'].replace('b', 1, inplace=True)
+            table_data[f'past_equipment_{i}'].fillna(0, inplace=True)
 
         for i in range(1, 11):
-            table_data['past_entry_{}'.format(i)].replace('e', 1, inplace=True)
-            table_data['past_entry_{}'.format(i)].fillna(0, inplace=True)
+            table_data[f'past_entry_{i}'].replace('e', 1, inplace=True)
+            table_data[f'past_entry_{i}'].fillna(0, inplace=True)
 
         for i in range(1, 11):
-            table_data['past_claimed_code_{}'.format(i)].replace('c', 1, inplace=True)
-            table_data['past_claimed_code_{}'.format(i)].replace('v', 1, inplace=True)
-            table_data['past_claimed_code_{}'.format(i)].fillna(0, inplace=True)
+            table_data[f'past_claimed_code_{i}'].replace('c', 1, inplace=True)
+            table_data[f'past_claimed_code_{i}'].replace('v', 1, inplace=True)
+            table_data[f'past_claimed_code_{i}'].fillna(0, inplace=True)
 
         for i in range(1, 11):
-            table_data['past_statebred_flag_{}'.format(i)].replace('s', 1, inplace=True)
-            table_data['past_statebred_flag_{}'.format(i)].fillna(0, inplace=True)
+            table_data[f'past_statebred_flag_{i}'].replace('s', 1, inplace=True)
+            table_data[f'past_statebred_flag_{i}'].fillna(0, inplace=True)
 
         for i in range(1, 11):
-            table_data['past_restricted_or_qualified_{}'.format(i)].replace('R', 1, inplace=True)
-            table_data['past_restricted_or_qualified_{}'.format(i)].fillna(0, inplace=True)
+            table_data[f'past_restricted_or_qualified_{i}'].replace('R', 1, inplace=True)
+            table_data[f'past_restricted_or_qualified_{i}'].fillna(0, inplace=True)
 
         for i in range(1, 11):
-            table_data['past_call_pos_start_{}'.format(i)].replace(r'[A-Za-z?*]+', 'NULL', regex=True, inplace=True)
+            table_data[f'past_call_pos_start_{i}'].replace(r'[A-Za-z?*]+', 'NULL', regex=True, inplace=True)
 
         for i in range(1, 11):
-            table_data['past_call_pos_first_{}'.format(i)].replace(r'[A-Za-z?*]+', 'NULL', regex=True, inplace=True)
+            table_data[f'past_call_pos_first_{i}'].replace(r'[A-Za-z?*]+', 'NULL', regex=True, inplace=True)
 
         for i in range(1, 11):
-            table_data['past_call_pos_second_{}'.format(i)].replace(r'[A-Za-z?*]+', 'NULL', regex=True, inplace=True)
+            table_data[f'past_call_pos_second_{i}'].replace(r'[A-Za-z?*]+', 'NULL', regex=True, inplace=True)
 
         for i in range(1, 11):
-            table_data['past_call_pos_stretch_{}'.format(i)].replace(r'[A-Za-z?*]+', 'NULL', regex=True, inplace=True)
+            table_data[f'past_call_pos_stretch_{i}'].replace(r'[A-Za-z?*]+', 'NULL', regex=True, inplace=True)
 
         for i in range(1, 11):
-            table_data['past_call_pos_finish_{}'.format(i)].replace(r'[A-Za-z?*]+', 'NULL', regex=True, inplace=True)
+            table_data[f'past_call_pos_finish_{i}'].replace(r'[A-Za-z?*]+', 'NULL', regex=True, inplace=True)
 
         # *********************************************
         # Character fields to make null

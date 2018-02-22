@@ -496,7 +496,6 @@ class df_pps:
             'coupled_entry',
 
             'days_since_last_race',
-            'weight',
 
             'odds',
             'favorite',
@@ -844,7 +843,7 @@ class df_pps:
                 row_data.append(self.df_pps['trip_comment_extra'][i])           # trip_comment_extra
 
                 row_data.append(self.df_pps['extended_start_comment'][i])       # extended_start_comment
-                row_data.append(self.df_pps['weight'][i])  # weight
+                row_data.append(self.df_pps['weight'][i])                       # weight
 
                 self.processed_pps_data.append(row_data)
 
