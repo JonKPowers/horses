@@ -4,7 +4,7 @@ example_map = {
 
 def flatten(df, current_column, new_column, mapping):
     current_data = df[current_column]
-    
+
 
 
 
