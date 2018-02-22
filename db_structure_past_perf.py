@@ -266,6 +266,7 @@ horses_pp_table = {
         'front_wraps': 'past_front_wraps_{}',
         'bar_shoe': 'past_bar_shoe_{}',
         'start_code': 'past_start_code_{}',
+
         'weight': 'past_weight_{}',
         'weight_allowance': 'past_weight_allowance_{}',
         'days_since_last_race': 'past_days_since_last_{}',
