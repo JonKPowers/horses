@@ -99,7 +99,7 @@ def tidy_it_up(table_data, extension):
             table_data[f'workout_time_{i}_bullet'] = past_bullet_flag
 
         for i in range(1, 11):
-            table_data[f'workout_time_{i}'] = table_data['workout_time_{i}'].abs()
+            table_data[f'workout_time_{i}'] = table_data[f'workout_time_{i}'].abs()
         for i in range(1, 11):
             past_about_distance = []
             for j in range(len(table_data)):
@@ -109,7 +109,7 @@ def tidy_it_up(table_data, extension):
                     past_about_distance.append(0)
             table_data[f'past_distance_{i}_about_flag'] = past_about_distance
         for i in range(1, 11):
-            table_data[f'past_distance_{i}'] = table_data['past_distance_{i}'].abs()
+            table_data[f'past_distance_{i}'] = table_data[f'past_distance_{i}'].abs()
         for i in range(1, 11):
             table_data[f'workout_distance_{i}'] = table_data[f'workout_distance_{i}'].abs()
         table_data['distance'] = table_data['distance'].abs()

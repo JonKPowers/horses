@@ -301,7 +301,7 @@ file_structure = {
         '1st_call_lead',        ##      63      NUMERIC                         5.2     For leader only
         '2d_call_lead',         ##      64      NUMERIC                         5.2     For leader only
         '3d_call_lead',         ##      65      NUMERIC                         5.2     For leader only
-        'stretch_lead',         ##      66      NUMERIC                         5.2     For leader only
+        'stretch_call_lead',         ##      66      NUMERIC                         5.2     For leader only
         'finish_lead',          ##      67      NUMERIC                         5.2     For leader only
 
         'start_beaten',         ##      68      NUMERIC                         5.2     leader- 0
@@ -2348,7 +2348,7 @@ file_dtypes = {
         '1st_call_lead': 'FLOAT',
         '2d_call_lead': 'FLOAT',
         '3d_call_lead': 'FLOAT',
-        'stretch_lead': 'FLOAT',
+        'stretch_call_lead': 'FLOAT',
         'finish_lead': 'FLOAT',
         'start_beaten': 'FLOAT',
         '1st_call_beaten': 'FLOAT',
@@ -2356,6 +2356,13 @@ file_dtypes = {
         '3d_call_beaten': 'FLOAT',
         'stretch_call_beaten': 'FLOAT',
         'finish_beaten': 'FLOAT',
+        'lead_or_beaten_lengths_start': 'FLOAT',
+        'lead_or_beaten_lengths_1st_call': 'FLOAT',
+        'lead_or_beaten_lengths_2d_call': 'FLOAT',
+        'lead_or_beaten_lengths_3d_call': 'FLOAT',
+        'lead_or_beaten_lengths_stretch_call': 'FLOAT',
+        'lead_or_beaten_lengths_finish': 'FLOAT',
+
         'start_margin': 'FLOAT',
         '1st_call_margin': 'FLOAT',
         '2d_call_margin': 'FLOAT',
@@ -2399,8 +2406,9 @@ file_dtypes = {
         'nasal_strip': 'INT',
         'turndowns': 'INT',
         'spurs': 'INT',
-        'equipment_item': 'INT',
+        'equipment_item_V': 'INT',
         'queens_plates': 'INT',
+        'equipment_item_X': 'INT',
         'no_shoes': 'INT',
         'tongue_tie': 'INT',
     },
@@ -3216,6 +3224,65 @@ file_dtypes = {
         'past_money_pos_9': 'INT',
         'past_money_pos_10': 'INT',
 
+        # Combined lead/beaten lengths columns. Negative values for trailing horses,
+        # and positive values for the leader.
+
+        'past_lead_or_beaten_lengths_start_1': 'FLOAT',
+        'past_lead_or_beaten_lengths_start_2': 'FLOAT',
+        'past_lead_or_beaten_lengths_start_3': 'FLOAT',
+        'past_lead_or_beaten_lengths_start_4': 'FLOAT',
+        'past_lead_or_beaten_lengths_start_5': 'FLOAT',
+        'past_lead_or_beaten_lengths_start_6': 'FLOAT',
+        'past_lead_or_beaten_lengths_start_7': 'FLOAT',
+        'past_lead_or_beaten_lengths_start_8': 'FLOAT',
+        'past_lead_or_beaten_lengths_start_9': 'FLOAT',
+        'past_lead_or_beaten_lengths_start_10': 'FLOAT',
+
+        'past_lead_or_beaten_lengths_first_call_1': 'FLOAT',
+        'past_lead_or_beaten_lengths_first_call_2': 'FLOAT',
+        'past_lead_or_beaten_lengths_first_call_3': 'FLOAT',
+        'past_lead_or_beaten_lengths_first_call_4': 'FLOAT',
+        'past_lead_or_beaten_lengths_first_call_5': 'FLOAT',
+        'past_lead_or_beaten_lengths_first_call_6': 'FLOAT',
+        'past_lead_or_beaten_lengths_first_call_7': 'FLOAT',
+        'past_lead_or_beaten_lengths_first_call_8': 'FLOAT',
+        'past_lead_or_beaten_lengths_first_call_9': 'FLOAT',
+        'past_lead_or_beaten_lengths_first_call_10': 'FLOAT',
+
+        'past_lead_or_beaten_lengths_second_call_1': 'FLOAT',
+        'past_lead_or_beaten_lengths_second_call_2': 'FLOAT',
+        'past_lead_or_beaten_lengths_second_call_3': 'FLOAT',
+        'past_lead_or_beaten_lengths_second_call_4': 'FLOAT',
+        'past_lead_or_beaten_lengths_second_call_5': 'FLOAT',
+        'past_lead_or_beaten_lengths_second_call_6': 'FLOAT',
+        'past_lead_or_beaten_lengths_second_call_7': 'FLOAT',
+        'past_lead_or_beaten_lengths_second_call_8': 'FLOAT',
+        'past_lead_or_beaten_lengths_second_call_9': 'FLOAT',
+        'past_lead_or_beaten_lengths_second_call_10': 'FLOAT',
+
+        'past_lead_or_beaten_lengths_stretch_call_1': 'FLOAT',
+        'past_lead_or_beaten_lengths_stretch_call_2': 'FLOAT',
+        'past_lead_or_beaten_lengths_stretch_call_3': 'FLOAT',
+        'past_lead_or_beaten_lengths_stretch_call_4': 'FLOAT',
+        'past_lead_or_beaten_lengths_stretch_call_5': 'FLOAT',
+        'past_lead_or_beaten_lengths_stretch_call_6': 'FLOAT',
+        'past_lead_or_beaten_lengths_stretch_call_7': 'FLOAT',
+        'past_lead_or_beaten_lengths_stretch_call_8': 'FLOAT',
+        'past_lead_or_beaten_lengths_stretch_call_9': 'FLOAT',
+        'past_lead_or_beaten_lengths_stretch_call_10': 'FLOAT',
+
+        'past_lead_or_beaten_lengths_finish_1': 'FLOAT',
+        'past_lead_or_beaten_lengths_finish_2': 'FLOAT',
+        'past_lead_or_beaten_lengths_finish_3': 'FLOAT',
+        'past_lead_or_beaten_lengths_finish_4': 'FLOAT',
+        'past_lead_or_beaten_lengths_finish_5': 'FLOAT',
+        'past_lead_or_beaten_lengths_finish_6': 'FLOAT',
+        'past_lead_or_beaten_lengths_finish_7': 'FLOAT',
+        'past_lead_or_beaten_lengths_finish_8': 'FLOAT',
+        'past_lead_or_beaten_lengths_finish_9': 'FLOAT',
+        'past_lead_or_beaten_lengths_finish_10': 'FLOAT',
+
+
         ##      Start Call - Beaten lengths/Leader margin
         'past_lead_margin_start_1': 'FLOAT',
         'past_lead_margin_start_2': 'FLOAT',
@@ -3264,7 +3331,7 @@ file_dtypes = {
         'past_beaten_lengths_first_call_9': 'FLOAT',
         'past_beaten_lengths_first_call_10': 'FLOAT',
 
-        ##      2d Call Beaten Lengths/Leader marbin
+        ##      2d Call Beaten Lengths/Leader margin
         'past_lead_margin_second_call_1': 'FLOAT',
         'past_lead_margin_second_call_2': 'FLOAT',
         'past_lead_margin_second_call_3': 'FLOAT',

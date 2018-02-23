@@ -44,8 +44,8 @@ class TableHandler:
                     check_col_0 = table_data.columns.get_loc(self.not_null[0].format(i))
                     check_col_1 = table_data.columns.get_loc(self.not_null[1].format(i))
                     drop_cols = [j for j in range(len(table_data)) if
-                                 table_data.iloc[j:j+1, check_col_0:check_col_0 + 1].values[0] == 'NULL' and
-                                 table_data.iloc[j:j+1, check_col_1:check_col_1 + 1].values[0] == 'NULL']
+                                 table_data.iloc[j, check_col_0] == 'NULL' and
+                                 table_data.iloc[j, check_col_1] == 'NULL']
                 except IndexError:
                     pass
 

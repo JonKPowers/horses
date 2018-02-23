@@ -328,17 +328,11 @@ horses_pp_table = {
         'stretch_call_position': 'past_call_pos_stretch_{}',
         'finish_call_position': 'past_call_pos_finish_{}',
 
-        'start_call_lead_or_beaten_margin': 'past_lead_margin_start_{}',
-        '1st_call_lead_or_beaten_margin': 'past_lead_margin_first_call_{}',
-        '2d_call_lead_or_beaten_margin': 'past_lead_margin_second_call_{}',
-        'stretch_call_lead_or_beaten_margin': 'past_lead_margin_stretch_call_{}',
-        'finish_call_lead_or_beaten_margin': 'past_lead_margin_finish_{}',
-
-        'start_call_beaten_lengths': 'past_beaten_lengths_start_{}',
-        '1st_call_beaten_lengths': 'past_beaten_lengths_first_call_{}',
-        '2d_call_beaten_lengths': 'past_beaten_lengths_second_call_{}',
-        'stretch_call_beaten_lengths': 'past_beaten_lengths_stretch_call_{}',
-        'finish_call_beaten_lengths': 'past_beaten_lengths_finish_{}',
+        'start_call_lead_or_beaten_lengths': 'past_lead_or_beaten_lengths_start_{}',
+        '1st_call_lead_or_beaten_lengths': 'past_lead_or_beaten_lengths_first_call_{}',
+        '2d_call_lead_or_beaten_lengths': 'past_lead_or_beaten_lengths_second_call_{}',
+        'stretch_call_lead_or_beaten_lengths': 'past_lead_or_beaten_lengths_stretch_call_{}',
+        'finish_call_lead_or_beaten_lengths': 'past_lead_or_beaten_lengths_finish_{}',
 
         'money_position': 'past_money_pos_{}',
 

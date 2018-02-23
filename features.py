@@ -1,3 +1,5 @@
+import numpy as np
+
 def add_features (table_data, extension):
     extension = str(extension)
     if extension == '1':
@@ -5,7 +7,9 @@ def add_features (table_data, extension):
     if extension == '2':
         print('Adding features to .2 file ...')
 
+        # ************************************************
         # Flatten medication codes into individual columns
+        #
         medication_col = table_data.columns.get_loc('medication_codes')
         bleeder_meds = [0 for _ in range(len(table_data))]
         bute = [0 for _ in range(len(table_data))]
@@ -22,7 +26,9 @@ def add_features (table_data, extension):
         table_data['meds_bute'] = bute
         table_data['meds_lasix'] = lasix
 
+        # ***********************************************
         # Flatten equipment codes into individual columns
+        #
         equipment_col = table_data.columns.get_loc('equipment_code')
         equipment_list = {
             '1': 'running_ws',
@@ -49,9 +55,9 @@ def add_features (table_data, extension):
             'S': 'nasal_strip',
             'T': 'turndowns',
             'U': 'spurs',
-            'V': 'equipment_item',
+            'V': 'equipment_item_V',
             'W': 'queens_plates',
-            'X': 'equipment_item_2',
+            'X': 'equipment_item_X',
             'Y': 'no_shoes',
             'Z': 'tongue_tie',
         }
@@ -67,6 +73,30 @@ def add_features (table_data, extension):
                 equipment_dict[equipment_list[letter]][i] = 1
         for key, value in equipment_dict.items():
             table_data[key] = value
+
+        # ***********************************************
+        # Combine lead/beaten lengths columns into single column,
+        # with a positive value for the leader and a negative
+        # value for all trailing horses
+
+        calls = ['start', '1st_call', '2d_call', '3d_call', 'stretch_call', 'finish']
+        for call in calls:
+            column_data = []
+            lead_column = table_data.columns.get_loc(f'{call}_lead')
+            beaten_column = table_data.columns.get_loc(f'{call}_beaten')
+            for i in range(len(table_data)):
+                if table_data.iloc[i, lead_column] != 'NULL':
+                    column_data.append(table_data.iloc[i, lead_column])
+                elif table_data.iloc[i, beaten_column] == 'NULL':
+                    column_data.append('NULL')
+                elif table_data.iloc[i, beaten_column] == 0:
+                    column_data.append('NULL')
+                elif table_data.iloc[i, beaten_column] != 0:
+                    column_data.append(table_data.iloc[i, beaten_column] * -1)
+                else:
+                    print(f'logic leak\nRow: {i}')
+            table_data[f'lead_or_beaten_lengths_{call}'] = column_data
+
 
     if extension == '3':
         print('Adding features to .3 file ...')
@@ -95,6 +125,27 @@ def add_features (table_data, extension):
                     bute[j] = 1
             table_data[f'past_medication_{i}_lasix'] = lasix
             table_data[f'past_medication_{i}_bute'] = bute
+
+        # ***********************************************
+        # Combine lead/beaten lengths columns into single column,
+        # with a positive value for the leader and a negative
+        # value for all trailing horses
+
+        calls = ['start', 'first_call', 'second_call', 'stretch_call', 'finish']
+        for call in calls:
+            for j in range(1, 11):
+                column_data = []
+                lead_beaten_col = table_data.columns.get_loc(f'past_lead_margin_{call}_{j}')
+                beaten_only_col = table_data.columns.get_loc(f'past_beaten_lengths_{call}_{j}')
+
+                for i in range(len(table_data)):
+                    if table_data.iloc[i, beaten_only_col] != 'NULL':
+                        column_data.append(table_data.iloc[i, beaten_only_col] * -1)
+                    else:
+                        column_data.append(table_data.iloc[i, lead_beaten_col])
+                table_data[f'past_lead_or_beaten_lengths_{call}_{j}'] = column_data
+
+
     return table_data
 
 

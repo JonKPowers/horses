@@ -504,6 +504,7 @@ class df_pps:
             'disqualified_placing',
 
 
+            'weight',
             'weight_corrected_flag',
             'overweight_amount',
             'weight_allowance',
@@ -578,12 +579,10 @@ class df_pps:
             'trip_comment',
             'trip_comment_extra',
             'extended_start_comment',
-
-            'weight',
         ]
         self.process_pp_data()
         self.process_results_data()
-        # self.processed_df = pd.DataFrame(self.processed_data, columns=self.processed_column_names)
+        self.processed_df = pd.DataFrame(self.processed_data, columns=self.processed_column_names)
 
     def process_results_data(self):
             for i in range(len(self.df_results)):
@@ -600,7 +599,7 @@ class df_pps:
                 row_data.append(self.df_results['coupled_entry'][i])            # coupled_entry
 
                 row_data.append(None)                                           # days_since_last_race
-                row_data.append(None)                                           # weight
+
 
                 row_data.append(None)                                           # odds
                 row_data.append(None)                                           # favorite
@@ -608,7 +607,7 @@ class df_pps:
                 row_data.append(self.df_results['disqualified'][i])             # disqualified
                 row_data.append(self.df_results['disqualified_placing'][i])     # disqualified_placing
 
-
+                row_data.append(self.df_results['weight'][i])                   # weight
                 row_data.append(self.df_results['weight_corrected'][i])         # weight_corrected_flag
                 row_data.append(self.df_results['weight_overweight_amt'][i])    # overweight_amount
                 row_data.append(None)                                           # weight_allowance
@@ -711,12 +710,12 @@ class df_pps:
                 row_data.append(None)                                               # trip_comment_extra
                 row_data.append(None)                                               # extended_start_comment
 
-                row_data.append(self.df_results['weight'][i])                       # weight
+
 
 
 
                 # Add the data to the main data list
-                self.processed_result_data.append(row_data)
+                self.processed_data.append(row_data)
 
     def process_pp_data(self):
             # ***************Assumptions***************************
@@ -738,7 +737,7 @@ class df_pps:
                 row_data.append(None)                                           # coupled_entry
 
                 row_data.append(self.df_pps['days_since_last_race'][i])         # days_since_last_race
-                row_data.append(self.df_pps['weight'][i])                       # weight
+
 
                 row_data.append(self.df_pps['odds'][i])                         # odds
                 row_data.append(self.df_pps['favorite'][i])                     # favorite
@@ -746,7 +745,7 @@ class df_pps:
                 row_data.append(None)                                           # disqualified
                 row_data.append(None)                                           # disqualified_placing
 
-
+                row_data.append(self.df_pps['weight'][i])                       # weight
                 row_data.append(None)                                           # weight_corrected
                 row_data.append(None)                                           # overweight_amount
                 row_data.append(self.df_pps['weight_allowance'][i])             # weight_allowance
@@ -843,9 +842,8 @@ class df_pps:
                 row_data.append(self.df_pps['trip_comment_extra'][i])           # trip_comment_extra
 
                 row_data.append(self.df_pps['extended_start_comment'][i])       # extended_start_comment
-                row_data.append(self.df_pps['weight'][i])                       # weight
 
-                self.processed_pps_data.append(row_data)
+                self.processed_data.append(row_data)
 
 
 

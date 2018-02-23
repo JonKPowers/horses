@@ -62,38 +62,44 @@ def query_table(db_handler, table_name, fields, where='', other=''):
 def get_8f_races(db_handler):
     sql_map = {
         # df_col: (horse_pps_field, race_general_results_field)
-        'source_file': ('source_file', 'source_file'),
-        'track': ('track_code', 'track_code'),
-        'date': ('race_date', 'date'),
-        'race_num': ('race_num', 'race_num'),
-        'race_class': ('equibase_race_conditions', 'race_class'),
-        'race_grade': (None, 'race_grade'),
-        'race_restrictions': (None, 'race_restrictions'),
-        'age_sex_restrictions': ('age_sex_restrictions',),
-        'statebred_race': ('statebred_race', 'statebred_race'),
-        'run_up_dist': (None, 'run_up_dist'),
-        'distance': ('distance', 'distance'),
-        'about_distance_flag': (None, 'about_distance'),
-        'temp_rail_dist': (None, 'temp_rail_dist'),
-        'chute_start': (None, 'chute_start'),
-        'surface': ('surface', 'surface_new'),
-        'sealed_flag': ('sealed_track', None),
-        'track_condition': ('track_condition', 'track_condition'),
-        '2f_time': ('2f_fraction', 'time_fraction_1'),
-        '4f_time': ('4f_fraction', 'time_fraction_2'),
-        '6f_time': ('6f_fraction', 'time_fraction_3'),
-        'stretch_time': (None, 'time_fraction_4'),
-        'final_time': ('final_time', 'time_final'),
-        'race_conditions': (None, ['race_conditions_1', 'race_conditions_2', 'race_conditions_3',
-                                   'race_conditions_4', 'race_conditions_5']),
-
-        'num_of_horses': ('num_of_horses',),
-        'other_needed_fields': (None, ['distance_fraction_1', 'distance_fraction_2', 'distance_fraction_3',
-                                       'distance_fraction_4', 'distance_fraction_5', 'distance_first_call',
-                                       'distance_second_call', 'distance_third_call', ])
+        'source_file': ['source_file', 'source_file'],
+        'track': ['track_code', 'track'],
+        'date': ['race_date', 'date'],
+        'race_num': ['race_num', 'race_num'],
+        'race_class': ['equibase_race_conditions', 'race_class'],
+        'race_grade': [None, 'race_grade'],
+        'race_restrictions': [None, 'race_restrictions'],
+        'age_sex_restrictions': ['age_sex_restrictions', None],
+        'statebred_race': ['statebred_race', 'statebred_race'],
+        'run_up_dist': [None, 'run_up_dist'],
+        'distance': ['distance', 'distance'],
+        'about_distance_flag': [None, 'about_distance'],
+        'temp_rail_dist': [None, 'temp_rail_dist'],
+        'chute_start': [None, 'chute_start'],
+        'surface': ['surface', 'surface_new'],
+        'sealed_flag': ['sealed_track', None],
+        'track_condition': ['track_condition', 'track_condition'],
+        '2f_time': ['2f_fraction', 'time_fraction_1'],
+        '4f_time':['4f_fraction', 'time_fraction_2'],
+        '6f_time': ['6f_fraction', 'time_fraction_3'],
+        'stretch_time': [None, 'time_fraction_4'],
+        'final_time': ['final_time', 'time_final'],
+        'race_conditions': [None, None],
+        'num_of_horses': ['num_of_horses', None],
+        'other_needed_fields': [None, ['race_conditions_1', 'race_conditions_2', 'race_conditions_3',
+                                       'race_conditions_4', 'race_conditions_5''distance_fraction_1',
+                                       'distance_fraction_2', 'distance_fraction_3', 'distance_fraction_4',
+                                       'distance_fraction_5', 'distance_first_call', 'distance_second_call',
+                                       'distance_third_call', ]]
     }
-    horse_pps_fields = [sql_map[item][0] for item in sql_map if sql_map[item][0]]
-    race_general_results_fields = [sql_map[item][1] for item in sql_map if sql_map[item][1]]
+    raw_horse_pps_fields = [sql_map[item][0] for item in sql_map if sql_map[item][0]]
+    horse_pps_fields = [item for item in raw_horse_pps_fields if type(item) != list]
+    horse_pps_fields.extend([item for sublist in raw_horse_pps_fields for item in sublist if type(sublist) == list])
+
+    raw_race_general_results_fields = [sql_map[item][1] for item in sql_map if sql_map[item][1]]
+    race_general_results_fields = [item for item in raw_race_general_results_fields if type(item) != list]
+    race_general_results_fields.extend([item for sublist in raw_race_general_results_fields
+                                        for item in sublist if type(item) == list])
 
     values, column_names = query_table(db_handler, 'horse_pps', horse_pps_fields, where="distance = '1760'")
     print('Making dataframe')
@@ -207,528 +213,182 @@ class df_results_8f:
             self.processed_data.append(processed_row_data)
 
 
-def get_8f_horse_pps(db_handler):
-    horse_pps_fields = [
-        'source_file',
-        'track_code',
-        'race_date',
-        'race_num',
+def get_horse_pps(db_handler):
+    sql_map = {
+        # df_col: (horse_pps_field, race_general_results_field)
+        'source_file': ['source_file', 'source_file'],
+        'track': ['track_code', 'track'],
+        'date': ['race_date', 'date'],
+        'race_num': ['race_num','race_num'],
 
-        'horse_name',
-        'post_position',
-        'odds',
-        'favorite',
+        'horse_name': ['horse_name', 'horse_name'],
+        'program_num': [None, 'program_number'],
+        'post_position': ['post_position', 'post_position'],
+        'coupled_entry': [None, 'coupled_entry'],
+        'number_of_horses': ['num_of_horses', None],
 
-        'trainer',
-        'jockey',
+        'days_since_last_race': ['days_since_last_race', None],
 
-        'blinkers',
-        'medication',
-        'medication_lasix',
-        'medication_bute',
-        'front_wraps',
-        'bar_shoe',
-        'start_code',
+        'odds': ['odds', None],
+        'favorite': ['favorite', None],
 
-        'weight',
-        'weight_allowance',
+        'disqualified': [None, 'disqualified'],
+        'disqualified_placing': [None, 'disqualified_placing'],
 
-        'days_since_last_race',
-        'num_of_horses',
+        'weight': ['weight', 'weight'],
+        'weight_corrected_flag': [None, 'weight_corrected'],
+        'overweight_amount': [None, 'weight_overweight_amt'],
+        'weight_allowance': ['weight_allowance', None],
 
-        'trip_comment',
-        'trip_comment_extra',
-        'extended_start_comment',
+        'medication': ['medication', 'medication'],
+        'bute': ['medication_bute', 'bute'],
+        'lasix': ['medication_lasix', 'lasix'],
+        'adjunct_bleeder_meds': [None, 'adjunct_bleeder_meds'],
 
-        'BRIS_speed_rating',
-        'speed_rating',
+        'equipment': [None, 'equipment'],
+        'equip_running_ws': [None, 'equip_running_ws'],
+        'equip_screens': [None, 'equip_screens'],
+        'equip_shields': [None, 'equip_shields'],
+        'equip_aluminum_pads': [None, 'equip_aluminum_pads'],
+        'equip_blinkers': ['blinkers', 'equip_blinkers'],
+        'equip_mud_calks': [None, 'equip_mud_calks'],
+        'equip_glued_shoes': [None, 'equip_glued_shoes'],
+        'equip_inner_rims': [None, 'equip_inner_rims'],
+        'equip_front_bandages': ['front_wraps', 'equip_front_bandages'],
+        'equip_goggles': [None, 'equip_goggles'],
+        'equip_outer_rims': [None, 'equip_outer_rims'],
+        'equip_inserts': [None, 'equip_inserts'],
+        'equip_aluminum_pad': [None, 'equip_aluminum_pad'],
+        'equip_flipping_halter': [None, 'equip_flipping_halter'],
+        'equip_bar_shoes': ['bar_shoe', 'equip_bar_shoes'],
+        'equip_blocks': [None, 'equip_blocks'],
+        'equip_no_whip': [None, 'equip_no_whip'],
+        'equip_blinkers_off': [None, 'equip_blinkers_off'],
+        'equip_pads': [None, 'equip_pads'],
+        'equip_nasal_strip_off': [None, 'equip_nasal_strip_off'],
+        'equip_bar_shoe': [None, 'equip_bar_shoe'],
+        'equip_nasal_strip': [None, 'equip_nasal_strip'],
+        'equip_turndowns': [None, 'equip_turndowns'],
+        'equip_spurs': [None, 'equip_spurs'],
+        'equip_equipment_item_V': [None, 'equip_equipment_item_V'],
+        'equip_queens_plates': [None, 'equip_queens_plates'],
+        'equip_equipment_item_X': [None, 'equip_equipment_item_X'],
+        'equip_no_shoes': [None, 'equip_no_shoes'],
+        'equip_tongue_tie': [None, 'equip_tongue_tie'],
 
-        'start_call_position',
-        '1st_call_position',
-        '2d_call_position',
-        'gate_call_position',
-        'stretch_call_position',
-        'finish_call_position',
+        'jockey': ['jockey', 'jockey'],
+        'jockey_id': [None, 'jockey_id'],
+        'trainer': ['trainer', 'trainer_name'],
+        'trainer_id': [None, 'trainer_id'],
 
-        'start_call_lead_or_beaten_margin',
-        '1st_call_lead_or_beaten_margin',
-        '2d_call_lead_or_beaten_margin',
-        'stretch_call_lead_or_beaten_margin',
-        'finish_call_lead_or_beaten_margin',
+        'BRIS_speed_rating': ['BRIS_speed_rating', None],
+        'speed_rating': ['speed_rating', None],
 
-        'start_call_beaten_lengths',
-        '1st_call_beaten_lengths',
-        '2d_call_beaten_lengths',
-        'stretch_call_beaten_lengths',
-        'finish_call_beaten_lengths',
-    ]
+        'position_start_call': ['start_call_position', 'position_start_call'],
+        'position_1st_call': ['1st_call_position', 'position_1st_call'],
+        'position_2d_call': ['2d_call_position', 'position_2d_call'],
+        'position_3d_call': [None, 'position_3d_call'],
+        'position_gate_call': ['gate_call_position', None],
+        'position_stretch_call': ['stretch_call_position', 'position_stretch_call'],
+        'position_finish_unofficial': ['finish_call_position', 'position_finish_unofficial'],
+        'position_finish_official': [None, 'position_finish_official'],
+        'dead_heat_flag': [None, 'dead_heat_finish'],
 
-    race_horse_info_fields = [
-        'source_file',
-        'track',
-        'date',
-        'race_num',
-        'horse_name',
-        'program_number',
-        'post_position',
-        'coupled_entry',
+        'lead_or_beaten_lengths_start_call': ['start_call_lead_or_beaten_lengths', 'lead_or_beaten_lengths_start_call'],
+        'lead_or_beaten_lengths_1st_call': ['1st_call_lead_or_beaten_lengths', 'lead_or_beaten_lengths_1st_call'],
+        'lead_or_beaten_lengths_2d_call': ['2d_call_lead_or_beaten_lengths', 'lead_or_beaten_lengths_2d_call'],
+        'lead_or_beaten_lengths_3d_call': [None, 'lead_or_beaten_lengths_3d_call'],
+        'lead_or_beaten_lengths_gate_call': [None, None],
+        'lead_or_beaten_lengths_stretch_call': ['stretch_call_lead_or_beaten_lengths', 'lead_or_beaten_lengths_stretch_call'],
+        'lead_or_beaten_lengths_finish_call': ['finish_call_lead_or_beaten_lengths', 'lead_or_beaten_lengths_finish'],
 
-        'disqualified',
-        'disqualified_placing',
-        'weight',
-        'weight_corrected',
-        'weight_overweight_amt',
-        'medication',
-        'adjunct_bleeder_meds',
-        'bute',
-        'lasix',
+        'margin_start': [None, 'margin_start_call'],
+        'margin_1st_call': [None, 'margin_1st_call'],
+        'margin_2d_call': [None, 'margin_2d_call'],
+        'margin_3d_call': [None, 'margin_3d_call'],
+        'margin_gate_call': [None, None],
+        'margin_stretch_call': [None, 'margin_stretch_call'],
+        'margin_finish_call': [None, 'margin_finish_call'],
 
-        'equipment',
-        'equip_running_ws',
-        'equip_screens',
-        'equip_shields',
-        'equip_aluminum_pads',
-        'equip_blinkers',
-        'equip_mud_calks',
-        'equip_glued_shoes',
-        'equip_inner_rims',
-        'equip_front_bandages',
-        'equip_goggles',
-        'equip_outer_rims',
-        'equip_inserts',
-        'equip_aluminum_pad',
-        'equip_flipping_halter',
-        'equip_bar_shoes',
-        'equip_blocks',
-        'equip_no_whip',
-        'equip_blinkers_off',
-        'equip_pads',
-        'equip_nasal_strip_off',
-        'equip_bar_shoe',
-        'equip_nasal_strip',
-        'equip_turndowns',
-        'equip_spurs',
-        'equip_equipment_item',
-        'equip_queens_plates',
-        'equip_no_shoes',
-        'equip_tongue_tie',
+        'trip_comment': ['trip_comment', 'trip_comment'],
+        'trip_comment_extra': ['trip_comment_extra', None],
+        'extended_start_comment': ['extended_start_comment', None],
 
-        'jockey',
-        'trainer_name',
-        'jockey_id',
-        'trainer_id',
 
-        'position_start_call',
-        'position_1st_call',
-        'position_2d_call',
-        'position_3d_call',
-        'position_stretch_call',
-        'position_finish_unofficial',
-        'position_finish_official',
-        'dead_heat_finish',
 
-        'lead_start_call',
-        'lead_1st_call',
-        'lead_2d_call',
-        'lead_3d_call',
-        'lead_stretch_call',
-        'lead_finish_call',
+        'other_needed_fields': [['start_call_lead_or_beaten_margin', '1st_call_lead_or_beaten_margin',
+                                       '2d_call_lead_or_beaten_margin', 'stretch_call_lead_or_beaten_margin',
+                                       'finish_call_lead_or_beaten_margin', 'start_call_beaten_lengths',
+                                       '1st_call_beaten_lengths', '2d_call_beaten_lengths',
+                                       'stretch_call_beaten_lengths', 'finish_call_beaten_lengths',
+                                 ],
+                                [ 'lead_start_call', 'lead_1st_call', 'lead_2d_call', 'lead_3d_call',
+                                  'lead_stretch_call', 'lead_finish_call', 'beaten_start_call',
+                                  'beaten_1st_call', 'beaten_2d_call', 'beaten_3d_call', 'beaten_stretch_call',
+                                  'beaten_finish_call',
 
-        'beaten_start_call',
-        'beaten_1st_call',
-        'beaten_2d_call',
-        'beaten_3d_call',
-        'beaten_stretch_call',
-        'beaten_finish_call',
+                                ]],
+    }
 
-        'margin_start_call',
-        'margin_1st_call',
-        'margin_2d_call',
-        'margin_3d_call',
-        'margin_stretch_call',
-        'margin_finish_call',
-
-        'trip_comment',
-
-    ]
-
+    raw_horse_pps_fields = [sql_map[key][0] for key in sql_map if sql_map[key][0]]
+    horse_pps_fields = [item for item in raw_horse_pps_fields if type(item) != list]
+    horse_pps_fields.extend([item for sublist in raw_horse_pps_fields
+                             for item in sublist if type(sublist) == list])
     values, column_names = query_table(db_handler, 'horse_pps', horse_pps_fields)
     print('Making dataframe')
     df_pps = pd.DataFrame(values, columns=column_names)
 
+    calls = ['start', '1st', '2d', 'stretch', 'finish']
+    for call in calls:
+        column_data = []
+        for i in range(len(df_pps)):
+            if not np.isnan(df_pps[f'{call}_call_beaten_lengths'][i]):
+                column_data.append(df_pps[f'{call}_call_beaten_lengths'][i] * -1)
+            else:
+                column_data.append(df_pps[f'{call}_call_lead_or_beaten_margin'][i])
+        df_pps[f'lead_or_beaten_lengths_{call}'] = column_data
+        sql_map[f'lead_or_beaten_lengths_{call}_call'][0] = f'lead_or_beaten_lengths_{call}'
+        del df_pps[f'{call}_call_lead_or_beaten_margin']
+
+    raw_race_horse_info_fields = [sql_map[key][1] for key in sql_map if sql_map[key][1]]
+    race_horse_info_fields = [item for item in raw_race_horse_info_fields if type(item) != list]
+    race_horse_info_fields.extend([item for sublist in raw_race_horse_info_fields
+                                   for item in sublist if type(sublist) == list])
     values, column_names = query_table(db_handler, 'race_horse_info', race_horse_info_fields)
     print('Making dataframe')
     df_results = pd.DataFrame(values, columns=column_names)
 
-    return df_pps, df_results
+    # Loop through these lead/beaten columns to generate a lead/beaten lengths number.
+    # A negative number indicates beaten lengths; a positive number indicates the leader.
+    calls = ['start', '1st', '2d', '3d', 'stretch', 'finish']
+    for call in calls:
+        column_data = []
+        for i in range(len(df_results)):
+            if not np.isnan(df_results[f'lead_{call}_call'][i]):
+                column_data.append(df_results[f'lead_{call}_call'][i])
+            elif df_results[f'beaten_{call}_call'][i] != 0:
+                column_data.append(df_results[f'beaten_{call}_call'][i] * -1)
+            elif df_results[f'beaten_{call}_call'][i] == 0:
+                column_data.append(np.nan)
+            else:
+                column_data.append('ISSUE')
+
+        df_results[f'lead_or_beaten_lengths_{call}'] = column_data
+        sql_map[f'lead_or_beaten_lengths_{call}_call'][1] = f'lead_or_beaten_lengths_{call}'
+        del df_results[f'lead_{call}_call']
+        del df_results[f'beaten_{call}_call']
+
+    return df_pps, df_results, sql_map
 
 
 class df_pps:
-    def __init__(self, df_pps, df_results):
+    def __init__(self, df_pps, df_results, sql_map):
         self.df_pps = df_pps
         self.df_results = df_results
         self.processed_pps_data = []
         self.processed_result_data = []
         self.processed_data = []
-        self.processed_column_names = [
-            'source_file',
-            'track',
-            'date',
-            'race_num',
+        self.processed_column_names = list(sql_map)
 
-            'horse_name',
-            'program_num',
-            'post_position',
-            'coupled_entry',
-
-            'days_since_last_race',
-
-            'odds',
-            'favorite',
-
-            'disqualified',
-            'disqualified_placing',
-
-            'weight_corrected_flag',
-            'overweight_amount',
-            'weight_allowance',
-
-            'medication',
-            'bute',
-            'lasix',
-            'adjunct_bleeder_meds',
-
-            'equipment',
-            'equip_running_ws',
-            'equip_screens',
-            'equip_shields',
-            'equip_aluminum_pads',
-            'equip_blinkers',
-            'equip_mud_calks',
-            'equip_glued_shoes',
-            'equip_inner_rims',
-            'equip_front_bandages',
-            'equip_goggles',
-            'equip_outer_rims',
-            'equip_inserts',
-            'equip_aluminum_pad',
-            'equip_flipping_halter',
-            'equip_bar_shoes',
-            'equip_blocks',
-            'equip_no_whip',
-            'equip_blinkers_off',
-            'equip_pads',
-            'equip_nasal_strip_off',
-            'equip_bar_shoe',
-            'equip_nasal_strip',
-            'equip_turndowns',
-            'equip_spurs',
-            'equip_equipment_item',
-            'equip_queens_plates',
-            'equip_no_shoes',
-            'equip_tongue_tie',
-
-            'jockey',
-            'trainer',
-
-            'BRIS_speed_rating',
-            'speed_rating',
-
-            'position_start_call',
-            'position_1st_call',
-            'position_2d_call',
-            'position_3d_call',
-            'position_gate_call',
-            'position_stretch_call',
-            'position_finish_unofficial',
-            'position_finish_official',
-            'dead_heat_flag',
-
-            'lead_beaten_lengths_start_call',
-            'lead_beaten_lengths_1st_call',
-            'lead_beaten_lengths_2d_call',
-            'lead_beaten_lengths_3d_call',
-            'lead_beaten_lengths_gate_call',
-            'lead_beaten_lengths_stretch_call',
-            'lead_beaten_lengths_finish',
-
-            'margin_start',
-            'margin_1st_call',
-            'margin_2d_call',
-            'margin_3d_call',
-            'margin_gate_call',
-            'margin_stretch_call',
-            'margin_finish',
-
-            'trip_comment',
-            'trip_comment_extra',
-            'extended_start_comment',
-
-            'weight',
-        ]
-        self.process_pp_data()
-        self.process_results_data()
         # self.processed_df = pd.DataFrame(self.processed_data, columns=self.processed_column_names)
-
-    def process_results_data(self):
-        for i in range(len(self.df_results)):
-            row_data = []
-
-            row_data.append(self.df_results['source_file'][i])  # source_file
-            row_data.append(self.df_results['track'][i])  # track
-            row_data.append(self.df_results['date'][i])  # date
-            row_data.append(self.df_results['race_num'][i])  # race_num
-
-            row_data.append(self.df_results['horse_name'][i])  # horse_name
-            row_data.append(self.df_results['program_number'][i])  # program_num
-            row_data.append(self.df_results['post_position'][i])  # post_position
-            row_data.append(self.df_results['coupled_entry'][i])  # coupled_entry
-
-            row_data.append(None)  # days_since_last_race
-            row_data.append(None)  # weight
-
-            row_data.append(None)  # odds
-            row_data.append(None)  # favorite
-
-            row_data.append(self.df_results['disqualified'][i])  # disqualified
-            row_data.append(self.df_results['disqualified_placing'][i])  # disqualified_placing
-
-            row_data.append(self.df_results['weight_corrected'][i])  # weight_corrected_flag
-            row_data.append(self.df_results['weight_overweight_amt'][i])  # overweight_amount
-            row_data.append(None)  # weight_allowance
-
-            row_data.append(self.df_results['medication'][i])  # medication
-            row_data.append(self.df_results['bute'][i])  # bute
-            row_data.append(self.df_results['lasix'][i])  # lasix
-            row_data.append(None)  # adjunct_bleeder_meds
-
-            row_data.append(self.df_results['equipment'][i])  # equipment
-            equipment_list = ['equip_running_ws', 'equip_screens', 'equip_shields', 'equip_aluminum_pads',
-                              'equip_blinkers', 'equip_mud_calks', 'equip_glued_shoes', 'equip_inner_rims',
-                              'equip_front_bandages', 'equip_goggles', 'equip_outer_rims', 'equip_inserts',
-                              'equip_aluminum_pad', 'equip_flipping_halter', 'equip_bar_shoes', 'equip_blocks',
-                              'equip_no_whip', 'equip_blinkers_off', 'equip_pads', 'equip_nasal_strip_off',
-                              'equip_bar_shoe', 'equip_nasal_strip', 'equip_turndowns', 'equip_spurs',
-                              'equip_equipment_item', 'equip_queens_plates', 'equip_no_shoes', 'equip_tongue_tie']
-            for item in equipment_list:  # equip_running_ws
-                row_data.append(self.df_results[item][i])  # equip_screens
-                # equip_shields
-                # equip_aluminum_pads
-                # equip_blinkers
-                # equip_mud_calks
-                # equip_glued_shoes
-                # equip_inner_rims
-                # equip_front_bandages
-                # equip_goggles
-                # equip_outer_rims
-                # equip_inserts
-                # equip_aluminum_pad
-                # equip_flipping_halter
-                # equip_bar_shoes
-                # equip_blocks
-                # equip_no_whip
-                # equip_blinkers_off
-                # equip_pads
-                # equip_nasal_strip_off
-                # equip_bar_shoe
-                # equip_nasal_strip
-                # equip_turndowns
-                # equip_spurs
-                # equip_equipment_item
-                # equip_queens_plates
-                # equip_no_shoes
-                # equip_tongue_tie
-
-            row_data.append(self.df_results['jockey'][i])  # jockey
-            row_data.append(self.df_results['trainer_name'][i])  # trainer
-
-            row_data.append(None)  # BRIS_speed_rating
-            row_data.append(None)  # speed_rating
-
-            row_data.append(self.df_results['position_start_call'][i])  # position_start_call
-            row_data.append(self.df_results['position_1st_call'][i])  # position_1st_call
-            row_data.append(self.df_results['position_2d_call'][i])  # position_2d_call
-            row_data.append(self.df_results['position_3d_call'][i])  # position_3d_call
-            row_data.append(None)  # position_gate_call
-            row_data.append(self.df_results['position_stretch_call'][i])  # position_stretch_call
-            row_data.append(self.df_results['position_finish_unofficial'][i])  # position_finish_unofficial
-            row_data.append(self.df_results['position_finish_official'][i])  # position_finish_official
-            row_data.append(self.df_results['dead_heat_finish'][i])  # dead_heat_flag
-
-            # Loop through these lead/beaten columns to generate a lead/beaten lengths number.
-            # A negative number indicates beaten lengths; a positive number indicates the leader.
-            calls = ['start', '1st', '2d', '3d']
-            for call in calls:
-                if self.df_results[f'lead_{call}_call'][i]:
-                    row_data.append(self.df_results[f'lead_{call}_call'][i])
-                else:
-                    row_data.append(self.df_results[f'beaten_{call}_call'][i] * -1)
-                    # lead_beaten_lengths_start_call
-                    # lead_beaten_lengths_1st_call
-                    # lead_beaten_lengths_2d_call
-                    # lead_beaten_lengths_3d_call
-
-            row_data.append(None)  # lead_beaten_lengths_gate_call
-
-            calls = ['stretch', 'finish']
-            for call in calls:
-                if self.df_results[f'lead_{call}_call'][i]:
-                    row_data.append(self.df_results[f'lead_{call}_call'][i])
-                else:
-                    row_data.append(self.df_results[f'beaten_{call}_call'][i] * -1)
-                    # lead_beaten_lengths_stretch_call
-                    # lead_beaten_lengths_finish
-            calls = ['start', '1st', '2d', '3d']
-            for call in calls:
-                row_data.append(self.df_results[f'margin_{call}_call'])  # margin_start
-                # margin_1st_call
-                # margin_2d_call
-                # margin_3d_call
-
-            row_data.append(None)  # margin_gate_call
-
-            calls = ['stretch', 'finish']  # margin_stretch_call
-            for call in calls:  # margin_finish
-                row_data.append(self.df_results[f'margin_{call}_call'])
-
-            row_data.append(self.df_results['trip_comment'])  # trip_comment
-            row_data.append(None)  # trip_comment_extra
-            row_data.append(None)  # extended_start_comment
-
-            row_data.append(self.df_results['weight'][i])  # weight
-
-            # Add the data to the main data list
-            self.processed_result_data.append(row_data)
-
-    def process_pp_data(self):
-        # ***************Assumptions***************************
-        #
-        #   (1) finish_call_position is the unofficial finishing position. (The trip_comment_extra field
-        #       seems to have info on official finish changes due to disqualification.)
-        #
-
-        for i in range(len(self.df_pps)):
-            row_data = []
-            row_data.append(self.df_pps['source_file'][i])  # source_file
-            row_data.append(self.df_pps['track_code'][i])  # track
-            row_data.append(self.df_pps['race_date'][i])  # date
-            row_data.append(self.df_pps['race_num'][i])  # race_num
-
-            row_data.append(self.df_pps['horse_name'][i])  # horse_name
-            row_data.append(None)  # program_num
-            row_data.append(self.df_pps['post_position'][i])  # post_position
-            row_data.append(None)  # coupled_entry
-
-            row_data.append(self.df_pps['days_since_last_race'][i])  # days_since_last_race
-            row_data.append(self.df_pps['weight'][i])  # weight
-
-            row_data.append(self.df_pps['odds'][i])  # odds
-            row_data.append(self.df_pps['favorite'][i])  # favorite
-
-            row_data.append(None)  # disqualified
-            row_data.append(None)  # disqualified_placing
-
-            row_data.append(None)  # weight_corrected
-            row_data.append(None)  # overweight_amount
-            row_data.append(self.df_pps['weight_allowance'][i])  # weight_allowance
-
-            row_data.append(self.df_pps['medication'][i])  # medication
-            row_data.append(self.df_pps['medication_bute'][i])  # bute
-            row_data.append(self.df_pps['medication_lasix'][i])  # lasix
-            row_data.append(None)  # adjunct_bleeder_meds
-
-            row_data.append(None)  # equipment
-            row_data.append(None)  # equip_running_ws
-            row_data.append(None)  # equip_screens
-            row_data.append(None)  # equip_shields
-            row_data.append(None)  # equip_aluminum_pads
-            row_data.append(self.df_pps['blinkers'][i])  # equip_blinkers
-            row_data.append(None)  # equip_mud_calks
-            row_data.append(None)  # equip_glued_shoes
-            row_data.append(None)  # equip_inner_rims
-            row_data.append(self.df_pps['front_wraps'][i])  # equip_front_bandages
-            row_data.append(None)  # equip_goggles
-            row_data.append(None)  # equip_outer_rims
-            row_data.append(None)  # equip_inserts
-            row_data.append(None)  # equip_aluminum_pad
-            row_data.append(None)  # equip_flipping_halter
-            row_data.append(self.df_pps['bar_shoe'][i])  # equip_bar_shoes
-            row_data.append(None)  # equip_blocks
-            row_data.append(None)  # equip_no_whip
-            row_data.append(None)  # equip_blinkers_off
-            row_data.append(None)  # equip_pads
-            row_data.append(None)  # equip_nasal_strip_off
-            row_data.append(None)  # equip_bar_shoe
-            row_data.append(None)  # equip_nasal_strip
-            row_data.append(None)  # equip_turndowns
-            row_data.append(None)  # equip_spurs
-            row_data.append(None)  # equip_equipment_item
-            row_data.append(None)  # equip_queens_plates
-            row_data.append(None)  # equip_no_shoes
-            row_data.append(None)  # equip_tongue_tie
-
-            row_data.append(self.df_pps['jockey'][i])  # jockey
-            row_data.append(self.df_pps['trainer'][i])  # trainer
-
-            row_data.append(self.df_pps['BRIS_speed_rating'][i])  # BRIS_speed_rating
-            row_data.append(self.df_pps['speed_rating'][i])  # speed_rating
-
-            calls = ['start', '1st', '2d']
-            for call in calls:
-                row_data.append(self.df_pps[f'{call}_call_position'][i])  # position_start_call
-                # position_1st_call
-                # position_2d_call
-
-            row_data.append(None)  # position_3d_call
-
-            calls = ['gate', 'stretch', 'finish']  # position_gate_call
-            for call in calls:  # position_stretch_call
-                row_data.append(self.df_pps[f'{call}_call_position'][i])  # position_finish_unofficial
-
-            row_data.append(None)  # position_finish_official
-            row_data.append(None)  # dead_heat_flag
-
-            calls = ['start', '1st', '2d']
-            for call in calls:
-                lead_beaten_col = self.df_pps.columns.get_loc(f'{call}_call_lead_or_beaten_margin')
-                beaten_only_col = self.df_pps.columns.get_loc(f'{call}_call_beaten_lengths')
-                if np.isnan(self.df_pps.iloc[i, lead_beaten_col]):
-                    row_data.append(self.df_pps.iloc[i, beaten_only_col] * -1)
-                else:
-                    row_data.append(self.df_pps.iloc[i, lead_beaten_col])
-                    # lead_beaten_lengths_start_call
-                    # lead_beaten_lengths_1st_call
-                    # lead_beaten_lengths_2d_call
-
-            row_data.append(None)  # lead_beaten_lengths_3d_call
-
-            calls = ['gate', 'stretch', 'finish']
-            for call in calls:
-                if np.isnan(self.df_pps.iloc[i, lead_beaten_col]):
-                    row_data.append(self.df_pps.iloc[i, beaten_only_col] * -1)
-                else:
-                    row_data.append(self.df_pps.iloc[i, lead_beaten_col])
-                    # lead_beaten_length_gate_call
-                    # lead_beaten_lengths_stretch_call
-                    # lead_beaten_lengths_finish
-
-            row_data.append(None)  # margin_start
-            row_data.append(None)  # margin_1st_call
-            row_data.append(None)  # margin_2d_call
-            row_data.append(None)  # margin_3d_call
-            row_data.append(None)  # margin_gate_call
-            row_data.append(None)  # margin_stretch_call
-            row_data.append(None)  # margin_finish
-
-            row_data.append(self.df_pps['trip_comment'][i])  # trip_comment
-            row_data.append(self.df_pps['trip_comment_extra'][i])  # trip_comment_extra
-
-            row_data.append(self.df_pps['extended_start_comment'][i])  # extended_start_comment
-            row_data.append(self.df_pps['weight'][i])  # weight
-
-            self.processed_pps_data.append(row_data)
-
-
-
-
 
