@@ -55,9 +55,9 @@ def add_features (table_data, extension):
             'S': 'nasal_strip',
             'T': 'turndowns',
             'U': 'spurs',
-            'V': 'equipment_item_V',
+            'V': 'cheek_piece',
             'W': 'queens_plates',
-            'X': 'equipment_item_X',
+            'X': 'cheek_piece_off',
             'Y': 'no_shoes',
             'Z': 'tongue_tie',
         }

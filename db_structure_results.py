@@ -190,9 +190,9 @@ race_horse_info_table = {
         'equip_nasal_strip': 'nasal_strip',
         'equip_turndowns': 'turndowns',
         'equip_spurs': 'spurs',
-        'equip_equipment_item_V': 'equipment_item_V',
+        'equip_cheek_piece': 'cheek_piece',
         'equip_queens_plates': 'queens_plates',
-        'equip_equipment_item_X': 'equipment_item_X',
+        'equip_cheek_piece_off': 'cheek_piece_off',
         'equip_no_shoes': 'no_shoes',
         'equip_tongue_tie': 'tongue_tie',
 
