@@ -3788,16 +3788,16 @@ file_dtypes = {
         'past_statebred_flag_10': 'INT',
 
         ##      Restricted/Qualified flag
-        'past_restricted_or_qualified_1': 'VARCHAR(255)',
-        'past_restricted_or_qualified_2': 'VARCHAR(255)',
-        'past_restricted_or_qualified_3': 'VARCHAR(255)',
-        'past_restricted_or_qualified_4': 'VARCHAR(255)',
-        'past_restricted_or_qualified_5': 'VARCHAR(255)',
-        'past_restricted_or_qualified_6': 'VARCHAR(255)',
-        'past_restricted_or_qualified_7': 'VARCHAR(255)',
-        'past_restricted_or_qualified_8': 'VARCHAR(255)',
-        'past_restricted_or_qualified_9': 'VARCHAR(255)',
-        'past_restricted_or_qualified_10': 'VARCHAR(255)',
+        'past_restricted_or_qualified_1': 'INT',
+        'past_restricted_or_qualified_2': 'INT',
+        'past_restricted_or_qualified_3': 'INT',
+        'past_restricted_or_qualified_4': 'INT',
+        'past_restricted_or_qualified_5': 'INT',
+        'past_restricted_or_qualified_6': 'INT',
+        'past_restricted_or_qualified_7': 'INT',
+        'past_restricted_or_qualified_8': 'INT',
+        'past_restricted_or_qualified_9': 'INT',
+        'past_restricted_or_qualified_10': 'INT',
 
         ##      Favorite indicator
         'past_favorite_flag_1': 'INT',
