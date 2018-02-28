@@ -165,6 +165,15 @@ def tidy_it_up(table_data, extension):
                 if table_data.iloc[j, all_weather_field] == 1:
                     table_data.iloc[j, surface_field] = 'A'
 
+        # Convert surface-type field DRF race info to "new surface-type style
+        # (code is 'A' for all-weather dirt track and 'D' for non-all-weather
+
+        surface_field = table_data.columns.get_loc('surface')
+        all_weather_field = table_data.columns.get_loc('allweather_surface')
+        for i in range(len(table_data)):
+            if table_data.iloc[i, all_weather_field] == 1:
+                table_data.iloc[i, surface_field] = 'A'
+
         for i in range(1, 11):
             table_data[f'past_equipment_{i}'].replace('b', 1, inplace=True)
             table_data[f'past_equipment_{i}'].fillna(0, inplace=True)

@@ -30,9 +30,6 @@ tables = [
 class TableHandler:
     def process_data(self, df, db_handler, file_name=''):
         logging.debug('Adding data to {} in {}'.format(self.table_name, db_handler.db))
-        if not self.table_initialized:
-            db_handler.initialize_table(self.table_name, self.dtypes, self.unique_key, self.foreign_key)
-            self.table_initialized = True
         if self.multi_entry_table:
             for i in range(1, 11):
                 col_names = [item.format(i) for item in self.df_col_names]
@@ -69,9 +66,8 @@ class TableHandler:
             dtype_info[key] = file_dtypes[extension][value.format('1') if self.multi_entry_table else value]
         return dtype_info
 
-    def __init__(self, structure_dict):
+    def __init__(self, structure_dict, db):
         self.table_name = structure_dict['table_name']
-        self.table_initialized = False
         self.unique_key = structure_dict['unique_key']
         self.foreign_key = structure_dict['foreign_key']
         self.not_null = structure_dict['not_null']
@@ -81,5 +77,6 @@ class TableHandler:
         self.df_col_names = [df_col for sql_col, df_col in self.table_structure.items()]
         self.multi_entry_table = any(item for item in self.df_col_names if '{}' in item)
         self.dtypes = self.__create_dtype_info()
+        db.initialize_table(self.table_name, self.dtypes, self.unique_key, self.foreign_key)
 
 

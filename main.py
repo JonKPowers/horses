@@ -51,7 +51,7 @@ def main(file_to_process='', path='data'):
 
     # Create the table handlers
     for table in tbl.tables:
-        handler = tbl.TableHandler(table)
+        handler = tbl.TableHandler(table, db)
         df_handlers[handler.extension].append(handler)
 
     # Initialize some counter/tracking variables

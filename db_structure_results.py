@@ -28,7 +28,17 @@ race_general_results_table = {
         'race_conditions_3': 'race_conditions_3',
         'race_conditions_4': 'race_conditions_4',
         'race_conditions_5': 'race_conditions_5',
+
         'age_sex_restrictions': 'age_sex_restrictions',
+        'allowed_age_two': 'allowed_age_two',
+        'allowed_age_three': 'allowed_age_three',
+        'allowed_age_four': 'allowed_age_four',
+        'allowed_age_five': 'allowed_age_five',
+        'allowed_age_older': 'allowed_age_older',
+        'allowed_fillies': 'allowed_fillies',
+        'allowed_mares': 'allowed_mares',
+        'allowed_colts_geldings': 'allowed_colts_geldings',
+
         'race_restrictions': 'race_restrict_code',
         'statebred_race': 'state_bred_flag',
 
@@ -107,7 +117,6 @@ race_notes_table = {
 
     'not_null': [],
 }
-
 
 race_horse_info_table = {
     'table_name': 'race_horse_info',

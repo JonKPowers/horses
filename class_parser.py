@@ -369,9 +369,8 @@ def parse_conditions(condition_string):
         'purse': None,
         'race_conditions': None,
         'weight_info': None,
-        'single_weight': None,
+        'standard_weight': None,
         'three_yo_weight': None,
-        'older_weight': None,
         'rail_distance': None,
         'allowance_0_amt': None,
         'allowance_0_condition': None,
@@ -386,9 +385,11 @@ def parse_conditions(condition_string):
 
     # Race class
     try:
-        race_class = re.match(r'[\w. ]+(?=\. )', condition_string).group(0)
-        race_info['race_class'] = race_class
-        condition_string = re.sub('{}\. '.format(race_class), '', condition_string)
+        race_class = re.match(r'[\w. ]+(?=\. )', condition_string)
+        race_info['race_class'] = race_class.group(0).strip()
+        condition_string = condition_string[:race_class.regs[0][0]] + \
+                           condition_string[race_class.regs[0][1]:]
+        condition_string = condition_string[2:]
     except AttributeError:
         print('Class not found:', condition_string)
 
@@ -425,34 +426,32 @@ def parse_conditions(condition_string):
 
     try:
         one_weight = re.match(r'[Ww]eight.+?(\d+)', weight_info.group(0))
-        race_info['single_weight'] = one_weight.group(1)
-        # print(one_weight.group(1))
+        race_info['standard_weight'] = one_weight.group(1)
     except AttributeError:
         print('No one_weight')
 
     try:
         three_yo_weights = re.search(r'[Tt]hree.+?(\d+).+?(\d+)', condition_string)
         race_info['three_yo_weight'] = three_yo_weights.group(1)
-        race_info['older_weight'] = three_yo_weights.group(2)
-        # print(three_yo_weights.group(1), three_yo_weights.group(2))
+        race_info['standard_weight'] = three_yo_weights.group(2)
     except AttributeError:
         print('No Three/Older weights')
 
     # print(condition_string)
     condition_string = condition_string[:weight_info.regs[0][0]] + condition_string[weight_info.regs[0][1]:]
-    print(condition_string)
+    # print(condition_string)
 
     try:
         rail_info = re.search(r'\(?[Rr]ail.+?(\d+).*\.', condition_string)
-        print(rail_info.group(0), rail_info.group(1))
+        # print(rail_info.group(0), rail_info.group(1))
         race_info['rail_distance'] = rail_info.group(1)
         condition_string = condition_string[:rail_info.regs[0][0]] + condition_string[rail_info.regs[0][1]:]
     except AttributeError:
         print('No rail found')
 
     i = 0
-    while re.search(r'[A-Z].*?[Aa]llowed \d+.*?\.', condition_string):
-        weight_allowance = re.search(r'[A-Z].*?[Aa]llowed (\d+).*?\.', condition_string)
+    while re.search(r'[^.]* [Aa]llowed \d+ [^.]*\.', condition_string):
+        weight_allowance = re.search(r'[^.]* [Aa]llowed (\d+)[^.]*\.', condition_string)
         print(weight_allowance.group(0))
         condition_string = condition_string[:weight_allowance.regs[0][0]] + \
                            condition_string[weight_allowance.regs[0][1]:]
