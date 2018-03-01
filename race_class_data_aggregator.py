@@ -73,22 +73,60 @@ race_class_data = {
     },
 
     'breed': {
+        'horses_general_results': None,
 
     },
     'ages_allowed': {
-        'two': {},
-        'three': {},
-        'four': {},
-        'five': {},
-        'older': {},
+        'two': {
+            'horses_general_results': 'allowed_age_two',
+            'race_info': 'allowed_age_two',
+            'horse_pps': 'allowed_age_two',
+        },
+        'three': {
+            'horses_general_results': 'allowed_age_three',
+            'race_info': 'allowed_age_three',
+            'horse_pps': 'allowed_age_three',
+        },
+        'four': {
+            'horses_general_results': 'allowed_age_four',
+            'race_info': 'allowed_age_four',
+            'horse_pps': 'allowed_age_four',
+        },
+        'five': {
+            'horses_general_results': 'allowed_age_five',
+            'race_info': 'allowed_age_five',
+            'horse_pps': 'allowed_age_five',
+        },
+        'older': {
+            'horses_general_results': 'allowed_age_older',
+            'race_info': 'allowed_age_older',
+            'horse_pps': 'allowed_age_older',
+        },
     },
     'sexes_allowed': {
-        'fillies': {},
-        'mares': {},
-        'colts_geldings': {},
+        'fillies': {
+            'horses_general_results': 'allowed_fillies',
+            'race_info': 'allowed_fillies',
+            'horse_pps': 'allowed_fillies',
+        },
+        'mares': {
+            'horses_general_results': 'allowed_mares',
+            'race_info': 'allowed_mares',
+            'horse_pps': 'allowed_mares',
+        },
+        'colts_geldings': {
+            'horses_general_results': 'allowed_colts_geldings',
+            'race_info': 'allowed_colts_geldings',
+            'horse_pps': 'allowed_colts_geldings',
+        },
     },
 
-    'statebred_race': {},
+    'statebred_race': {
+        'race_general_results': 'statebred_race',
+        'race_info': 'statebred_race',
+        'horse_pps': 'statebred_race',
+    },
+
     'not_won_limit': {},
     'money_limit': {},
     'time_limit': {},

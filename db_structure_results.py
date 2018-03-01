@@ -23,6 +23,7 @@ race_general_results_table = {
         'race_class': 'abbrev_race_class',
         'race_type_BRIS': 'BRIS_race_type',
         'race_type_equibase': 'equibase_race_type',
+        'race_restrictions': 'race_restrict_code',
         'race_conditions_1': 'race_conditions_1',
         'race_conditions_2': 'race_conditions_2',
         'race_conditions_3': 'race_conditions_3',
@@ -39,7 +40,6 @@ race_general_results_table = {
         'allowed_mares': 'allowed_mares',
         'allowed_colts_geldings': 'allowed_colts_geldings',
 
-        'race_restrictions': 'race_restrict_code',
         'statebred_race': 'state_bred_flag',
 
         'distance': 'distance',
