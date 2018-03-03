@@ -1,3 +1,5 @@
+from parse_conditions_for_restrictions import parse_race_conditions
+
 import numpy as np
 import re
 
@@ -172,6 +174,26 @@ def add_features (table_data, extension):
         for key, value in parse_age_sex_restrictions(table_data['age_sex_restrictions']).items():
             table_data[key] = value
 
+        #********************
+        # Parse race condition string for race restrictions and add new columns to dataframe
+        condition_columns = ['race_conditions_1', 'race_conditions_2', 'race_conditions_3',
+                             'race_conditions_4', 'race_conditions_5']
+        # Create list of full race condition text for processing
+        condition_data = []
+        for i in range(len(table_data)):
+            condition_text = ''
+            for j in range(len(condition_columns)):
+                if condition_columns[j]:
+                    condition_text += str(condition_columns[j])
+            condition_data.append(condition_text)
+        for key, value in parse_race_conditions(condition_data).items():
+            table_data[key] = value
+            ##############NEED TO ADD TO DBs AND TABLE STRUCTURE DICTS. ALSO ADD TO OTHER TABLES WITH CONDITION DATA
+
+
+
+
+
     if extension == '2':
         print('Adding features to .2 file ...')
 
@@ -263,7 +285,6 @@ def add_features (table_data, extension):
                 else:
                     print(f'logic leak\nRow: {i}')
             table_data[f'lead_or_beaten_lengths_{call}'] = column_data
-
 
     if extension == '3':
         print('Adding features to .3 file ...')
