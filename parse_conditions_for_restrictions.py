@@ -1,4 +1,6 @@
 import re
+from datetime import datetime
+from dateutil import relativedelta
 
 class conditions_parser:
 
@@ -89,25 +91,54 @@ class conditions_parser:
             'TWICE': 2,
             'THREE TIMES': 3,
             'FOUR_TIMES': 4,
+            '1': 1,
+            '2': 2,
+            '3': 3,
+            '4': 4,
         }
+
+        self.excluded_race_types = [
+            'CLAIMING',
+            'MAIDEN',
+            'OPTIONAL',
+            'RESTRICTED ALLOWANCE',
+            'RESTRICTED',
+            'STARTER',
+            'STATEBRED ALLOWANCE',
+            'STATEBRED STAKES',
+            'STATEBRED',
+            'TRIAL',
+            'WAIVER CLAIMING',
+            'WAIVER',
+            'STATE SIRED STAKES',
+            'STATE SIRED',
+        ]
+        self.exceptions_list = [
+            '',
+            'excepted_1_',
+            'excepted_2_',
+        ]
 
         self.conditions_string = ''
         self.restrictions_string = ''
         self.current_slug = None
-        self.match_string_1 = ''
-        self.match_string_2 = ''
-        self.match_string_3 = ''
+        self.current_slug_text = ''
+        self.current_slug_span_start = None
 
-    def process_condition_list(self, condition_list):
+    def process_condition_list(self, condition_list, date_list):
+
+        self.processed_restrictions_dict = self.restrictions_dict_list.copy()
+        self.date_list = date_list
+
         for i in range(len(condition_list)):
             print(f'***************\n*{i}\n***************')
             try:
                 for key, value in self.pull_race_restrictions(condition_list[i]).items():
-                    self.restrictions_dict_list[key].append(value)
+                    self.processed_restrictions_dict[key].append(value)
             except (TypeError, AttributeError):
-                for key in self.restrictions_dict_list.keys():
-                    self.restrictions_dict_list[key].append('ISSUE!')
-        return self.restrictions_dict_list
+                for key in self.processed_restrictions_dict.keys():
+                    self.processed_restrictions_dict[key].append('ISSUE!')
+        return self.processed_restrictions_dict
 
     def strip_conditions_string(self):
         """This function cleans up the raw conditions string, removing commas (which have caused some
@@ -116,8 +147,27 @@ class conditions_parser:
         # Strip off all commas and the trailing period--these are causing too much parsing complexity and aren't adding anything here.
         self.conditions_string = re.sub(r',', '', self.conditions_string)
 
-        # Normalize spelling of statebred
+        # Strip out double spaces
+        while re.search(r' {2}', self.conditions_string):
+            self.conditions_string = re.sub(r' {2}', ' ', self.conditions_string)
+
+        # Normalize spelling of statebred, allowance, and XX bred State-Name Bred
         self.conditions_string = re.sub(r'(STATE BRED|STATE-BRED)', 'STATEBRED', self.conditions_string)
+        self.conditions_string = re.sub(r'ALLOWANCES', 'ALLOWANCE', self.conditions_string)
+        self.conditions_string = re.sub(r' ALW ', ' ALLOWANCE ', self.conditions_string)
+        self.conditions_string = re.sub(r' [A-Z]{2} BRED', ' STATEBRED', self.conditions_string)
+        self.conditions_string = re.sub(r'(ALABAMA|ALASKA|ARIZONA|ARKANSAS|CALIFORNIA|COLORADO|CONNECTICUT|DELAWARE'
+                                        r'|FLORIDA|GEORGIA|HAWAII|IDAHO|ILLINOIS|INDIANA|IOWA|KANSAS|KENTUCKY'
+                                        r'|LOUISIANA|MAINE|MARYLAND|MASSACHUSETTS|MICHIGAN|MINNESOTA|MISSISSIPPI'
+                                        r'|MISSOURI|MONTANA|NEBRASKA|NEVADA|NEW HAMPSHIRE|NEW JERSEY|NEW MEXICO'
+                                        r'|NEW YORK|NORTH CAROLINA|NORTH DAKOTA|OHIO|OKLAHOMA|OREGON|PENNSYLVANIA'
+                                        r'|RHODE ISLAND|SOUTH CAROLINA|SOUTH DAKOTA|TENNESSEE|TEXAS|UTAH|VERMONT'
+                                        r'|VIRGINIA|WASHINGTON|WEST VIRGINIA|WISCONSIN|WYOMING) BRED',
+                                        'STATEBRED', self.conditions_string)
+        self.conditions_string = re.sub(r' [A-Z]{2} SIRED', 'STATE SIRED', self.conditions_string)
+
+        # Fix misspellings
+        self.conditions_string = re.sub(r'JANURARY', 'JANUARY', self.conditions_string)
 
     def get_restrictions_string(self):
         """This function takes a full string of race conditions and pulls out the sentence containing
@@ -144,13 +194,13 @@ class conditions_parser:
         single set of restrictions"""
 
         return re.search(
-            r'(((NEVER|NOT) WON ([A-Z0-9$,]+) ?(ONCE|TWICE|THREE TIMES|FOUR TIMES)?)|HAVE STARTED) (.*?OR (?=(WHICH|.*BREDS))|.*?\.)?',
+            r'(((NEVER|NOT) WON ([A-Z0-9$,]+) ?(ONCE|TWICE|THREE TIMES|FOUR TIMES)?)|HAVE STARTED) (.*?OR (?=(WHICH|NEVER|.*BREDS))|.*?\.)?',
             self.restrictions_string)
 
     def pull_optional_claiming_amt(self):
         """This function looks for an optional claiming amount at the end of restrictions_string.
         If found, it returns the amount. If not found, it returns 0"""
-        claiming_amt = re.search(' (FOR A|OR)? (OPTIONAL )?CLAIMING PRICE (OF )?\$([\d \-\$]+)(?=\.)',
+        claiming_amt = re.search(' (FOR A|OR)? (OPTIONAL )?CLAIMING (PRICE )?(OF )?\$([\d \-\$]+)(?=\.)',
                                  self.restrictions_string)
         try:
             # Print out the match results
@@ -163,12 +213,12 @@ class conditions_parser:
             print(f'Restriction string after claiming amt removal: {self.restrictions_string}')
 
             # Return the optional claiming amount with dollar signs removed
-            if '-' in claiming_amt.group(4):
-                amounts = re.search(r'.*?(\d+).+?(\d+)', claiming_amt.group(4))
+            if '-' in claiming_amt.group(5):
+                amounts = re.search(r'.*?(\d+).+?(\d+)', claiming_amt.group(5))
                 return int(amounts.group(1)) if int(amounts.group(1)) < int(amounts.group(2)) else int(amounts.group(2))
 
             else:
-                return int(claiming_amt.group(4))
+                return int(claiming_amt.group(5))
 
         except:
             print('Claiming amount not found')
@@ -177,7 +227,7 @@ class conditions_parser:
     def get_claiming_restriction(self):
         claiming_match = re.search(
                 r'HAVE STARTED FOR A CLAIMING PRICE OF \$(([\d, \-]+) (OR LESS)?) ?(.*?(SINCE|IN) (([A-Z ]+)?[0-9, \-]+))?',
-                self.restrictions_string)
+                self.current_slug_text)
 
         # Make a dict with the match object and its groups, which is returned by this function call
         claim_info = {
@@ -190,8 +240,9 @@ class conditions_parser:
         return claim_info
 
     def get_simple_race_restrictions(self):
-        race_restrictions = re.search(r'(NOT|NEVER) WON ([A-Z0-9$,]+) ?(ONCE|TWICE|THREE TIMES|FOUR TIMES)? ?(RACES?)? ?(OTHER THAN ([A-Z ,]+))? ?((SINCE|IN) (([A-Z ]+)?[0-9 ,\-]+))?',
-                                      self.restrictions_string)
+        race_restrictions = re.search(r'(NOT|NEVER) WON ([A-Z0-9$,]+) ?(ONCE|TWICE|THREE TIMES|FOUR TIMES)? ?'
+                                      r'(RACES?)? ?(OTHER THAN ([A-Z ,]+))? ?((SINCE|IN) (([A-Z ]+)?[0-9 ,\-]+))?',
+                                      self.current_slug_text)
         # Make a dict with the match object and its groups, which is returned by this function call
         restriction_info = {
             'match': race_restrictions,
@@ -216,7 +267,7 @@ class conditions_parser:
         #           I haven't seen one yet, but it's something to keep an eye on and maybe put some
         #           tests in to catch.
         #
-        if re.search(r'HAVE STARTED FOR A CLAIMING PRICE', self.restrictions_string):
+        if re.search(r'HAVE STARTED FOR A CLAIMING PRICE', self.current_slug_text):
             # Set dict entries with claiming-start info
             claim_info = self.get_claiming_restriction()
             for key in claim_info.keys():
@@ -224,25 +275,25 @@ class conditions_parser:
             slug_restrictions_dict['claim_start_req_price'] =  int(claim_info['2'])
             slug_restrictions_dict['claim_start_req_time'] = claim_info['6']
             # Delete the claiming-start info off the current slug.
-            self.restrictions_string = self.restrictions_string[:claim_info['match'].span(0)[0]] + \
-                                self.restrictions_string[claim_info['match'].span(0)[1]:]
+            self.restrictions_string = self.restrictions_string[:claim_info['match'].span(0)[0] + self.current_slug_span_start] + \
+                                self.restrictions_string[claim_info['match'].span(0)[1] + self.current_slug_span_start:]
             # Print post-deletion slug
             print(f'restrictions string after deleting claiming info:\n\t{self.restrictions_string}')
         else:
             print('No claiming-start requirement found')
 
-        if re.search(r'(NOT|NEVER) WON', self.restrictions_string):
+        if re.search(r'(NOT|NEVER) WON', self.current_slug_text):
             restriction_info = self.get_simple_race_restrictions()
             self.restriction_info = restriction_info
             for key in restriction_info.keys():
                 print(f'restriction_info[{key}]: {restriction_info[key]}')
             slug_restrictions_dict['number_limit'] = self.text_to_num_mappings.get(restriction_info['3'] if restriction_info['3'] else restriction_info['2'], 'ERROR!')
-            slug_restrictions_dict['money_limit'] = int(re.sub('\$', '', restriction_info['2'])) if '$' in restriction_info['2'] else None
+            slug_restrictions_dict['money_limit'] = int(re.sub('\$', '', restriction_info['2'])) if '$' in restriction_info['2'] else 0
             slug_restrictions_dict['time_limit'] = restriction_info['9']
-            slug_restrictions_dict['excluded_races'] = re.sub(r' ?OR ?$', '', restriction_info['6']) if restriction_info['6'] else None
+            slug_restrictions_dict['excluded_races'] = re.sub(r' ?OR ?$', '', restriction_info['6']) if restriction_info['6'] else 0
             # Delete the restriction_info match off of current_slug
-            self.restrictions_string = self.restrictions_string[:restriction_info['match'].span(0)[0]] + \
-                                self.restrictions_string[restriction_info['match'].span(0)[1]:]
+            self.restrictions_string = self.restrictions_string[:restriction_info['match'].span(0)[0] + self.current_slug_span_start] + \
+                                self.restrictions_string[restriction_info['match'].span(0)[1] + self.current_slug_span_start:]
             # Print post-deletion slug
             print(f'restrictions_string after deleting restriction info: \n\t{self.restrictions_string}')
         else:
@@ -294,6 +345,9 @@ class conditions_parser:
                 for j in range(len(self.current_slug.regs)):
                     print(f'Current slug match {j}: {self.current_slug.group(j)}')
                 print(f'{i}: Processing slug: {self.current_slug.group(0)}')
+
+                self.current_slug_text = self.current_slug.group(0)
+                self.current_slug_span_start = self.current_slug.span(0)[0]
                 parsed_restrictions = self.parse_restriction_slug()
 
                 print(f'{i}: Slug processed. Attempting to add to restrictions dict')
@@ -316,6 +370,72 @@ class conditions_parser:
         print('----------')
 
         return restrictions_dict
+
+    def columnize_excluded_race_types(self):
+        hot_one_dict = {}
+        for num in self.exceptions_list:
+            unrecognized_race_types = list(self.processed_restrictions_dict[num + 'excluded_races'])
+            hot_one_dict[num + 'original_string'] = self.processed_restrictions_dict[num + 'excluded_races']
+            hot_one_dict[num + 'unrecognized_races'] = unrecognized_race_types
+
+            # Make a binary 1/0 column for each excluded race type
+            for race_type in self.excluded_race_types:
+                excluded_in_race = [0 for _ in range(len(unrecognized_race_types))]
+                for i in range(len(excluded_in_race)):
+                    if race_type in str(unrecognized_race_types[i]):
+                        excluded_in_race[i] = 1
+                        # Delete the race type from excluded races so we can see what race types aren't being captured
+                        # This also prevents overcounting of things like "Restricted allowance" and "Restricted"
+                        unrecognized_race_types[i] = re.sub(r'{}'.format(race_type), '', unrecognized_race_types[i])
+                hot_one_dict[num + race_type] = excluded_in_race
+
+        return hot_one_dict
+
+    def process_date_info(self):
+
+        self.date_info = {
+            'time_limit': [],
+            'date_1': [],
+            'date_2': [],
+            'timedelta_months': [],
+            'timedelta_days': [],
+        }
+
+        start_date = self.processed_restrictions_dict['time_limit']
+
+        for i in range(len(self.date_list)):
+            start_date[i] = str(start_date[i]).strip()
+            date_2 = self.date_list[i]
+            if re.search(r'[A-Z]+ \d{1,2} \d{4}', start_date[i]):
+                date_1 = datetime.strptime(start_date[i], '%B %d %Y')
+            elif re.search(r'(\d{4}) ?- ?\d{2,4}', start_date[i]):
+                first_year = re.search(r'(\d{4}) ?- ?\d{2,4}', start_date[i]).group(1)
+                date_1 = datetime.strptime(first_year, '%Y')
+            elif re.search(r'^\d{4}', start_date[i]):
+                date_1 = datetime.strptime(start_date[i], '%Y')
+            elif re.search(r'[A-Z]+ \d{1,2}$', start_date[i]):
+                start_date[i] = start_date[i] + ' ' + str(date_2.year)
+                date_1 = datetime.strptime(start_date[i], '%B %d %Y')
+            else:
+                date_1 = 'ERROR!'
+
+            print(f'i: {i}. Date_1: {type(date_1)} - {date_1}')
+            print(f'i: {i}. Date_2: {type(date_2)} - {date_2}')
+            timedelta = relativedelta.relativedelta(date_2, date_1.date()) if date_1 != 'ERROR!' else None
+
+            self.date_info['time_limit'].append(start_date[i])
+            self.date_info['date_1'].append(date_1)
+            self.date_info['date_2'].append(date_2)
+            self.date_info['timedelta_months'].append(timedelta.months if timedelta else None)
+            self.date_info['timedelta_days'].append(timedelta.days if timedelta else None)
+
+        return self.date_info
+
+
+
+
+
+
 
 
 def parse_race_conditions(condition_list):
