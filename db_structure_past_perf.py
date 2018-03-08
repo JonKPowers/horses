@@ -170,6 +170,33 @@ race_info_table = {
         'BRIS_par_pace_6f': '6f_bris_pace_par',
         'BRIS_par_pace_late': 'bris_late_pace_par',
 
+        'conditions_slug': 'full_condition_slug',
+        'conditions_slug_left_to_parse': 'left_to_parse',
+        'optional_claiming_price': 'optional_claiming_price',
+        'condition_1_claim_start_required_price': 'claim_start_req_price',
+        'condition_1_claim_start_required_time': 'claim_start_req_time',
+        'condition_1_number_limit': 'number_limit',
+        'condition_1_money_limit': 'money_limit',
+        'condition_1_time_limit': 'time_limit',
+        'condition_1_excluded_races': 'excluded_races',
+        'condition_1_excluded_claiming': 'CLAIMING',
+        'condition_1_excluded_maiden': 'MAIDEN',
+        'condition_1_excluded_optional': 'OPTIONAL',
+        'condition_1_excluded_restricted': 'RESTRICTED',
+        'condition_1_excluded_restricted_allowance': 'RESTRICTED ALLOWANCE',
+        'condition_1_excluded_starter': 'STARTER',
+        'condition_1_excluded_state_sired': 'STATE SIRED',
+        'condition_1_excluded_state_sired_stakes': 'STATE SIRED STAKES',
+        'condition_1_excluded_statebred': 'STATEBRED',
+        'condition_1_excluded_statebred_allowance': 'STATEBRED ALLOWANCE',
+        'condition_1_excluded_statebred_stakes': 'STATEBRED STAKES',
+        'condition_1_excluded_trial': 'TRIAL',
+        'condition_1_excluded_waiver': 'WAIVER',
+        'condition_1_excluded_waiver_claiming': 'WAIVER CLAIMING',
+
+
+
+
         'race_cond_1': 'race_conditions_1',
         'race_cond_2': 'race_conditions_2',
         'race_cond_3': 'race_conditions_3',

@@ -1,7 +1,9 @@
-from parse_conditions_for_restrictions import parse_race_conditions
+from parse_conditions_for_restrictions import conditions_parser
 
 import numpy as np
 import re
+from datetime import datetime
+from dateutil import relativedelta
 
 
 def parse_conditions(condition_string):
@@ -176,22 +178,33 @@ def add_features (table_data, extension):
 
         #********************
         # Parse race condition string for race restrictions and add new columns to dataframe
+
+        # Initialize instance of parsing class
+        parser = conditions_parser()
         condition_columns = ['race_conditions_1', 'race_conditions_2', 'race_conditions_3',
                              'race_conditions_4', 'race_conditions_5']
-        # Create list of full race condition text for processing
-        condition_data = []
+
+        # Create list of full race conditions text for processing
+        condition_list = []
         for i in range(len(table_data)):
             condition_text = ''
             for j in range(len(condition_columns)):
                 if condition_columns[j]:
                     condition_text += str(condition_columns[j])
-            condition_data.append(condition_text)
-        for key, value in parse_race_conditions(condition_data).items():
+            condition_list.append(condition_text)
+
+        # Create a list of race dates for use by the conditions_parser in computing time limits
+        date_list = []
+        for date in table_data['date']:
+            date_list.append(datetime.strptime(str(date), '%Y%m%d'))
+
+        # Process condition strings and add resulting columns to table
+        condition_data = parser.process_condition_list(condition_list, date_list)
+        for key, value in condition_data.items():
             table_data[key] = value
+
+
             ##############NEED TO ADD TO DBs AND TABLE STRUCTURE DICTS. ALSO ADD TO OTHER TABLES WITH CONDITION DATA
-
-
-
 
 
     if extension == '2':
@@ -390,6 +403,35 @@ def add_features (table_data, extension):
         for i in range(1, 11):
             for key, value in parse_age_sex_restrictions(table_data[f'past_age_sex_restrictions_{i}']).items():
                 table_data[f'past_{key}_{i}'] = value
+
+
+        #********************
+        # Parse race condition string for race restrictions and add new columns to dataframe
+
+        # Initialize instance of parsing class
+        parser = conditions_parser()
+        condition_columns = ['race_conditions_1', 'race_conditions_2', 'race_conditions_3',
+                             'race_conditions_4', 'race_conditions_5', 'race_conditions_6']
+
+        # Create list of full race conditions text for processing
+        condition_list = []
+        for i in range(len(table_data)):
+            condition_text = ''
+            for j in range(len(condition_columns)):
+                if condition_columns[j]:
+                    condition_text += str(condition_columns[j])
+            condition_list.append(condition_text)
+
+        # Create a list of race dates for use by the conditions_parser in computing time limits
+        date_list = []
+        for date in table_data['date']:
+            date_list.append(datetime.strptime(str(date), '%Y%m%d'))
+
+        # Process condition strings and add resulting columns to table
+        condition_data = parser.process_condition_list(condition_list, date_list)
+        for key, value in condition_data.items():
+            table_data[key] = value
+
 
     return table_data
 
