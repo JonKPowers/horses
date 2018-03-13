@@ -24,7 +24,7 @@ class SQLConnection:
 
 
 class QueryDB:
-    def query_db(self, sql_query):
+    def query_db(self, sql_query, return_col_names=False):
         with SQLConnection(self.user, self.password) as db:
             cursor = db.cursor()
             self._use_db(db, cursor)
@@ -33,7 +33,7 @@ class QueryDB:
             print('Processing response')
             results = list(cursor)
             results_cols = [item[0] for item in cursor.description]
-        return results, results_cols
+        return (results, results_cols) if return_col_names else results
 
     def _use_db(self, db, cursor):
         cursor.execute('USE {}'.format(self.db))

@@ -5,11 +5,14 @@ import table_functions as tbl
 import features
 
 import os
+import sys
 import pathlib
 import re
 import pandas as pd
 import logging
 import datetime
+
+
 
 logging.basicConfig(filename='main_py.log', filemode='w', level=logging.INFO)
 
@@ -117,21 +120,25 @@ def main(file_to_process='', path='data'):
     print("End time:", str(end_time))
     print("Total time:", str(end_time - start_time))
 
-
-
-
-
-def process_csv_file(file):
+def process_csv_file(file, add_features=True):
     extension = re.search(r'(?<=\.).+$', str(file))[0]
     #   Read the data in and run it through the cleaner
     table_data = pd.read_csv(file, header=None, names=name_files[str(extension)])
     table_data = tidy.tidy_it_up(table_data, extension)
-    table_data = features.add_features(table_data, extension)
+    if add_features:
+        table_data = features.add_features(table_data, extension)
     #   Strip out unused columns
     for column in columns_to_delete[str(extension)]:
         del table_data[column]
     return table_data, extension
 
+verbose = False
+if __name__ == '__main__':
+    if sys.argv == '-v':
+        verbose = True
+    main()
+
+verboseprint = print if verbose else lambda *a, **k: None
 
 
 

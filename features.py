@@ -1,4 +1,4 @@
-from parse_conditions_for_restrictions import conditions_parser
+from parse_conditions_for_restrictions import ClassParser
 
 import numpy as np
 import re
@@ -180,7 +180,7 @@ def add_features (table_data, extension):
         # Parse race condition string for race restrictions and add new columns to dataframe
 
         # Initialize instance of parsing class
-        parser = conditions_parser()
+        parser = ClassParser()
         condition_columns = ['race_conditions_1', 'race_conditions_2', 'race_conditions_3',
                              'race_conditions_4', 'race_conditions_5']
 
@@ -189,8 +189,8 @@ def add_features (table_data, extension):
         for i in range(len(table_data)):
             condition_text = ''
             for j in range(len(condition_columns)):
-                if condition_columns[j]:
-                    condition_text += str(condition_columns[j])
+                if table_data[condition_columns[j]][i] != 'NULL':
+                    condition_text += str(table_data[condition_columns[j]][i])
             condition_list.append(condition_text)
 
         # Create a list of race dates for use by the conditions_parser in computing time limits
@@ -202,6 +202,7 @@ def add_features (table_data, extension):
         condition_data = parser.process_condition_list(condition_list, date_list)
         for key, value in condition_data.items():
             table_data[key] = value
+
 
 
             ##############NEED TO ADD TO DBs AND TABLE STRUCTURE DICTS. ALSO ADD TO OTHER TABLES WITH CONDITION DATA
@@ -409,7 +410,7 @@ def add_features (table_data, extension):
         # Parse race condition string for race restrictions and add new columns to dataframe
 
         # Initialize instance of parsing class
-        parser = conditions_parser()
+        parser = ClassParser()
         condition_columns = ['race_conditions_1', 'race_conditions_2', 'race_conditions_3',
                              'race_conditions_4', 'race_conditions_5', 'race_conditions_6']
 
@@ -418,8 +419,8 @@ def add_features (table_data, extension):
         for i in range(len(table_data)):
             condition_text = ''
             for j in range(len(condition_columns)):
-                if condition_columns[j]:
-                    condition_text += str(condition_columns[j])
+                if table_data[condition_columns[j]][i] != 'NULL':
+                    condition_text += str(table_data[condition_columns[j]][i])
             condition_list.append(condition_text)
 
         # Create a list of race dates for use by the conditions_parser in computing time limits
@@ -432,6 +433,10 @@ def add_features (table_data, extension):
         for key, value in condition_data.items():
             table_data[key] = value
 
+    # Cover internal error values with None so that they can be put into the SQL table without throwing an error
+    table_data.replace('ERROR!', np.nan, inplace=True)
+    table_data.replace('ERROR!--NEGATIVE NUM', np.nan, inplace=True)
+    table_data.replace('ISSUE!', np.nan, inplace=True)
 
     return table_data
 

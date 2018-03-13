@@ -135,7 +135,8 @@ class DbHandler:
             values_string = values_string[:-4]                          # Chop off extra "', '"
             sql = "INSERT INTO {} ({}) VALUES ('{}')".format(table_name, "source_file, " + ", ".join(sql_col_names),
                                                              values_string)
-            sql = re.sub(r"'NULL'", "NULL", sql)                        # NULL should be sent in SQL w/o quote marks
+            sql = re.sub(r"'(NULL|nan|None)'", "NULL", sql)             # NULL should be sent in SQL w/o quote marks
+                                                                        # nan and None should be stored as NULL
             # print('{} of {}: {}'.format(i+1,len(table_data), sql))
             logging.debug('{} of {}: {}'.format(i+1, len(table_data), sql))
             try:

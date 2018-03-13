@@ -1,9 +1,10 @@
 import re
 from datetime import datetime
 from dateutil import relativedelta
+from copy import deepcopy
 
 
-class conditions_parser:
+class ClassParser:
 
     def __init__(self):
         self.restrictions_dict_list = {
@@ -14,6 +15,7 @@ class conditions_parser:
             'number_limit': [],
             'money_limit': [],
             'time_limit': [],
+            'time_limit_months': [],
             'excluded_races': [],
 
             'exceptions_allowed': [],
@@ -21,18 +23,23 @@ class conditions_parser:
             'excepted_1_number_limit': [],
             'excepted_1_money_limit': [],
             'excepted_1_time_limit': [],
+            'excepted_1_time_limit_months': [],
             'excepted_1_excluded_races': [],
             'excepted_2_number_limit': [],
             'excepted_2_money_limit': [],
             'excepted_2_time_limit': [],
+            'excepted_2_time_limit_months': [],
             'excepted_2_excluded_races': [],
 
             'claim_start_req_price': [],
             'claim_start_req_time_limit': [],
+            'claim_start_req_time_limit_months': [],
             'excepted_1_claim_start_req_price': [],
             'excepted_1_claim_start_req_time_limit': [],
+            'excepted_1_claim_start_req_time_limit_months': [],
             'excepted_2_claim_start_req_price': [],
             'excepted_2_claim_start_req_time_limit': [],
+            'excepted_2_claim_start_req_time_limit_months': [],
 
             'optional_claiming_price': [],
             'left_to_parse': [],
@@ -46,6 +53,7 @@ class conditions_parser:
             'number_limit': None,
             'money_limit': None,
             'time_limit': None,
+            'time_limit_months': None,
             'excluded_races': None,
 
             'exceptions_allowed': None,
@@ -53,18 +61,23 @@ class conditions_parser:
             'excepted_1_number_limit': None,
             'excepted_1_money_limit': None,
             'excepted_1_time_limit': None,
+            'excepted_1_time_limit_months': None,
             'excepted_1_excluded_races': None,
             'excepted_2_number_limit': None,
             'excepted_2_money_limit': None,
             'excepted_2_time_limit': None,
+            'excepted_2_time_limit_months': None,
             'excepted_2_excluded_races': None,
 
             'claim_start_req_price': None,
             'claim_start_req_time_limit': None,
+            'claim_start_req_time_limit_months': None,
             'excepted_1_claim_start_req_price': None,
             'excepted_1_claim_start_req_time_limit': None,
+            'excepted_1_claim_start_req_time_limit_months': None,
             'excepted_2_claim_start_req_price': None,
             'excepted_2_claim_start_req_time_limit': None,
+            'excepted_2_claim_start_req_time_limit_months': None,
 
             'optional_claiming_price': None,
             'left_to_parse': None,
@@ -145,6 +158,8 @@ class conditions_parser:
         for key, value in self.date_info.items():
             self.processed_restrictions_dict[key] = value
 
+        self.columnize_excluded_race_types()
+
         return self.processed_restrictions_dict
 
     def strip_conditions_string(self):
@@ -152,6 +167,7 @@ class conditions_parser:
         issues when parsing) and normalizing the spelling of certain words."""
 
         # Strip off all commas and the trailing period--these are causing too much parsing complexity and aren't adding anything here.
+        self.conditions_string = re.sub(r';', '', self.conditions_string)
         self.conditions_string = re.sub(r',', '', self.conditions_string)
 
         # Strip out double spaces
@@ -183,14 +199,15 @@ class conditions_parser:
 
         # Pull the full race restrictions sentence. If not found, return 0.
         try:
-            full_conditions = re.search(r'(FOR|TWO|THREE|FOUR)[A-Z0-9 ,$\-()/]+\.', self.conditions_string).group(0)
+            full_conditions = re.search(r'(FOR|TWO|THREE|FOUR)[A-Z0-9 ,;$\-()/]+\.', self.conditions_string).group(0)
+            print(full_conditions)
         except AttributeError:
             print('Full race restrictions not found')
             return 0
 
         # Pull out the non-age race restrictions and return it. If not found, return 0
         try:
-            self.restrictions_string = re.search(r'WHICH[A-Z0-9 ,$\-()/]+\.', full_conditions).group(0)
+            self.restrictions_string = re.search(r'WHICH[A-Z0-9 ,;$\-()/]+\.', full_conditions).group(0)
             return 1
         except AttributeError:
             print('Non-age race restrictions not found')
@@ -326,7 +343,7 @@ class conditions_parser:
         # If found, set dict values. If not, set a not-found state and return the dict
         if self.get_restrictions_string():
             restrictions_dict['has_restrictions'] = 1
-            restrictions_dict['full_condition_slug'] = self.restrictions_string
+            restrictions_dict['full_condition_slug'] = self.restrictions_string[:255]
             print(self.restrictions_string)
         else:
             # ***************TO DO: Consider whether there is a better 'None-state' for this dict*****************
@@ -334,6 +351,12 @@ class conditions_parser:
             for key in restrictions_dict:
                 restrictions_dict[key] = None
             restrictions_dict['has_restrictions'] = 0
+            restrictions_dict['number_limit'] = 0
+            restrictions_dict['money_limit'] = 0
+            restrictions_dict['time_limit'] = 0
+            restrictions_dict['excluded_races'] = 0
+            restrictions_dict['claim_start_req_price'] = 0
+            restrictions_dict['claim_start_req_time_limit'] = 0
             return restrictions_dict
 
         # Check if there's an optional claiming amount and set the dictionary value
@@ -370,7 +393,7 @@ class conditions_parser:
                     strip = re.search(r' ?WHICH HAVE ?', self.restrictions_string)
                     self.restrictions_string = self.restrictions_string[:strip.span(0)[0]] + \
                                                self.restrictions_string[strip.span(0)[1]:]
-                restrictions_dict['left_to_parse'] = self.restrictions_string
+                restrictions_dict['left_to_parse'] = self.restrictions_string[:255]
 
         print('')
         for key, value in restrictions_dict.items():
@@ -381,7 +404,9 @@ class conditions_parser:
 
     def columnize_excluded_race_types(self):
         hot_one_dict = {}
-        for num in self.exceptions_list:
+        exceptions_list = list(self.exceptions_list)
+        exceptions_list = [item for item in exceptions_list if 'claim_start' not in item]
+        for num in exceptions_list:
             unrecognized_race_types = list(self.processed_restrictions_dict[num + 'excluded_races'])
             hot_one_dict[num + 'original_string'] = self.processed_restrictions_dict[num + 'excluded_races']
             hot_one_dict[num + 'unrecognized_races'] = unrecognized_race_types
@@ -413,6 +438,7 @@ class conditions_parser:
                 'timedelta_days': [],
                 'time_limit_months': [],
             }
+
         date_list = self.date_list
 
         def get_date_from_string(date_string, date_2):
@@ -445,32 +471,40 @@ class conditions_parser:
 
         for exception_item in self.exceptions_list:
 
-            date_info= date_info_template.copy()
+            date_info = deepcopy(date_info_template)
 
             start_date = self.processed_restrictions_dict[exception_item + 'time_limit']
             start_date = [str(item).strip() for item in start_date]
 
             for i in range(len(date_list)):
-                date_2 = date_list[i]
+                date_2 = date_list[i].date()
                 date_1 = get_date_from_string(start_date[i], date_2)
 
-                print(f'i: {exception_item} - {i}. Date_1: {type(date_1)} - {date_1}')
-                print(f'i: {i}. Date_2: {type(date_2)} - {date_2}')
+
+                # print(f'i: {exception_item} - {i}. Date_1: {type(date_1)} - {date_1}')
+                # print(f'i: {i}. Date_2: {type(date_2)} - {date_2}')
 
                 timedelta = relativedelta.relativedelta(date_2, date_1.date()) if date_1 != 'ERROR!' else None
 
+                # If the time difference can be computed, convert it into months-since
+                # If the time_limit is Lifetime, use 99 as the months-since value.
+                # Otherwise, set time_limit_months to zero
+                time_limit_months = 0
                 if timedelta:
                     time_limit_months = get_time_limit_months(timedelta)
-
+                elif start_date[i] == 'Lifetime':
+                    time_limit_months = 99
 
                 date_info['time_limit'].append(start_date[i])
                 date_info['date_1'].append(date_1)
                 date_info['date_2'].append(date_2)
                 date_info['timedelta_months'].append(timedelta.months if timedelta else None)
                 date_info['timedelta_days'].append(timedelta.days if timedelta else None)
-                date_info['time_limit_months'].append(time_limit_months if timedelta else 0)
+                date_info['time_limit_months'].append(time_limit_months)
 
-                for key in date_info.keys():
-                    self.date_info[exception_item + key] = date_info[key]
+            for key in date_info.keys():
+                self.date_info[exception_item + key] = date_info[key]
+
+
 
         return self.date_info
