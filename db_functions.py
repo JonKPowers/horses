@@ -77,10 +77,6 @@ class DbHandler:
             cursor = db.cursor()
             self.__use_db(db, cursor)
             self.__insert_records(db, cursor, table_name, table_data, sql_col_names, file_name)
-        # ---------------TO DO---------------------------
-        #   Run some checks to see if the data looks like the right shape, etc.
-
-    # Hidden methods ------------------------
 
     def __create_db(self, db, cursor):
         sql = 'CREATE DATABASE {}'.format(self.db)
@@ -120,10 +116,6 @@ class DbHandler:
             print('Error creating table {}'.format(table_name))
             logging.info('Error creating table{}:\n\t{}'.format(table_name, sql))
         db.commit()
-        # -----------------TO DO----------------------
-        #   Need to add primary/unique key constraints.
-        #   Maybe pull those 'extras' out from a separate function that
-        #   returns the extra stuff based on the table_
 
     def __insert_records(self, db, cursor, table_name, table_data, sql_col_names, file_name):
         for i in range(len(table_data)):

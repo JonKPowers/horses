@@ -1,7 +1,6 @@
 import logging
 
-from aggregation_functions import SQLConnection, QueryDB, query_table
-from db_functions import DbHandler
+from aggregation_functions import SQLConnection, QueryDB, query_table, DbHandler
 
 db_processor = DbHandler(db='horses_consolidated_races')
 db_horses_data = QueryDB(db='horses_data')
@@ -10,6 +9,7 @@ table_name = 'horses_consolidated_races'
 
 table_structure = {
     # Format 'sql_col_name': ('sql_datatype', 'race_general_results_col', 'race_info col', 'horse_pps col')
+    'source_file': ('VARCHAR(255)', 'source_file', 'source_file', 'source_file',),
     'track': ('VARCHAR(255)', 'track', 'track', 'track_code',),
     'date': ('DATE', 'date', 'date', 'race_date',),
     'race_num': ('TINYINT', 'race_num', 'race_num', 'race_num',),
@@ -31,7 +31,7 @@ table_structure = {
     'chute_start': ('TINYINT', 'chute_start', None, 'special_chute',),
 
     'off_turf': ('TINYINT', 'off_turf', None, None,),
-    'off_turf_dist_change': ('TINYINT', 'off_turf_dist_change', None, None),
+    'off_turf_dist_change': ('TINYINT', 'off_turf_distance_change', None, None),
 
     'field_size': ('INT', 'field_size', None, 'num_of_horses',),
     'breed': ('VARCHAR(255)', 'breed', 'breed', None),
@@ -115,12 +115,12 @@ table_structure = {
     'race_conditions_3_excluded_waiver': ('TINYINT', 'condition_3_excluded_waiver', 'condition_3_excluded_waiver', None,),
     'race_conditions_3_excluded_waiver_claiming': ('TINYINT', 'condition_3_excluded_waiver_claiming', 'condition_3_excluded_waiver_claiming', None,),
 
-    'race_conditions_text_1': ('VARCHAR(255)', 'race_cond_1', 'race_conditions_1', None,),
-    'race_conditions_text_2': ('VARCHAR(255)', 'race_cond_2', 'race_conditions_2', None,),
-    'race_conditions_text_3': ('VARCHAR(255)', 'race_cond_3', 'race_conditions_3', None,),
-    'race_conditions_text_4': ('VARCHAR(255)', 'race_cond_4', 'race_conditions_4', None,),
-    'race_conditions_text_5': ('VARCHAR(255)', 'race_cond_5', 'race_conditions_5', None,),
-    'race_conditions_text_6': ('VARCHAR(255)', 'race_cond_6', None, None,),
+    'race_conditions_text_1': ('VARCHAR(255)', 'race_conditions_1', 'race_cond_1', None,),
+    'race_conditions_text_2': ('VARCHAR(255)', 'race_conditions_2', 'race_cond_2', None,),
+    'race_conditions_text_3': ('VARCHAR(255)', 'race_conditions_3', 'race_cond_3', None,),
+    'race_conditions_text_4': ('VARCHAR(255)', 'race_conditions_4', 'race_cond_4', None,),
+    'race_conditions_text_5': ('VARCHAR(255)', 'race_conditions_5', 'race_cond_5', None,),
+    'race_conditions_text_6': ('VARCHAR(255)', None, 'race_cond_6', None,),
 
     # 'race_notes': (),
 }
@@ -130,22 +130,107 @@ table_to_index_mapping = {
     'horse_pps': 3,
 }
 
+# Initialize_table
+db_dtypes = {key: value[0] for key, value in table_structure.items()}
+unique = ['track', 'date', 'race_num']
+db_processor.initialize_table(table_name, db_dtypes, unique_key=unique, foreign_key=None)
+
+
 def race_in_db(db_handler, table, track, date, race_num):
     """
     Returns True if a particular race (unique track-date-race_num) is in the db; otherwise returns false
     """
-
-    table_index = table_to_index_mapping[table]
     sql = f'SELECT COUNT(*) FROM {table} WHERE '
-    sql += f'{table_structure["track"][table_index]} = "{track}" '
-    sql += f'AND {table_structure["date"][table_index]} = "{date}" '
-    sql += f'AND {table_structure["race_num"][table_index]} = "{race_num}"'
-    return True if db_handler.query_db(sql)[0][0] else False
+    sql += f'track = "{track}" '
+    sql += f'AND date = "{date}" '
+    sql += f'AND race_num = "{race_num}"'
+    return db_handler.query_db(sql)[0][0]
 
+
+def dict_values_match(dict_key, dict_1, dict_2):
+    if dict_1[dict_key] == dict_2[dict_key]:
+        return True
+    else:
+        return False
 
 def process_race_general_results():
+    # Create dict with sql column names and corresponding race_general_results column names
+    db_dict = {key: value[table_to_index_mapping['race_general_results']] for key, value in table_structure.items()
+               if value[table_to_index_mapping['race_general_results']]}
+    sql_columns = [key for key, _ in db_dict.items()]
+    source_columns = [db_dict[column] for column in sql_columns]
+
+    # Pull list of race identifiers stored in race_general_results.
     list_of_races  = query_table(db_horses_data, 'race_general_results', ['track', 'date', 'race_num'])
 
-    test = list_of_races[0]
-    return race_in_db(db_horses_data, 'race_general_results', *test)
+    # For each race, pull info from db and add it to new table:
+    i = 0
+    for race in list_of_races:
+        total_num = len(list_of_races)
+        print(f'i: {i} of {total_num}. {race}')
+        race_data = query_table(db_horses_data,
+                                             'race_general_results',
+                                             source_columns,
+                                             where='track="{}" AND date="{}" AND race_num="{}"'.format(*race))
+        db_processor.add_to_table(table_name, race_data, sql_columns)
+        i += 1
+
+
+def process_race_info():
+    # Create dict with sql col names and corresponding race_info column names
+    db_dict = {key: value[table_to_index_mapping['race_info']] for key, value in table_structure.items()
+               if value[table_to_index_mapping['race_info']]}
+    sql_columns = [key for key, _ in db_dict.items()]
+    source_columns = [db_dict[column] for column in sql_columns]
+
+    # Pull list of race identifiers stored in race_info
+    list_of_races = query_table(db_horses_data, 'race_info', ['track', 'date', 'race_num'])
+
+    # Variable to hold race identifiers for data issues
+    races_with_inconsistent_data = []
+
+    i = 0
+    total_num = len(list_of_races)
+
+    for race in list_of_races:
+        print(f'i: {i} of {total_num}. {race}')
+        in_db = race_in_db(db_processor, table_name, *race)
+        print(in_db)
+        race_data = query_table(db_horses_data,
+                                             'race_info',
+                                             source_columns,
+                                             where='track="{}" AND date="{}" AND race_num="{}"'.format(*race))
+
+        # If the race isn't in the db, add in data from race_info:
+        if not in_db:
+            print('Not in db')
+            db_processor.add_to_table(table_name, race_data, sql_columns)
+        # If it is in the db, check that values match
+        else:
+            print('Is in db')
+            data_in_db = query_table(db_processor, table_name, *race)
+            info_in_db = {key: value for key, value in zip(source_columns, data_in_db)}
+            new_info = {key: value for key, value in zip(source_columns, race_data)}
+            info_matches = {key: dict_values_match(key, info_in_db, new_info) for key in data_in_db.keys()}
+
+            if all(info_matches.values()):
+                print('All the info matches')
+
+            if not all(info_matches.values()):
+                races_with_inconsistent_data.append(race)
+                inconsistent_keys = [key for key in info_matches.keys() if info_matches[key] == False]
+                print(f'**********\nMismatch: {key}')
+                print(f'race_general_results: {info_in_db[key]}')
+                print(f'race_info: {new_info[key]}')
+                input('')
+        i += 1
+    return races_with_inconsistent_data
+
+
+
+
+
+
+
+
 
