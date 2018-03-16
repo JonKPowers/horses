@@ -148,7 +148,11 @@ def race_in_db(db_handler, table, track, date, race_num):
 
 
 def dict_values_match(dict_key, dict_1, dict_2):
-    if dict_1[dict_key] == dict_2[dict_key]:
+    keys_to_ignore= ['source_file', 'race_cond_1', 'race_cond_2', 'race_cond_3', 'race_cond_4', 'race_cond_5',
+                    'race_cond_6', 'claiming_price']
+    if dict_key in keys_to_ignore:
+        return True
+    elif dict_1[dict_key] == dict_2[dict_key]:
         return True
     else:
         return False
@@ -188,6 +192,7 @@ def process_race_info():
 
     # Variable to hold race identifiers for data issues
     races_with_inconsistent_data = []
+    races_added=  []
 
     i = 0
     total_num = len(list_of_races)
@@ -197,21 +202,25 @@ def process_race_info():
         in_db = race_in_db(db_processor, table_name, *race)
         print(in_db)
         race_data = query_table(db_horses_data,
-                                             'race_info',
-                                             source_columns,
-                                             where='track="{}" AND date="{}" AND race_num="{}"'.format(*race))
+                                'race_info',
+                                source_columns,
+                                where='track="{}" AND date="{}" AND race_num="{}"'.format(*race))
 
         # If the race isn't in the db, add in data from race_info:
         if not in_db:
             print('Not in db')
+            races_added.append(race)
             db_processor.add_to_table(table_name, race_data, sql_columns)
         # If it is in the db, check that values match
         else:
             print('Is in db')
-            data_in_db = query_table(db_processor, table_name, *race)
-            info_in_db = {key: value for key, value in zip(source_columns, data_in_db)}
-            new_info = {key: value for key, value in zip(source_columns, race_data)}
-            info_matches = {key: dict_values_match(key, info_in_db, new_info) for key in data_in_db.keys()}
+            data_in_db = query_table(db_processor,
+                                     table_name,
+                                     sql_columns,
+                                     where='track="{}" AND date="{}" AND race_num="{}"'.format(*race))
+            info_in_db = dict(zip(source_columns, data_in_db[0]))
+            new_info = dict(zip(source_columns, race_data[0]))
+            info_matches = {key: dict_values_match(key, info_in_db, new_info) for key in source_columns}
 
             if all(info_matches.values()):
                 print('All the info matches')
@@ -219,12 +228,16 @@ def process_race_info():
             if not all(info_matches.values()):
                 races_with_inconsistent_data.append(race)
                 inconsistent_keys = [key for key in info_matches.keys() if info_matches[key] == False]
-                print(f'**********\nMismatch: {key}')
-                print(f'race_general_results: {info_in_db[key]}')
-                print(f'race_info: {new_info[key]}')
-                input('')
+                for key in inconsistent_keys:
+                    print(f'**********\nMismatch ({race[0]}, {str(race[1])}, {str(race[2])})jj43975'
+                          f' : {key}')
+                    print(f'race_general_results: {info_in_db[key]}')
+                    print(f'race_info: {new_info[key]}')
+                    quit_loop = input('')
+                    if quit_loop:
+                        return races_with_inconsistent_data, races_added
         i += 1
-    return races_with_inconsistent_data
+    return races_with_inconsistent_data, races_added
 
 
 
