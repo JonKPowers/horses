@@ -1,7 +1,7 @@
 import logging
 import db_handler as dbh
 
-db_consolidated_races = dbh.QueryDB(db='horses_consolidated_races')
+db_consolidated_races = dbh.QueryDB(db='horses_consolidated_races', initialize_db=True)
 db_horses_data = dbh.QueryDB(db='horses_data')
 
 table_name = 'horses_consolidated_races'
@@ -199,6 +199,35 @@ def fix_race_type(db_handler, race_info_type, race_general_results_type, mismatc
         update_single_race_value(db_handler, 'horses_consolidated_races', mismatch_category,
                                  'CO', track, date, race_num)
         return 1
+    elif race_general_results_type == 'N' and race_info_type == 'C' and equibase_race_type == 'WCL':
+        update_single_race_value(db_handler, 'horses_consolidated_races', mismatch_category,
+                                 'WCL', track, date, race_num)
+        return 1
+    elif race_general_results_type == 'WCL' and race_info_type == 'C':  # Move on for previously fixed item
+        print('No change needed--previously addressed')
+        return 1
+    elif race_general_results_type == 'S' and race_info_type == 'N' and equibase_race_type == 'MDT':
+        update_single_race_value(db_handler, 'horses_consolidated_races', mismatch_category,
+                                 'MDT', track, date, race_num)
+        return 1
+    elif race_general_results_type == 'MDT' and race_info_type == 'N':  # Move on for previously fixed item
+        print('No change needed--previously addressed')
+        return 1
+    elif race_general_results_type == 'R' and race_info_type == 'N' and equibase_race_type == 'STR':
+        update_single_race_value(db_handler, 'horses_consolidated_races', mismatch_category,
+                                 'STR', track, date, race_num)
+        return 1
+    elif race_general_results_type == 'STR' and race_info_type == 'N':
+        print('No change needed--previously addressed')
+        return 1
+    elif race_general_results_type == 'A' and race_info_type == 'N' and equibase_race_type == 'HCP':
+        update_single_race_value(db_handler, 'horses_consolidated_races', mismatch_category,
+                                 'HCP', track, date, race_num)
+        return 1
+    elif race_general_results_type == 'HCP' and race_info_type == 'N' and equibase_race_type == 'HCP':
+        print('No change needed--previously addressed')
+        return 1
+
     else:
         return 0
 
@@ -281,16 +310,16 @@ def process_race_info():
                               f' : {key}')
                         print(f'race_general_results: {info_in_db[key]}')
                         print(f'race_info: {new_info[key]}')
-                        user_input = input('(s)kip this mismatch category/(t)ry to fix/(q)uit/(C)ontinue: ').lower()
-                        if user_input == 'q':
-                            return races_with_inconsistent_data, races_added
-                        elif user_input == 's':
-                            temp_skip_keys.append(key)
-                        elif user_input == 't':
-                            if fix_race_type(db_consolidated_races, new_info[key], info_in_db[key], key, *race):
-                                print('Successfully fixed!')
-                            else: print('Unable to fix this issue.')
-                            input('Press enter to continue')
+                        if fix_race_type(db_consolidated_races, new_info[key], info_in_db[key], key, *race):
+                            print('Successfully fixed!')
+                        else:
+                            print('Unable to fix this issue.')
+                            user_input = input('(s)kip this mismatch category/(q)uit/(C)ontinue: ').lower()
+                            if user_input == 'q':
+                                return races_with_inconsistent_data, races_added
+                            elif user_input == 's':
+                                temp_skip_keys.append(key)
+
         i += 1
     return races_with_inconsistent_data, races_added
 

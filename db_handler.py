@@ -34,6 +34,16 @@ class QueryDB:
             results_cols = [item[0] for item in cursor.description]
         return (results, results_cols) if return_col_names else results
 
+    def update_db(self, sql_query):
+        with SQLConnection(self.user, self.password) as db:
+            cursor = db.cursor()
+            self._use_db(db, cursor)
+            print('Sending SQL update query')
+            print(sql_query)
+            cursor.execute(sql_query)
+            db.commit()
+            print('Update query sent; change committed')
+
     def initialize_db(self):
         """Checks to see if db exists. If not, creates it."""
         with SQLConnection(self.user, self.password) as db:
