@@ -31,11 +31,23 @@ class QueryDB:
             cursor = db.cursor()
             self._use_db(db, cursor)
             print('Sending SQL query')
+            print(sql_query)
             cursor.execute(sql_query)
             print('Processing response')
             results = list(cursor)
             results_cols = [item[0] for item in cursor.description]
         return (results, results_cols) if return_col_names else results
+
+    def update_db(self, sql_query):
+        with SQLConnection(self.user, self.password) as db:
+            cursor = db.cursor()
+            self._use_db(db, cursor)
+            print('Sending SQL update query')
+            print(sql_query)
+            cursor.execute(sql_query)
+            db.commit()
+            print('Update query sent; change committed')
+
 
     def _use_db(self, db, cursor):
         cursor.execute('USE {}'.format(self.db))
@@ -73,6 +85,7 @@ class DbHandler:
             cursor = db.cursor()
             self.__use_db(db, cursor)
             print('Sending SQL query')
+            print(sql_query)
             cursor.execute(sql_query)
             print('Processing response')
             results = list(cursor)
@@ -163,7 +176,7 @@ class DbHandler:
             for item in table_data[i]:
                 escaped_item = re.sub(r"(['\\])", r'\\\1', str(item))   # Escape textual backslashes and tick marks
                 cleaned_item = re.sub(u"\uFFFD", "", escaped_item)      # Fix oddball <?> character
-                values_string += cleaned_item + "', '"
+                values_string += cleaned_item.strip() + "', '"          # Strip of leading and trailing whitespace
             values_string = values_string[:-4]                          # Chop off extra "', '"
             sql = "INSERT INTO {} ({}) VALUES ('{}')".format(table_name, ", ".join(sql_col_names),
                                                              values_string)
