@@ -24,7 +24,6 @@ class SQLConnection:
         if self.connection:
             self.connection.close()
 
-
 class QueryDB:
     def query_db(self, sql_query, return_col_names=False):
         with SQLConnection(self.user, self.password) as db:
