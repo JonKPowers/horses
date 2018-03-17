@@ -423,7 +423,7 @@ def add_features (table_data, extension):
                     condition_text += str(table_data[condition_columns[j]][i])
             condition_list.append(condition_text)
 
-        # Create a list of race dates for use by the conditions_parser in computing time limits
+        # Create a list of race dates for use by the conditions parser in computing time limits
         date_list = []
         for date in table_data['date']:
             date_list.append(datetime.strptime(str(date), '%Y%m%d'))

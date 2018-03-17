@@ -38,6 +38,17 @@ class DbHandler:
             results_cols = [item[0] for item in cursor.description]
         return results, results_cols
 
+    def update_db(self, sql_query):
+        with SQLConnection(self.user, self.password) as db:
+            cursor = db.cursor()
+            self.__use_db(db, cursor)
+            print('Sending SQL update query')
+            print(sql_query)
+            cursor.execute(sql_query)
+            db.commit()
+            print('Update query sent; change committed')
+        return None
+
     def initialize_db(self):
         """Checks to see if db exists. If not, creates it."""
         with SQLConnection(self.user, self.password) as db:
@@ -123,7 +134,7 @@ class DbHandler:
             for item in table_data[i:i+1].values[0]:
                 escaped_item = re.sub(r"(['\\])", r'\\\1', str(item))   # Escape textual backslashes and tick marks
                 cleaned_item = re.sub(u"\uFFFD", "", escaped_item)      # Fix oddball <?> character
-                values_string += cleaned_item + "', '"
+                values_string += cleaned_item.strip() + "', '"          # Strip of leading and trailing whitespace
             values_string = values_string[:-4]                          # Chop off extra "', '"
             sql = "INSERT INTO {} ({}) VALUES ('{}')".format(table_name, "source_file, " + ", ".join(sql_col_names),
                                                              values_string)

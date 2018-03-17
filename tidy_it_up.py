@@ -86,9 +86,6 @@ def tidy_it_up(table_data, extension):
     if extension == 'DRF':
         print('Tidying .DRF file (past performances) ...')
 
-        # *********************************************
-        # Items that are marked with negative values for special meaning:
-        # Workout times:
         for i in range(1, 11):
             past_bullet_flag = []
             for j in range(len(table_data)):
@@ -131,6 +128,9 @@ def tidy_it_up(table_data, extension):
         table_data['allweather_surface'].fillna(0, inplace=True)
 
         table_data['bris_run_style'].replace('NA', None, inplace=True)
+
+        # Change a n/a claiming_price value to 0 to match race_results handling.
+        table_data['claiming_price'].fillna(0, inplace=True)
 
 
         for i in range(1, 11):
