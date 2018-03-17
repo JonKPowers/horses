@@ -1,9 +1,8 @@
 import logging
+import db_handler as dbh
 
-from aggregation_functions import SQLConnection, QueryDB, query_table, DbHandler
-
-db_consolidated_races = DbHandler(db='horses_consolidated_races')
-db_horses_data = QueryDB(db='horses_data')
+db_consolidated_races = dbh.QueryDB(db='horses_consolidated_races')
+db_horses_data = dbh.QueryDB(db='horses_data')
 
 table_name = 'horses_consolidated_races'
 
@@ -135,6 +134,19 @@ db_dtypes = {key: value[0] for key, value in table_structure.items()}
 unique = ['track', 'date', 'race_num']
 db_consolidated_races.initialize_table(table_name, db_dtypes, unique_key=unique, foreign_key=None)
 
+def query_table(db_handler, table_name, fields, where='', other='', return_col_names=False):
+    sql = 'SELECT '
+    for item in fields:
+        sql += item + ', '
+    sql = sql[:-2]  # Chop off last ', '
+    sql += f' FROM {table_name}'
+    if where:
+        sql += f' WHERE {where}'
+    if other:
+        sql += ' {other}'
+    print(sql)
+    return db_handler.query_db(sql, return_col_names)
+
 
 def race_in_db(db_handler, table, track, date, race_num):
     """
@@ -175,6 +187,7 @@ def update_single_race_value(db_handler, table, field, value, track, date, race_
           f'AND race_num="{race_num}"'
     print(sql)
     db_handler.update_db(sql)
+
 
 def fix_race_type(db_handler, race_info_type, race_general_results_type, mismatch_category, track, date, race_num):
     equibase_race_type = get_single_race_value(db_horses_data, 'race_general_results', 'race_type_equibase',
