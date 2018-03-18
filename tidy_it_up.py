@@ -97,6 +97,7 @@ def tidy_it_up(table_data, extension):
 
         for i in range(1, 11):
             table_data[f'workout_time_{i}'] = table_data[f'workout_time_{i}'].abs()
+
         for i in range(1, 11):
             past_about_distance = []
             for j in range(len(table_data)):
