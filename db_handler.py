@@ -39,7 +39,7 @@ class QueryDB:
             cursor = db.cursor()
             self._use_db(db, cursor)
             print('Sending SQL update query')
-            print(sql_query)
+            logging.debug(sql_query)
             cursor.execute(sql_query)
             db.commit()
             print('Update query sent; change committed')
@@ -90,7 +90,7 @@ class QueryDB:
 
     def _create_table(self, db, cursor, table_name, dtypes, unique_key, foreign_key):
         logging.info(f'Creating table {table_name}')
-        sql = 'CREATE TABLE {table_name} ('
+        sql = f'CREATE TABLE {table_name} ('
         sql += 'id INT NOT NULL AUTO_INCREMENT, '
         for column_name, column_dtype in dtypes.items():
             sql += f'{column_name} {column_dtype}, '
@@ -108,8 +108,8 @@ class QueryDB:
         logging.info(f'Creating table {table_name}:\n\t{sql}')
         try:
             cursor.execute(sql)
-        except pymysql.err.ProgrammingError:
-            print(f'Error creating table {table_name}')
+        except pymysql.err.ProgrammingError as e:
+            print(f'Error creating table {table_name}:\n\t{sql}\n\t{e}')
             logging.info(f'Error creating table{table_name}:\n\t{sql}')
         db.commit()
 
