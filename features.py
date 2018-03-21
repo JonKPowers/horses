@@ -5,7 +5,6 @@ import re
 from datetime import datetime
 from dateutil import relativedelta
 
-
 def parse_conditions(condition_string):
     race_info = {
         'cond_race_class': 'NULL',
