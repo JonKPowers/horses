@@ -136,7 +136,7 @@ errata_table_structure = {
 }
 errata_table_structure.update(table_structure)
 
-# Initialize_table
+# Initialize_tables
 consolidated_races_dtypes = {key: value[0] for key, value in table_structure.items()}
 errata_dtypes = {key: value[0] for key, value in errata_table_structure.items()}
 unique = ['track', 'date', 'race_num']
@@ -173,8 +173,8 @@ def add_blank_race_entry(db_handler, table, track, date, race_num):
 
 
 def dict_values_match(dict_key, dict_1, dict_2):
-    keys_to_ignore= ['source_file', 'race_cond_1', 'race_cond_2', 'race_cond_3', 'race_cond_4', 'race_cond_5',
-                    'race_cond_6',]
+    keys_to_ignore= ['source_file', 'race_conditions_text_1', 'race_conditions_text_2', 'race_conditions_text_3',
+                     'race_conditions_text_4', 'race_conditions_text_5', 'race_conditions_text_6',]
     if dict_key in keys_to_ignore:
         return True
     elif dict_1[dict_key] == dict_2[dict_key]:
@@ -183,12 +183,15 @@ def dict_values_match(dict_key, dict_1, dict_2):
         return False
 
 
-def get_single_race_value(db_handler, table, field, track, date, race_num):
-    table_index = table_to_index_mapping[table]
-    sql = f'SELECT {field} FROM {table} ' \
-          f'WHERE {table_structure["track"][table_index]}="{track}" ' \
-          f'AND {table_structure["date"][table_index]}="{date}" ' \
-          f'AND {table_structure["race_num"][table_index]}="{race_num}"'
+def get_single_race_value(db_handler, table, field, track, date, race_num, no_translation=False):
+    if no_translation:
+        sql = f'SELECT {field} FROM {table} WHERE track = "{track}" AND date = "{date}" AND race_num = "{race_num}"'
+    else:
+        table_index = table_to_index_mapping[table]
+        sql = f'SELECT {field} FROM {table} ' \
+              f'WHERE {table_structure["track"][table_index]}="{track}" ' \
+              f'AND {table_structure["date"][table_index]}="{date}" ' \
+              f'AND {table_structure["race_num"][table_index]}="{race_num}"'
     return db_handler.query_db(sql)[0][0]
 
 
@@ -301,9 +304,9 @@ def process_race_info():
                                      table_name,
                                      sql_columns,
                                      where='track="{}" AND date="{}" AND race_num="{}"'.format(*race))
-            info_in_db = dict(zip(source_columns, data_in_db[0]))
-            new_info = dict(zip(source_columns, race_data[0]))
-            info_matches = {key: dict_values_match(key, info_in_db, new_info) for key in source_columns}
+            info_in_db = dict(zip(sql_columns, data_in_db[0]))
+            new_info = dict(zip(sql_columns, race_data[0]))
+            info_matches = {key: dict_values_match(key, info_in_db, new_info) for key in sql_columns}
 
             if all(info_matches.values()):
                 print('All the info matches')
@@ -315,14 +318,14 @@ def process_race_info():
                     if key not in temp_skip_keys:
                         print(f'**********\nMismatch ({race[0]}, {str(race[1])}, {str(race[2])})'
                               f' : {key}')
-                        print(f'race_general_results: {info_in_db[key]}')
+                        print(f'horse_consolidated_races: {info_in_db[key]}')
                         print(f'race_info: {new_info[key]}')
                         if fix_race_type(db_consolidated_races, new_info[key], info_in_db[key], key, *race):
                             print('Successfully fixed!')
                         else:
                             print('Unable to fix this issue.')
                             user_input = input('(s)kip this mismatch category/mark as (b)ad/'
-                                               'add (n)ote/(q)uit/(C)ontinue: ').lower()
+                                               'add (n)ote/(e)nter new value/(q)uit/(C)ontinue: ').lower()
                             if user_input == 'q':
                                 return races_with_inconsistent_data, races_added
                             elif user_input == 's':
@@ -337,12 +340,21 @@ def process_race_info():
                             elif user_input == 'n':
                                 note = input('Enter note: ')
                                 add_blank_race_entry(db_horses_errata, 'aggregation_notes', *race)
-                                old_note = get_single_race_value(db_horses_errata, 'aggregation_notes', 'notes_on_data', *race)
+                                old_note = get_single_race_value(db_horses_errata, 'aggregation_notes', 'notes_on_data', *race, no_translation=True)
                                 update_single_race_value(db_horses_errata,
                                                          'aggregation_notes',
                                                          'notes_on_data',
                                                          str(old_note) + ' NEW NOTE: ' + note,
                                                          *race)
+                            elif user_input == 'e':
+                                new_value = input('Enter new value: ')
+                                add_blank_race_entry(db_horses_errata, 'aggregation_notes', *race)
+                                update_single_race_value(db_consolidated_races,
+                                                         'horses_consolidated_races',
+                                                         key,
+                                                         new_value,
+                                                         *race)
+                                update_single_race_value(db_horses_errata, 'aggregation_notes', key, new_value, *race)
         i += 1
     return races_with_inconsistent_data, races_added
 
