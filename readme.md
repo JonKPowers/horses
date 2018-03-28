@@ -13,7 +13,7 @@ are taken out of the data. The output plots will be placed in an image file call
 ## Setup requirements
 
 In addition to cloning this repo to your local machine, you'll need to download the zipped data file 
-[here](http://www.JonKPowers/horse_data.zip) and extract it into a data subdirectory at `/path_to_repo/data/`. 
+[here](http://www.JonKPowers.com/horse_data.zip) and extract it into a data subdirectory at `/path_to_repo/data/`. 
 The repo's root directory should contain files like `main.py` and `database_functions.py`, and the `data` directory
 should contain 8000-9000 files, mostly having a `.1` extension.  
 
@@ -24,21 +24,21 @@ To run `main.py` and its related scripts, your environment must have the followi
 * matplotlib
 * python-dateutil
 
-Finally, the database functions expect to find a mySQL server listening on `localhost`.
+Finally, the database functions expect to find a MySQL server listening on `localhost`.
 It will need to be configured with a user whose username is `codelou` and whose password is `ABCabc123!`
 If needed, a different username and password can be used by editing both of the following:
 * `DbHandler.__init__()` in `db_functions.py`: `username` and `password` arguments
 * `QueryDb.__init__()` in `aggregation_functions.py`: `username` and `password` arguments
 
 The user `codelou` will need full permissions on horse-related databases along the lines of 
-`GRANT ALL PRIVILEGES ON horses%.* TO 'codelou'@'localhost'`.
+`GRANT ALL PRIVILEGES ON horses%.* TO 'codelou'@'localhost'`. Be sure to `FLUSH PRIVLEGES` to load reload the
+permission grant tables after adding permissions for this user.
 
 ## The Problem
 
 There isn't really a problem that's being solved here--this goal of project was primarily to clean the data and organize
-it in a way that it can be used in some future machine learning projects to develop a model that tries to predict 
-outcomes of individual horse races. As described in more detail below, the data is pretty wide 
-and needed a lot of TLC to be made suitable for use.
+it in a way that it can be used in some future machine learning projects to develop a model that tries to predict the
+outcome of horse races. 
 
 ... but for purposes of the CL project, I was curious about whether there is any correlation between the temperature 
 during a race and the final time of the race. My hypothesis was that races run when it is very hot would be relatively
@@ -151,7 +151,7 @@ based on its file extension.
             for handler in table_handlers[extension]:
                     handler.process_data(table_data, db, file.name)
         ```
-*Pull data back out of the database:
+* Pull data back out of the database:
     * Data is pulled from the database in `CL_plot.py`, which is implemented by `pull_final_times`.
 * Modify the data:
     * A ton of modification and feature extraction is done by `tidy.tidy_it_up()` and `features.add_features()` within 

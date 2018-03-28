@@ -167,6 +167,7 @@ def parse_age_sex_restrictions(restriction_column):
 
     return new_column_dict
 
+
 def add_features (table_data, extension):
     extension = str(extension)
     if extension == '1':
