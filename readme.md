@@ -1,13 +1,13 @@
 # Code Louisville Python for Data Project
 
-##TL;DR
+## TL;DR
 
 Running `main.py` will process files in the `data` subdirectory and store them in various tables in a mySQL database.
 It will then pull information from the database about how long it took horses to complete races of various lengths
 and what the temperature was for each of those races. It will then generate a plots for each race length showing the 
 final times against  the temperature of the race as well as line showing the mean race times at each temperature.
 A few outliers and bonkers-looking values (such as final race times of 0 seconds and temperatures about 130 degrees) 
-are taken out of the data. The output plots will be placed in an image file called [_____________], which will be located
+are taken out of the data. The output plots will be placed in an image file called `race_times_vs_temperature.png`, which will be located
  in the program's root directory. 
 
 ## Setup requirements.
@@ -60,7 +60,6 @@ particularly warm or particularly cool climate and gives its best performances t
 ![7 Furlong Times](images/7_furlongs.png)
 ![1 Mile Times](images/1_mile.png)
 
-![][______________ STUFF ABOUT THE OUTCOME ______]
 
 
 ## The Data
