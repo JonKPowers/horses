@@ -3,22 +3,28 @@
 ##TL;DR
 
 Running `main.py` will process files in the `data` subdirectory and store them in various tables in a mySQL database.
-It will then pull information from the database about how long it took horses to complete a [________] race
-and what the temperature was for each of those races. It will then generate a colorful plot of the final times against 
-the temperature of the race along with a black line showing the mean race time for each of the temperatures.
+It will then pull information from the database about how long it took horses to complete races of various lengths
+and what the temperature was for each of those races. It will then generate a plots for each race length showing the 
+final times against  the temperature of the race as well as line showing the mean race times at each temperature.
 A few outliers and bonkers-looking values (such as final race times of 0 seconds and temperatures about 130 degrees) 
-are taken out of the data. The program will output [___________________], which will be located in the base directory. 
+are taken out of the data. The output plots will be placed in an image file called [_____________], which will be located
+ in the program's root directory. 
 
 ## Setup requirements.
 
-To run `main.py` and its related scripts, your enviroment must have the following packages installed and available (most current versions should work fine):
+In addition to cloning this repo to your local machine, you'll need to download the zipped data file 
+[here](http://www.JonKPowers/horse_data.zip) and extract it into a data subdirectory at `/path_to_repo/data/`. 
+The repo's root directory should contain files like `main.py` and `database_functions.py`, and the `data` directory
+should contain 8000-9000 files, mostly having a `.1` extension.  
+
+To run `main.py` and its related scripts, your environment must have the following packages installed and available (most current versions should work fine):
 * PyMySQL
 * numpy
 * pandas
 * matplotlib
 * python-dateutil
 
-In addition, the database functions expect to find a mySQL server listening on localhost.
+Finally, the database functions expect to find a mySQL server listening on `localhost`.
 It will need to be configured with a user whose username is `codelou` and whose password is `ABCabc123!`
 If needed, a different username and password can be used by editing both of the following:
 * `DbHandler.__init__()` in `db_functions.py`: `username` and `password` arguments
@@ -38,6 +44,16 @@ and needed a lot of TLC to be made suitable for use.
 during a race and the final time of the race. My hypothesis was that races run when it is very hot would be relatively
 slower than races run at more pleasant temperatures. This made intuitive sense to me that it would be harder to perform
 a vigorous activity like running when it's hot than when it's cool. 
+
+As it turns out, I was generally wrong: There doesn't seem to be any general pattern of cooler temperatures resulting in
+faster final times. If anything, the mean final times generally seem to be faster at higher temperatures, particularly
+with shorter race distances. That said, the slow outlier times do tend to show up more frequently at the high 
+temperatures, but this could be for any number of reasons not directly related to the temperature. One interesting feature
+in the visualization is there seems to be a band of moderate temperatures [______________] that are producing times that
+tend to be a little slower than at extreme cold or hot temperatures. One possible explanation for this is that many
+breeding and training operations are either in Canada (with generally cold temperatures) or in the southern United States
+(with generally hot temperatures). As a result, particular horses may be predisposed or trained to work in either a 
+particularly warm or particularly cool climate and gives its best performances there rather than in more moderate climates.  
 
 [______________ STUFF ABOUT THE OUTCOME ______]
 
