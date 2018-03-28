@@ -55,7 +55,12 @@ breeding and training operations are either in Canada (with generally cold tempe
 (with generally hot temperatures). As a result, particular horses may be predisposed or trained to work in either a 
 particularly warm or particularly cool climate and gives its best performances there rather than in more moderate climates.  
 
-[______________ STUFF ABOUT THE OUTCOME ______]
+![5.5 Furlong Times](images/5.5_furlongs.png)
+![6 Furlong Times](images/6_furlongs.png)
+![7 Furlong Times](images/7_furlongs.png)
+![1 Mile Times](images/1_mile.png)
+
+![][______________ STUFF ABOUT THE OUTCOME ______]
 
 
 ## The Data

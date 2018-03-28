@@ -2,6 +2,7 @@ import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 import scipy.interpolate as si
+import re
 
 import aggregation_functions as ag
 
@@ -14,7 +15,7 @@ races_to_review = {
     '1540': ['7 Furlongs', 0, 120, -20, 150],
     '1760': ['1 Mile', 0, 120, -20, 150],
     '1830': ['1 Mile + 70 Yards', 0, 120, -20, 150],
-    '1870': ['1 1/16 Mile', 0, 120, -20, 150],
+    '1870': ['1 1/16 Mile', 0, 120, -5, 150],
 }
 
 titles = [races_to_review[key][0] for key in races_to_review.keys()]
@@ -23,8 +24,35 @@ max_times = [races_to_review[key][2] for key in races_to_review.keys()]
 min_temps = [races_to_review[key][3] for key in races_to_review.keys()]
 max_temps = [races_to_review[key][4] for key in races_to_review.keys()]
 
-fig, ax = plt.subplots(8, figsize=(10, 80), dpi=200)
+fig, ax = plt.subplots(8, figsize=(8, 45), dpi=200)
 axes = [ax_item for _, ax_item in np.ndenumerate(ax)]
+
+
+def generate_individual_plots():
+    for distance, title, min_time, max_time, min_temp, max_temp in zip(races_to_review.keys(), titles, min_times,
+                                                                       max_times, min_temps, max_temps):
+        fig, ax  = plt.subplots()
+        temps, times, average_temps, average_times = pull_final_times(distance, min_time, max_time, min_temp, max_temp)
+
+        # Smoothing with interp1d:
+        t_ipl = np.linspace(min(average_temps), max(average_temps), 200)
+        interpl_func = si.interp1d(average_temps, average_times, kind='cubic')
+        times_interpl = interpl_func(t_ipl)
+
+        # Set up the colormap to use min and max values for color spectrum
+        vmin = min(temps)
+        vmax = max(temps)
+        cmap = matplotlib.cm.get_cmap('jet')
+        norm = matplotlib.colors.Normalize(vmin=vmin, vmax=vmax)
+
+        ax.scatter(temps, times, s=0.2, c=cmap(norm(temps)))
+        ax.plot(t_ipl, times_interpl, label='mean race time')
+        ax.set_title(title)
+        ax.set_xlabel('Temperature (degrees F)')
+        ax.set_ylabel('Final time (seconds)')
+        ax.legend(loc='best')
+        plt.tight_layout()
+        plt.savefig(re.sub(r'/', '', title)+'.png')
 
 
 def pull_final_times(race_distance, min_time, max_time, min_temp, max_temp):
@@ -64,12 +92,13 @@ def pull_final_times(race_distance, min_time, max_time, min_temp, max_temp):
 
     return temps, times, average_temps, average_times
 
+
 for distance, ax, title, min_time, max_time, min_temp, max_temp in zip(races_to_review.keys(), axes, titles,
                                                                        min_times, max_times, min_temps, max_temps):
     temps, times, average_temps, average_times = pull_final_times(distance, min_time, max_time, min_temp, max_temp)
 
     # Smooth out the averages for visualization purposes
-    # Try smoothing with b-spline for parameterized x- and y-values
+    # Smoothing with b-spline for parameterized x- and y-values
     t = average_temps
     t_ipl = np.linspace(min(average_temps), max(average_temps), 200)
 
@@ -78,7 +107,7 @@ for distance, ax, title, min_time, max_time, min_temp, max_temp in zip(races_to_
     temps_ipl = si.splev(t_ipl, temps_tup)
     times_ipl = si.splev(t_ipl, times_tup)
 
-    # Try smoothing with interp1d:
+    # Smoothing with interp1d:
     interpl_func = si.interp1d(average_temps, average_times, kind='cubic')
     times_interpl = interpl_func(t_ipl)
 
@@ -90,11 +119,15 @@ for distance, ax, title, min_time, max_time, min_temp, max_temp in zip(races_to_
     norm = matplotlib.colors.Normalize(vmin=vmin, vmax=vmax)
 
     ax.scatter(temps, times, s=0.2, c=cmap(norm(temps)))
-    ax.plot(t_ipl, times_interpl)
+    ax.plot(t_ipl, times_interpl, label='mean race time')
     ax.set_title(title)
-    ax.set_facecolor = '0.9'
+    ax.set_xlabel('Temperature (degrees F)')
+    ax.set_ylabel('Final time (seconds)')
+    ax.legend(loc='best')
 
 
+fig.tight_layout()
+fig.savefig('race_times_vs_temperature.png')
 plt.show()
 
 
