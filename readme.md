@@ -10,7 +10,7 @@ A few outliers and bonkers-looking values (such as final race times of 0 seconds
 are taken out of the data. The output plots will be placed in an image file called `race_times_vs_temperature.png`, which will be located
  in the program's root directory. 
 
-## Setup requirements.
+## Setup requirements
 
 In addition to cloning this repo to your local machine, you'll need to download the zipped data file 
 [here](http://www.JonKPowers/horse_data.zip) and extract it into a data subdirectory at `/path_to_repo/data/`. 
@@ -45,15 +45,16 @@ during a race and the final time of the race. My hypothesis was that races run w
 slower than races run at more pleasant temperatures. This made intuitive sense to me that it would be harder to perform
 a vigorous activity like running when it's hot than when it's cool. 
 
-As it turns out, I was generally wrong: There doesn't seem to be any general pattern of cooler temperatures resulting in
-faster final times. If anything, the mean final times generally seem to be faster at higher temperatures, particularly
-with shorter race distances. That said, the slow outlier times do tend to show up more frequently at the high 
-temperatures, but this could be for any number of reasons not directly related to the temperature. One interesting feature
-in the visualization is there seems to be a band of moderate temperatures [______________] that are producing times that
-tend to be a little slower than at extreme cold or hot temperatures. One possible explanation for this is that many
-breeding and training operations are either in Canada (with generally cold temperatures) or in the southern United States
-(with generally hot temperatures). As a result, particular horses may be predisposed or trained to work in either a 
-particularly warm or particularly cool climate and gives its best performances there rather than in more moderate climates.  
+It seems I was wrong. The visualizations don't show any general pattern of cooler temperatures resulting in
+faster final times. If anything, the mean final times seem to get faster as temperatures increase. That said, 
+the slowest outlier times do tend to show up more frequently at high temperatures, but this could be for any number of 
+reasons not directly related to the temperature. One interesting feature that shows up in the visualization is that 
+there seems to be a band of moderate temperatures [______________] that produce times that tend to be a little slower 
+than at extreme cold or hot temperatures. One possible explanation for this is that many breeding and training 
+operations are either in Canada (with generally cold temperatures) or in the southern United States
+(with generally hot temperatures). As a result, individual horses may be predisposed and/or trained to run in either 
+particularly warm or particularly cool climates and will give its best performances there rather than in more 
+moderate climates. Some examples:  
 
 ![5.5 Furlong Times](images/5.5_furlongs.png)
 ![6 Furlong Times](images/6_furlongs.png)
@@ -87,11 +88,14 @@ The detailed file structure for the race results can be found [here](http://www.
 and details for the past performance data is [here](http://www.brisnet.com/cgi-bin/static.cgi?page=drfsff). 
 All the raw source files are in csv format.
 
-[INSERT INFO ABOUT NUMBER OF FILES/RECORDS/RACES]
+For purposes of this project, I am including [INSERT INFO ABOUT NUMBER OF FILES/RECORDS/RACES] files containing race
+results data, which are used for the visualization. And for proof of functionality, I've included a handful of the other
+file types that can be processed. These other files contain time and distance information that could be used, but they
+lack temperature and weather data, which will have to be pulled in from other sources (and which remains a to-do item). 
 
 ## Overview of program logic
 
-The big-picture program flow is handled by main, and specific functions and routines are contained in other files
+The big-picture program flow is handled by `main.main()`, and specific functions and routines are contained in other files
 solely for ease of reading and editing. By default, `main()` will process all files contained in the `data` subdirectory below `main.py`. 
 It can also process individual files when used interactively.
 
