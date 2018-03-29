@@ -6,9 +6,9 @@ Running `main.py` will process files in the `data` subdirectory and store them i
 It will then pull information from the database about how long it took horses to complete races of various lengths
 and what the temperature was for each of those races. It will then generate a plots for each race length showing the 
 final times against  the temperature of the race as well as line showing the mean race times at each temperature.
-A few outliers and bonkers-looking values (such as final race times of 0 seconds and temperatures about 130 degrees) 
-are taken out of the data. The output plots will be placed in an image file called `race_times_vs_temperature.png`, which will be located
- in the program's root directory. 
+A few outliers and bonkers-looking values (such as final race times of 0 seconds and temperatures abovt 130 degrees) 
+are taken out of the data. The output image file containing the plots is `race_times_vs_temperature.png`, 
+which will be located in the program's root directory. 
 
 ## Setup requirements
 
