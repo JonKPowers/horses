@@ -146,7 +146,7 @@ class ClassParser:
         self.date_list = date_list
 
         for i in range(len(condition_list)):
-            print(f'***************\n*{i}\n***************')
+            # print(f'***************\n*{i}\n***************')
             try:
                 for key, value in self.pull_race_restrictions(condition_list[i]).items():
                     self.processed_restrictions_dict[key].append(value)
@@ -200,9 +200,9 @@ class ClassParser:
         # Pull the full race restrictions sentence. If not found, return 0.
         try:
             full_conditions = re.search(r'(FOR|TWO|THREE|FOUR)[A-Z0-9 ,;$\-()/]+\.', self.conditions_string).group(0)
-            print(full_conditions)
+            # print(full_conditions)
         except AttributeError:
-            print('Full race restrictions not found')
+            # print('Full race restrictions not found')
             return 0
 
         # Pull out the non-age race restrictions and return it. If not found, return 0
@@ -210,7 +210,7 @@ class ClassParser:
             self.restrictions_string = re.search(r'WHICH[A-Z0-9 ,;$\-()/]+\.', full_conditions).group(0)
             return 1
         except AttributeError:
-            print('Non-age race restrictions not found')
+            # print('Non-age race restrictions not found')
             return 0
 
     def get_restrictions_slug(self):
@@ -228,13 +228,13 @@ class ClassParser:
                                  self.restrictions_string)
         try:
             # Print out the match results
-            for i in range(len(claiming_amt.regs)):
-                print(f'Claiming info {i}: {claiming_amt.group(i)}')
+            # for i in range(len(claiming_amt.regs)):
+            #     print(f'Claiming info {i}: {claiming_amt.group(i)}')
 
             # Chop the optional claiming amount string off of restrictions_string. Print the post-chopped string
             self.restrictions_string = self.restrictions_string[:claiming_amt.span(0)[0]] + \
                                        self.restrictions_string[claiming_amt.span(0)[1]:]
-            print(f'Restriction string after claiming amt removal: {self.restrictions_string}')
+            # print(f'Restriction string after claiming amt removal: {self.restrictions_string}')
 
             # Return the optional claiming amount with dollar signs removed
             if '-' in claiming_amt.group(5):
@@ -245,7 +245,7 @@ class ClassParser:
                 return int(claiming_amt.group(5))
 
         except:
-            print('Claiming amount not found')
+            # print('Claiming amount not found')
             return 0
 
     def get_claiming_restriction(self):
@@ -295,23 +295,24 @@ class ClassParser:
         if re.search(r'HAVE STARTED FOR A CLAIMING PRICE', self.current_slug_text):
             # Set dict entries with claiming-start info
             claim_info = self.get_claiming_restriction()
-            for key in claim_info.keys():
-                print(f'claim_info[{key}]: {claim_info[key]}')
+            # for key in claim_info.keys():
+            #     print(f'claim_info[{key}]: {claim_info[key]}')
             slug_restrictions_dict['claim_start_req_price'] = int(claim_info['2'])
             slug_restrictions_dict['claim_start_req_time_limit'] = claim_info['6']
             # Delete the claiming-start info off the current slug.
             self.restrictions_string = self.restrictions_string[:claim_info['match'].span(0)[0] + self.current_slug_span_start] + \
                                 self.restrictions_string[claim_info['match'].span(0)[1] + self.current_slug_span_start:]
             # Print post-deletion slug
-            print(f'restrictions string after deleting claiming info:\n\t{self.restrictions_string}')
+            # print(f'restrictions string after deleting claiming info:\n\t{self.restrictions_string}')
         else:
-            print('No claiming-start requirement found')
+            # print('No claiming-start requirement found')
+            pass
 
         if re.search(r'(NOT|NEVER) WON', self.current_slug_text):
             restriction_info = self.get_simple_race_restrictions()
             self.restriction_info = restriction_info
-            for key in restriction_info.keys():
-                print(f'restriction_info[{key}]: {restriction_info[key]}')
+            # for key in restriction_info.keys():
+            #     print(f'restriction_info[{key}]: {restriction_info[key]}')
             slug_restrictions_dict['number_limit'] = self.text_to_num_mappings.get(restriction_info['3'] if restriction_info['3'] else restriction_info['2'], 'ERROR!')
             slug_restrictions_dict['money_limit'] = int(re.sub('\$', '', restriction_info['2'])) if '$' in restriction_info['2'] else 0
             slug_restrictions_dict['time_limit'] = restriction_info['9']
@@ -320,9 +321,10 @@ class ClassParser:
             self.restrictions_string = self.restrictions_string[:restriction_info['match'].span(0)[0] + self.current_slug_span_start] + \
                                 self.restrictions_string[restriction_info['match'].span(0)[1] + self.current_slug_span_start:]
             # Print post-deletion slug
-            print(f'restrictions_string after deleting restriction info: \n\t{self.restrictions_string}')
+            # print(f'restrictions_string after deleting restriction info: \n\t{self.restrictions_string}')
         else:
-            print('No race restrictions found')
+            # print('No race restrictions found')
+            pass
 
         return slug_restrictions_dict
 
@@ -344,10 +346,10 @@ class ClassParser:
         if self.get_restrictions_string():
             restrictions_dict['has_restrictions'] = 1
             restrictions_dict['full_condition_slug'] = self.restrictions_string[:255]
-            print(self.restrictions_string)
+            # print(self.restrictions_string)
         else:
             # ***************TO DO: Consider whether there is a better 'None-state' for this dict*****************
-            print(f'Nope: {self.conditions_string}\n')
+            # print(f'Nope: {self.conditions_string}\n')
             for key in restrictions_dict:
                 restrictions_dict[key] = None
             restrictions_dict['has_restrictions'] = 0
@@ -373,15 +375,15 @@ class ClassParser:
         # parse them if found
         for i in range(3):
             if self.current_slug:
-                for j in range(len(self.current_slug.regs)):
-                    print(f'Current slug match {j}: {self.current_slug.group(j)}')
-                print(f'{i}: Processing slug: {self.current_slug.group(0)}')
+                # for j in range(len(self.current_slug.regs)):
+                #     print(f'Current slug match {j}: {self.current_slug.group(j)}')
+                # print(f'{i}: Processing slug: {self.current_slug.group(0)}')
 
                 self.current_slug_text = self.current_slug.group(0)
                 self.current_slug_span_start = self.current_slug.span(0)[0]
                 parsed_restrictions = self.parse_restriction_slug()
 
-                print(f'{i}: Slug processed. Attempting to add to restrictions dict')
+                # print(f'{i}: Slug processed. Attempting to add to restrictions dict')
                 for key in parsed_restrictions.keys():
                     restrictions_dict[key if i == 0 else f'excepted_{i}_' + key] = parsed_restrictions[key]
 
@@ -395,10 +397,10 @@ class ClassParser:
                                                self.restrictions_string[strip.span(0)[1]:]
                 restrictions_dict['left_to_parse'] = self.restrictions_string[:255]
 
-        print('')
-        for key, value in restrictions_dict.items():
-            print(f'*{key}: {value}')
-        print('----------')
+        # print('')
+        # for key, value in restrictions_dict.items():
+        #     print(f'*{key}: {value}')
+        # print('----------')
 
         return restrictions_dict
 

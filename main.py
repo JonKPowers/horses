@@ -26,7 +26,7 @@ columns_to_delete = {
     'DRF': [s for s in name_files['DRF'] if 'reserved' in s]
 }
 
-df_handlers = {
+table_handlers = {
     '1': [],
     '2': [],
     '3': [],
@@ -55,7 +55,7 @@ def main(file_to_process='', path='data'):
     # Create the table handlers
     for table in tbl.tables:
         handler = tbl.TableHandler(table, db)
-        df_handlers[handler.extension].append(handler)
+        table_handlers[handler.extension].append(handler)
 
     # Initialize some counter/tracking variables
     i = 1
@@ -100,7 +100,7 @@ def main(file_to_process='', path='data'):
 
         # For each file, run it through the handlers for its file type
         print('Adding {} info to database ...'.format(file))
-        for handler in df_handlers[extension]:
+        for handler in table_handlers[extension]:
             handler.process_data(table_data, db, file.name)
 
         # Move the processed file to its processed-file directory
