@@ -3,6 +3,7 @@ import db_functions
 from csv_definitions import file_structure as name_files
 import table_functions as tbl
 import features
+import CL_plot
 
 import os
 import sys
@@ -120,6 +121,8 @@ def main(file_to_process='', path='data'):
     print("End time:", str(end_time))
     print("Total time:", str(end_time - start_time))
 
+    CL_plot.make_plot('horses_test_run')
+
 def process_csv_file(file, add_features=True):
     extension = re.search(r'(?<=\.).+$', str(file))[0]
     #   Read the data in and run it through the cleaner
@@ -132,7 +135,8 @@ def process_csv_file(file, add_features=True):
         del table_data[column]
     return table_data, extension
 
-import CL_plot
+if __name__ == '__main__':
+    main()
 
 
 

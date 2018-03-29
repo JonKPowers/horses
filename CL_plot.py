@@ -6,26 +6,6 @@ import re
 
 import aggregation_functions as ag
 
-db = ag.QueryDB('horses_test_run')
-races_to_review = {
-    '1100': ['5 Furlongs', 40, 120, -20, 105],
-    '1210': ['5.5 Furlongs', 40, 120, -20, 105],
-    '1320': ['6 Furlongs', 60, 120, -20, 150],
-    '1430': ['6.5 Furlongs', 0, 100, -20, 110],
-    '1540': ['7 Furlongs', 0, 120, -20, 150],
-    '1760': ['1 Mile', 0, 120, -20, 150],
-    '1830': ['1 Mile + 70 Yards', 0, 120, -20, 150],
-    '1870': ['1 1/16 Mile', 0, 120, -5, 150],
-}
-
-titles = [races_to_review[key][0] for key in races_to_review.keys()]
-min_times = [races_to_review[key][1] for key in races_to_review.keys()]
-max_times = [races_to_review[key][2] for key in races_to_review.keys()]
-min_temps = [races_to_review[key][3] for key in races_to_review.keys()]
-max_temps = [races_to_review[key][4] for key in races_to_review.keys()]
-
-fig, ax = plt.subplots(8, figsize=(8, 45), dpi=200)
-axes = [ax_item for _, ax_item in np.ndenumerate(ax)]
 
 
 def generate_individual_plots():
@@ -92,42 +72,64 @@ def pull_final_times(race_distance, min_time, max_time, min_temp, max_temp):
 
     return temps, times, average_temps, average_times
 
+def make_plot(db):
+    db = ag.QueryDB(db)
+    races_to_review = {
+        '1100': ['5 Furlongs', 40, 120, -20, 105],
+        '1210': ['5.5 Furlongs', 40, 120, -20, 105],
+        '1320': ['6 Furlongs', 60, 120, -20, 150],
+        '1430': ['6.5 Furlongs', 0, 100, -20, 110],
+        '1540': ['7 Furlongs', 0, 120, -20, 150],
+        '1760': ['1 Mile', 0, 120, -20, 150],
+        '1830': ['1 Mile + 70 Yards', 0, 120, -20, 150],
+        '1870': ['1 1/16 Mile', 0, 120, -5, 150],
+    }
 
-for distance, ax, title, min_time, max_time, min_temp, max_temp in zip(races_to_review.keys(), axes, titles,
-                                                                       min_times, max_times, min_temps, max_temps):
-    temps, times, average_temps, average_times = pull_final_times(distance, min_time, max_time, min_temp, max_temp)
+    titles = [races_to_review[key][0] for key in races_to_review.keys()]
+    min_times = [races_to_review[key][1] for key in races_to_review.keys()]
+    max_times = [races_to_review[key][2] for key in races_to_review.keys()]
+    min_temps = [races_to_review[key][3] for key in races_to_review.keys()]
+    max_temps = [races_to_review[key][4] for key in races_to_review.keys()]
 
-    # Smooth out the averages for visualization purposes
-    # Smoothing with b-spline for parameterized x- and y-values
-    t = average_temps
-    t_ipl = np.linspace(min(average_temps), max(average_temps), 200)
-
-    temps_tup = si.splrep(t, average_temps)
-    times_tup = si.splrep(t, average_times)
-    temps_ipl = si.splev(t_ipl, temps_tup)
-    times_ipl = si.splev(t_ipl, times_tup)
-
-    # Smoothing with interp1d:
-    interpl_func = si.interp1d(average_temps, average_times, kind='cubic')
-    times_interpl = interpl_func(t_ipl)
-
-
-    # Set up the colormap to use min and max values for color spectrum
-    vmin = min(temps)
-    vmax = max(temps)
-    cmap = matplotlib.cm.get_cmap('jet')
-    norm = matplotlib.colors.Normalize(vmin=vmin, vmax=vmax)
-
-    ax.scatter(temps, times, s=0.2, c=cmap(norm(temps)))
-    ax.plot(t_ipl, times_interpl, label='mean race time')
-    ax.set_title(title)
-    ax.set_xlabel('Temperature (degrees F)')
-    ax.set_ylabel('Final time (seconds)')
-    ax.legend(loc='best')
+    fig, ax = plt.subplots(8, figsize=(8, 45), dpi=200)
+    axes = [ax_item for _, ax_item in np.ndenumerate(ax)]
 
 
-fig.tight_layout()
-fig.savefig('race_times_vs_temperature.png')
-plt.show()
+    for distance, ax, title, min_time, max_time, min_temp, max_temp in zip(races_to_review.keys(), axes, titles,
+                                                                           min_times, max_times, min_temps, max_temps):
+        temps, times, average_temps, average_times = pull_final_times(distance, min_time, max_time, min_temp, max_temp)
+
+        # Smooth out the averages for visualization purposes
+        # Smoothing with b-spline for parameterized x- and y-values
+        t = average_temps
+        t_ipl = np.linspace(min(average_temps), max(average_temps), 200)
+
+        temps_tup = si.splrep(t, average_temps)
+        times_tup = si.splrep(t, average_times)
+        temps_ipl = si.splev(t_ipl, temps_tup)
+        times_ipl = si.splev(t_ipl, times_tup)
+
+        # Smoothing with interp1d:
+        interpl_func = si.interp1d(average_temps, average_times, kind='cubic')
+        times_interpl = interpl_func(t_ipl)
+
+
+        # Set up the colormap to use min and max values for color spectrum
+        vmin = min(temps)
+        vmax = max(temps)
+        cmap = matplotlib.cm.get_cmap('jet')
+        norm = matplotlib.colors.Normalize(vmin=vmin, vmax=vmax)
+
+        ax.scatter(temps, times, s=0.2, c=cmap(norm(temps)))
+        ax.plot(t_ipl, times_interpl, label='mean race time')
+        ax.set_title(title)
+        ax.set_xlabel('Temperature (degrees F)')
+        ax.set_ylabel('Final time (seconds)')
+        ax.legend(loc='best')
+
+
+    fig.tight_layout()
+    fig.savefig('race_times_vs_temperature.png')
+    # plt.show()
 
 
