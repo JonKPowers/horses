@@ -50,7 +50,7 @@ def main(file_to_process='', path='data'):
         file_paths = [file for file in file_paths if file.is_file()]
 
     # Create the database handler
-    db = db_functions.DbHandler(db='horses_data')
+    db = db_functions.DbHandler(db='horses_test_run')
 
     # Create the table handlers
     for table in tbl.tables:
@@ -132,13 +132,7 @@ def process_csv_file(file, add_features=True):
         del table_data[column]
     return table_data, extension
 
-verbose = False
-if __name__ == '__main__':
-    if sys.argv == '-v':
-        verbose = True
-    main()
-
-verboseprint = print if verbose else lambda *a, **k: None
+import CL_plot
 
 
 

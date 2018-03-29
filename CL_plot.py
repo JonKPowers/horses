@@ -6,7 +6,7 @@ import re
 
 import aggregation_functions as ag
 
-db = ag.QueryDB('horses_data')
+db = ag.QueryDB('horses_test_run')
 races_to_review = {
     '1100': ['5 Furlongs', 40, 120, -20, 105],
     '1210': ['5.5 Furlongs', 40, 120, -20, 105],
