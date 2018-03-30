@@ -13,6 +13,8 @@ are taken out of the data. The output plots will be placed in an image file call
 
 ## Setup requirements
 
+This program **requires Python 3.6** to run.
+
 In addition to cloning this repo to your local machine, you'll need to download the zipped data file 
 [here](http://www.JonKPowers.com/horse_data.zip) and extract it into a data subdirectory at `/path_to_repo/data/`. 
 The repo's root directory should contain files like `main.py` and `database_functions.py`, and the `data` directory
@@ -24,7 +26,6 @@ To run `main.py` and its related scripts, your environment must have the followi
 * pandas
 * matplotlib
 * scipy
-* python-dateutil
 
 Finally, the database functions expect to find a MySQL server listening on `localhost`.
 It will need to be configured with a user whose username is `codelou` and whose password is `ABCabc123!`
