@@ -1,4 +1,5 @@
 import matplotlib
+matplotlib.use('agg')
 import matplotlib.pyplot as plt
 import numpy as np
 import scipy.interpolate as si
@@ -35,7 +36,7 @@ def generate_individual_plots():
         plt.savefig(re.sub(r'/', '', title)+'.png')
 
 
-def pull_final_times(race_distance, min_time, max_time, min_temp, max_temp):
+def pull_final_times(db, race_distance, min_time, max_time, min_temp, max_temp):
     # Get the race times and temperature from the database
     data = ag.query_table(db,
                           'race_general_results',
@@ -97,7 +98,9 @@ def make_plot(db):
 
     for distance, ax, title, min_time, max_time, min_temp, max_temp in zip(races_to_review.keys(), axes, titles,
                                                                            min_times, max_times, min_temps, max_temps):
-        temps, times, average_temps, average_times = pull_final_times(distance, min_time, max_time, min_temp, max_temp)
+        temps, times, average_temps, average_times = pull_final_times(db, distance,
+                                                                      min_time, max_time,
+                                                                      min_temp, max_temp)
 
         # Smooth out the averages for visualization purposes
         # Smoothing with b-spline for parameterized x- and y-values

@@ -13,8 +13,6 @@ import pandas as pd
 import logging
 import datetime
 
-
-
 logging.basicConfig(filename='main_py.log', filemode='w', level=logging.INFO)
 
 columns_to_delete = {
@@ -51,7 +49,7 @@ def main(file_to_process='', path='data'):
         file_paths = [file for file in file_paths if file.is_file()]
 
     # Create the database handler
-    db = db_functions.DbHandler(db='horses_test_run')
+    db = db_functions.DbHandler(db='horses_data')
 
     # Create the table handlers
     for table in tbl.tables:
@@ -121,7 +119,7 @@ def main(file_to_process='', path='data'):
     print("End time:", str(end_time))
     print("Total time:", str(end_time - start_time))
 
-    CL_plot.make_plot('horses_test_run')
+    CL_plot.make_plot('horses_data')
 
 def process_csv_file(file, add_features=True):
     extension = re.search(r'(?<=\.).+$', str(file))[0]
