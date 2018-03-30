@@ -2,7 +2,7 @@
 
 ## TL;DR
 
-Running `main.py` will process files in the `data` subdirectory and store them in various tables in a mySQL database.
+Running `main.py` will process files in the `data` subdirectory and store them in various tables in a MySQL database.
 It will then pull information from the database about how long it took horses to complete races of various lengths
 and what the temperature was for each of those races. It will then generate a plots for each race length showing the 
 final times against  the temperature of the race as well as line showing the mean race times at each temperature.
@@ -33,7 +33,7 @@ If needed, a different username and password can be used by editing both of the 
 * `QueryDb.__init__()` in `aggregation_functions.py`: `username` and `password` arguments
 
 The user `codelou` will need full permissions on horse-related databases along the lines of 
-`GRANT ALL PRIVILEGES ON horses%.* TO 'codelou'@'localhost'`. Be sure to `FLUSH PRIVLEGES` to load reload the
+`GRANT ALL PRIVILEGES ON horses%.* TO 'codelou'@'localhost'`. Be sure to `FLUSH PRIVLEGES` as root to reload the
 permission grant tables after adding permissions for this user.
 
 ## The Problem
