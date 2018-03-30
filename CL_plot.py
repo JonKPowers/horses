@@ -45,8 +45,8 @@ def pull_final_times(db, race_distance, min_time, max_time, min_temp, max_temp):
 
     # Pull out items with missing final times or temps that are wildly out of range
     filtered_data = [item for item in data if item[1] != 0 and item[0] != 0 and item[1] is not None
-                     and item[0] is not None and item[0] < max_time and item[0] > min_time
-                     and item[1] < max_temp and item[1] > min_temp]
+                     and item[0] is not None and min_time < item[0] < max_time
+                     and min_temp < item[1] < max_temp]
     
     # Sort data by temps
     filtered_data = sorted(filtered_data, key=lambda x: x[1])
