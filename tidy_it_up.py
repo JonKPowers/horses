@@ -209,6 +209,9 @@ def tidy_it_up(table_data, extension):
             table_data[f'past_call_pos_stretch_{i}'].replace(r'[A-Za-z?*]+', 'NULL', regex=True, inplace=True)
 
         for i in range(1, 11):
+            table_data[f'past_company_line__{i}'].replace(r' ', 'X', regex=True, inplace=True)
+
+        for i in range(1, 11):
             table_data[f'past_call_pos_finish_{i}'].replace(r'[A-Za-z?*]+', 'NULL', regex=True, inplace=True)
 
         # *********************************************

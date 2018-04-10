@@ -41,7 +41,22 @@ table_structure = {
     'race_type': ('VARCHAR(255)', 'race_type_BRIS', 'race_type', 'race_type',),
 
     'claiming_price_base': ('INT', 'max_claim', 'claiming_price', 'highest_claim_price',),
-    'optional_claiming_price': ('INT', 'optional_claiming_price', 'optional_claiming_price',),
+    'optional_claiming_price': ('INT', 'optional_claiming_price', 'optional_claiming_price', None),
+
+    'time_440': ('FLOAT', None, None, None),        # 2 furlongs
+    'time_660': ('FLOAT', None, None, None),        # 3_furlongs
+    'time_880': ('FLOAT', None, None, None),        # 4 furlongs
+    'time_1100': ('FLOAT', None, None, None),       # 5 furlongs
+    'time_1210': ('FLOAT', None, None, None),       # 5.5 furlongs
+    'time_1320': ('FLOAT', None, None, None),       # 6 furlongs
+    'time_1430': ('FLOAT', None, None, None),       # 6.5 furlongs
+    'time_1540': ('FLOAT', None, None, None),       # 7 furlongs
+    'time_1650': ('FLOAT', None, None, None),       # 7.5 furlongs
+    'time_1760': ('FLOAT', None, None, None),       # 1 mile
+    'time_1830': ('FLOAT', None, None, None),       # 1 mile, 70 yards
+    'time_1870': ('FLOAT', None, None, None),       # 1 1/8 miles (9 furlongs)
+    'time_1980': ('FLOAT', None, None, None),       # 1 1/4 miles (10 furlongs)
+
 
     'allowed_age_two': ('TINYINT', 'allowed_age_two', 'allowed_age_two', 'allowed_age_two',),
     'allowed_age_three': ('TINYINT', 'allowed_age_three', 'allowed_age_three', 'allowed_age_three',),
@@ -152,7 +167,7 @@ def query_table(db_handler, table_name, fields, where='', other='', return_col_n
     if where:
         sql += f' WHERE {where}'
     if other:
-        sql += ' {other}'
+        sql += f' {other}'
     return db_handler.query_db(sql, return_col_names)
 
 
@@ -183,8 +198,8 @@ def dict_values_match(dict_key, dict_1, dict_2):
         return False
 
 
-def get_single_race_value(db_handler, table, field, track, date, race_num, no_translation=False):
-    if no_translation:
+def get_single_race_value(db_handler, table, field, track, date, race_num, no_table_mapping=False):
+    if no_table_mapping:
         sql = f'SELECT {field} FROM {table} WHERE track = "{track}" AND date = "{date}" AND race_num = "{race_num}"'
     else:
         table_index = table_to_index_mapping[table]
@@ -266,15 +281,54 @@ def process_race_general_results():
         i += 1
 
 
-def process_race_info():
-    # Create dict with sql col names and corresponding race_info column names
-    db_dict = {key: value[table_to_index_mapping['race_info']] for key, value in table_structure.items()
-               if value[table_to_index_mapping['race_info']]}
+def prompt_for_user_correction_input(key, race):
+    print('Unable to fix this issue.')
+    user_input = input('(s)kip this mismatch category/mark as (b)ad/'
+                       'add (n)ote/(e)nter new value/(q)uit/(C)ontinue: ').lower()
+    if user_input == 'q':
+        return user_input
+    elif user_input == 's':
+        return user_input
+    elif user_input == 'b':
+        add_blank_race_entry(db_horses_errata, 'aggregation_notes', *race)
+        update_single_race_value(db_horses_errata,
+                                 'aggregation_notes',
+                                 'looks_like_bad_data',
+                                 '1',
+                                 *race)
+    elif user_input == 'n':
+        note = input('Enter note: ')
+        add_blank_race_entry(db_horses_errata, 'aggregation_notes', *race)
+        old_note = get_single_race_value(db_horses_errata,
+                                         'aggregation_notes',
+                                         'notes_on_data',
+                                         *race,
+                                         no_table_mapping=True)
+        update_single_race_value(db_horses_errata,
+                                 'aggregation_notes',
+                                 'notes_on_data',
+                                 (str(old_note) + ' NEW NOTE: ' + note).strip(),
+                                 *race)
+    elif user_input == 'e':
+        new_value = input('Enter new value: ')
+        add_blank_race_entry(db_horses_errata, 'aggregation_notes', *race)
+        update_single_race_value(db_consolidated_races,
+                                 'horses_consolidated_races',
+                                 key,
+                                 new_value,
+                                 *race)
+        update_single_race_value(db_horses_errata, 'aggregation_notes', key, new_value, *race)
+
+
+def process_race_info(table_to_process):
+    # Create dict with sql col names and corresponding columns in table_to_process
+    db_dict = {key: value[table_to_index_mapping[table_to_process]] for key, value in table_structure.items()
+               if value[table_to_index_mapping[table_to_process]]}
     sql_columns = [key for key, _ in db_dict.items()]
     source_columns = [db_dict[column] for column in sql_columns]
 
-    # Pull list of race identifiers stored in race_info
-    list_of_races = query_table(db_horses_data, 'race_info', ['track', 'date', 'race_num'])
+    # Pull list of race identifiers stored in table_to_process
+    list_of_races = query_table(db_horses_data, table_to_process, ['track', 'date', 'race_num'])
 
     # Variable to hold race identifiers for data issues and UX
     races_with_inconsistent_data = []
@@ -288,7 +342,7 @@ def process_race_info():
         print(f'i: {i} of {total_num}. {race}')
         in_db = race_in_db(db_consolidated_races, table_name, *race)
         race_data = query_table(db_horses_data,
-                                'race_info',
+                                table_to_process,
                                 source_columns,
                                 where='track="{}" AND date="{}" AND race_num="{}"'.format(*race))
 
@@ -300,17 +354,21 @@ def process_race_info():
         # If it is in the db, check that values match
         else:
             print('Is in db')
+            # Pull info on race from database
             data_in_db = query_table(db_consolidated_races,
                                      table_name,
                                      sql_columns,
                                      where='track="{}" AND date="{}" AND race_num="{}"'.format(*race))
+            # Generate dict for each database column showing whether database info matches new info
             info_in_db = dict(zip(sql_columns, data_in_db[0]))
             new_info = dict(zip(sql_columns, race_data[0]))
             info_matches = {key: dict_values_match(key, info_in_db, new_info) for key in sql_columns}
 
+            # Do nothing if all the info matches
             if all(info_matches.values()):
                 print('All the info matches')
 
+            # If the info doesn't all match, try to fix it. If can't, then prompt the user for what to do.
             if not all(info_matches.values()):
                 races_with_inconsistent_data.append(race)
                 inconsistent_keys = [key for key in info_matches.keys() if info_matches[key] == False]
@@ -320,41 +378,16 @@ def process_race_info():
                               f' : {key}')
                         print(f'horse_consolidated_races: {info_in_db[key]}')
                         print(f'race_info: {new_info[key]}')
+
                         if fix_race_type(db_consolidated_races, new_info[key], info_in_db[key], key, *race):
                             print('Successfully fixed!')
                         else:
-                            print('Unable to fix this issue.')
-                            user_input = input('(s)kip this mismatch category/mark as (b)ad/'
-                                               'add (n)ote/(e)nter new value/(q)uit/(C)ontinue: ').lower()
-                            if user_input == 'q':
+                            user_input = prompt_for_user_correction_input(key, race)
+                            if  user_input == 'q':
                                 return races_with_inconsistent_data, races_added
                             elif user_input == 's':
                                 temp_skip_keys.append(key)
-                            elif user_input == 'b':
-                                add_blank_race_entry(db_horses_errata, 'aggregation_notes', *race)
-                                update_single_race_value(db_horses_errata,
-                                                         'aggregation_notes',
-                                                         'looks_like_bad_data',
-                                                         '1',
-                                                         *race)
-                            elif user_input == 'n':
-                                note = input('Enter note: ')
-                                add_blank_race_entry(db_horses_errata, 'aggregation_notes', *race)
-                                old_note = get_single_race_value(db_horses_errata, 'aggregation_notes', 'notes_on_data', *race, no_translation=True)
-                                update_single_race_value(db_horses_errata,
-                                                         'aggregation_notes',
-                                                         'notes_on_data',
-                                                         str(old_note) + ' NEW NOTE: ' + note,
-                                                         *race)
-                            elif user_input == 'e':
-                                new_value = input('Enter new value: ')
-                                add_blank_race_entry(db_horses_errata, 'aggregation_notes', *race)
-                                update_single_race_value(db_consolidated_races,
-                                                         'horses_consolidated_races',
-                                                         key,
-                                                         new_value,
-                                                         *race)
-                                update_single_race_value(db_horses_errata, 'aggregation_notes', key, new_value, *race)
+
         i += 1
     return races_with_inconsistent_data, races_added
 
