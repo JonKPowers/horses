@@ -2,10 +2,12 @@ import db_handler as dbh
 
 class AddTimes:
 
-    def race_in_db(self, db_handler, table):
+    def race_in_db(self, db_handler=None, table=None):
         """
         Returns True if a particular race (unique track-date-race_num) is in the db; otherwise returns false
         """
+        db_handler = db_handler or self.db_consolidated_races
+        table = table or self.consolidated_table
         sql = f'SELECT COUNT(*) FROM {table} WHERE '
         sql += f'track = "{self.current_track}" '
         sql += f'AND date = "{self.current_date}" '
@@ -61,8 +63,40 @@ class AddTimes:
         else:
             return False
 
-    def seed_initial_info(self, source_db_handler, source_table):
-        column_dict = {key: value}
+    def add_info(self, source_db_handler, source_table):
+        data = self.query_table(self.db_horses_data, 'race_general_results', ['track', 'date', 'race_num', 'distance'])
+        table_index = self.table_mappings[source_table]
+        for race, distance in zip(data[:3], data[-1]):
+            # Only process it if we've got the fractional time mappings set up
+            if distance in self.distances:
+                self.current_track, self.current_date, self.current_race_num = race
+                # Confirm that race is in database
+                if not self.race_in_db():
+                    input('The race is not in DB--NEED TO ADD HANDLING')
+                else:
+                    for fraction in self.distance_mappings[distance]:
+                        existing_value = self.get_single_race_value(self.db_consolidated_races,
+                                                                    self.consolidated_table,
+                                                                    fraction,
+                                                                    no_table_mapping=True)
+                        new_value = self.get_single_race_value(source_db_handler,
+                                                               source_table,
+                                                               self.distance_mappings[fraction][table_index])
+                        if existing_value == None:
+                            self.update_single_race_value(self.db_consolidated_races,
+                                                          self.consolidated_table,
+                                                          fraction,
+                                                          new_value)
+                        elif existing_value == new_value:
+                            print(f'Data matches: {race[0]} {race[1]} {race[2]}')
+                        elif not existing_value == new_value:
+                            print('Mismatch found!')
+                            print(f'Date: {race[0]}\nTrack: {race[1]}\nRace num: {race[2]}')
+                            print(f'Fraction {fraction}. Existing value: {existing_value}. New value: {new_value}')
+                            input('NEED TO ADD HANDLING')
+
+
+                self.distance_mappings[distance][table_index]
 
 
     def __init__(self):
@@ -178,7 +212,7 @@ class AddTimes:
         self.db_horses_errata = dbh.QueryDB(db='horses_errata', initialize_db=False)
 
         # Time table set-up parameters
-        self.times_dtypes =
+        self.consolidated_table = 'horses_consolidated_races'
 
 
 
