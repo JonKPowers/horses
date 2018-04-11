@@ -119,7 +119,6 @@ def main(file_to_process='', path='data'):
     print("End time:", str(end_time))
     print("Total time:", str(end_time - start_time))
 
-    CL_plot.make_plot('horses_data')
 
 def process_csv_file(file, add_features=True):
     extension = re.search(r'(?<=\.).+$', str(file))[0]

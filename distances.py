@@ -46,6 +46,7 @@ class AddTimes:
                   f'WHERE {self.distance_mappings["track"][table_index]}="{self.current_track}" ' \
                   f'AND {self.distance_mappings["date"][table_index]}="{self.current_date}" ' \
                   f'AND {self.distance_mappings["race_num"][table_index]}="{self.current_race_num}"'
+        print(sql)
         return db_handler.query_db(sql)[0][0]
 
     def update_single_race_value(self, db_handler, table, field, value):
@@ -65,10 +66,16 @@ class AddTimes:
 
     def add_info(self, source_db_handler, source_table):
         data = self.query_table(self.db_horses_data, 'race_general_results', ['track', 'date', 'race_num', 'distance'])
+        print(data[:5])
         table_index = self.table_mappings[source_table]
-        for race, distance in zip(data[:3], data[-1]):
+        i = 0
+        total_races = len(data)
+        print(f'Total races to process: {total_races}')
+        for race, distance in zip([item[:3] for item in data], [int(item[-1]) for item in data]):
+            i += 1
             # Only process it if we've got the fractional time mappings set up
             if distance in self.distances:
+                print(f'{i} of {total_races}: {race}')
                 self.current_track, self.current_date, self.current_race_num = race
                 # Confirm that race is in database
                 if not self.race_in_db():
@@ -81,7 +88,7 @@ class AddTimes:
                                                                     no_table_mapping=True)
                         new_value = self.get_single_race_value(source_db_handler,
                                                                source_table,
-                                                               self.distance_mappings[fraction][table_index])
+                                                               self.distance_mappings[distance][fraction][table_index])
                         if existing_value == None:
                             self.update_single_race_value(self.db_consolidated_races,
                                                           self.consolidated_table,
@@ -94,9 +101,7 @@ class AddTimes:
                             print(f'Date: {race[0]}\nTrack: {race[1]}\nRace num: {race[2]}')
                             print(f'Fraction {fraction}. Existing value: {existing_value}. New value: {new_value}')
                             input('NEED TO ADD HANDLING')
-
-
-                self.distance_mappings[distance][table_index]
+            else: pass
 
 
     def __init__(self):
@@ -127,16 +132,16 @@ class AddTimes:
             },
 
             1210: {  # 5.5 furlongs
-                'time_440': ['time_fraction_1' '2f_fraction'],
+                'time_440': ['time_fraction_1', '2f_fraction'],
                 'time_880': ['time_fraction_2', '4f_fraction'],
-                'time_1110': ['time_fraction_3', '5f_fraction'],
+                'time_1100': ['time_fraction_3', '5f_fraction'],
                 'time_1210': ['time_final', 'final_time'],
             },
 
             1320: {  # 6 furlongs
                 'time_440': ['time_fraction_1', '2f_fraction'],
                 'time_880': ['time_fraction_2', '4f_fraction'],
-                'time_1110': ['time_fraction_3', '5f_fraction'],
+                'time_1100': ['time_fraction_3', '5f_fraction'],
                 'time_1320': ['time_final', 'final_time'],
             },
 
@@ -191,6 +196,10 @@ class AddTimes:
                 'time_1760': ['time_fraction_4', '8f_fraction'],
                 'time_1980': ['time_final', 'final_time'],
             },
+
+            'track': ('track', 'track_code',),
+            'date': ('date', 'race_date',),
+            'race_num': ('race_num', 'race_num',),
 
         }
         self.table_mappings = {

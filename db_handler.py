@@ -38,6 +38,7 @@ class QueryDB:
         with SQLConnection(self.user, self.password) as db:
             cursor = db.cursor()
             self._use_db(db, cursor)
+            sql_query = re.sub(r'"(NULL|nan|None)"', "NULL", sql_query)     # Correct NULL entry for insertion into db
             print('Sending SQL update query')
             logging.debug(sql_query)
             cursor.execute(sql_query)
