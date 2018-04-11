@@ -1,4 +1,4 @@
-import db_handler as dbh
+import db_handler_persistent as dbh
 
 class AddTimes:
 
@@ -65,43 +65,47 @@ class AddTimes:
             return False
 
     def add_info(self, source_db_handler, source_table):
-        data = self.query_table(self.db_horses_data, 'race_general_results', ['track', 'date', 'race_num', 'distance'])
-        print(data[:5])
-        table_index = self.table_mappings[source_table]
-        i = 0
-        total_races = len(data)
-        print(f'Total races to process: {total_races}')
-        for race, distance in zip([item[:3] for item in data], [int(item[-1]) for item in data]):
-            i += 1
-            # Only process it if we've got the fractional time mappings set up
-            if distance in self.distances:
-                print(f'{i} of {total_races}: {race}')
-                self.current_track, self.current_date, self.current_race_num = race
-                # Confirm that race is in database
-                if not self.race_in_db():
-                    input('The race is not in DB--NEED TO ADD HANDLING')
-                else:
-                    for fraction in self.distance_mappings[distance]:
-                        existing_value = self.get_single_race_value(self.db_consolidated_races,
-                                                                    self.consolidated_table,
-                                                                    fraction,
-                                                                    no_table_mapping=True)
-                        new_value = self.get_single_race_value(source_db_handler,
-                                                               source_table,
-                                                               self.distance_mappings[distance][fraction][table_index])
-                        if existing_value == None:
-                            self.update_single_race_value(self.db_consolidated_races,
-                                                          self.consolidated_table,
-                                                          fraction,
-                                                          new_value)
-                        elif existing_value == new_value:
-                            print(f'Data matches: {race[0]} {race[1]} {race[2]}')
-                        elif not existing_value == new_value:
-                            print('Mismatch found!')
-                            print(f'Date: {race[0]}\nTrack: {race[1]}\nRace num: {race[2]}')
-                            print(f'Fraction {fraction}. Existing value: {existing_value}. New value: {new_value}')
-                            input('NEED TO ADD HANDLING')
-            else: pass
+        with dbh.QueryDB(db='horses_consolidated_races', initialize_db=False) as db_horses_consolidated_races:
+            with dbh.QueryDB(db='horses_data', initialize_db=False) as db_horses_data:
+                self.db_consolidated_races = db_horses_consolidated_races
+                self.db_horses_data = db_horses_data
+                data = self.query_table(self.db_horses_data, 'race_general_results', ['track', 'date', 'race_num', 'distance'])
+                print(data[:5])
+                table_index = self.table_mappings[source_table]
+                i = 0
+                total_races = len(data)
+                print(f'Total races to process: {total_races}')
+                for race, distance in zip([item[:3] for item in data], [int(item[-1]) for item in data]):
+                    i += 1
+                    # Only process it if we've got the fractional time mappings set up
+                    if distance in self.distances:
+                        print(f'{i} of {total_races}: {race}')
+                        self.current_track, self.current_date, self.current_race_num = race
+                        # Confirm that race is in database
+                        if not self.race_in_db():
+                            input('The race is not in DB--NEED TO ADD HANDLING')
+                        else:
+                            for fraction in self.distance_mappings[distance]:
+                                existing_value = self.get_single_race_value(self.db_consolidated_races,
+                                                                            self.consolidated_table,
+                                                                            fraction,
+                                                                            no_table_mapping=True)
+                                new_value = self.get_single_race_value(source_db_handler,
+                                                                       source_table,
+                                                                       self.distance_mappings[distance][fraction][table_index])
+                                if existing_value == None:
+                                    self.update_single_race_value(self.db_consolidated_races,
+                                                                  self.consolidated_table,
+                                                                  fraction,
+                                                                  new_value)
+                                elif existing_value == new_value:
+                                    print(f'Data matches: {race[0]} {race[1]} {race[2]}')
+                                elif not existing_value == new_value:
+                                    print('Mismatch found!')
+                                    print(f'Date: {race[0]}\nTrack: {race[1]}\nRace num: {race[2]}')
+                                    print(f'Fraction {fraction}. Existing value: {existing_value}. New value: {new_value}')
+                                    input('NEED TO ADD HANDLING')
+                    else: pass
 
 
     def __init__(self):
@@ -216,8 +220,8 @@ class AddTimes:
                                'race_conditions_text_6',]
 
         # Set up database handlers
-        self.db_consolidated_races = dbh.QueryDB(db='horses_consolidated_races', initialize_db=False)
-        self.db_horses_data = dbh.QueryDB(db='horses_data', initialize_db=False)
+        # self.db_consolidated_races = dbh.QueryDB(db='horses_consolidated_races', initialize_db=False)
+        # self.db_horses_data = dbh.QueryDB(db='horses_data', initialize_db=False)
         self.db_horses_errata = dbh.QueryDB(db='horses_errata', initialize_db=False)
 
         # Time table set-up parameters
