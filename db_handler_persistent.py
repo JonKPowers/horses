@@ -4,6 +4,7 @@ import re
 
 logging.basicConfig(filename='db_handler.log', filemode='w', level=logging.DEBUG)
 
+
 class QueryDB:
     def query_db(self, sql_query, return_col_names=False):
         cursor = self.connection.cursor()
