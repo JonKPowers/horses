@@ -39,9 +39,16 @@ class AddTimes:
                    f'AND date = "{self.current_date}" ' \
                    f'AND race_num = "{self.current_race_num}"'
         else:
-            return f'{self.distance_mappings["track"][table_index]}="{self.current_track}" ' \
-                   f'AND {self.distance_mappings["date"][table_index]}="{self.current_date}" ' \
-                   f'AND {self.distance_mappings["race_num"][table_index]}="{self.current_race_num}"'
+            return f'{self.column_mappings["track"][table_index]}="{self.current_track}" ' \
+                   f'AND {self.column_mappings["date"][table_index]}="{self.current_date}" ' \
+                   f'AND {self.column_mappings["race_num"][table_index]}="{self.current_race_num}"'
+
+    def concatenate_field_value_pairs(self, field_list, value_list):
+        sql = ''
+        for field, value in zip(field_list, value_list):
+            sql += f'{field} = \'{value}\', '
+        sql = sql[:-2]                          # chop off final ', '
+        return sql
 
     def get_single_race_value(self, db_handler, table, field, no_table_mapping=False):
         table_index = self.table_mappings[table]
@@ -68,7 +75,7 @@ class AddTimes:
                                 where=self.where_for_current_race(table_index=table_index))[0]
 
     def get_value_pairs(self, distance, table_index):
-        column_info = [(key, value[table_index]) for key, value in self.distance_mappings[distance].items()]
+        column_info = [(key, value[table_index]) for key, value in self.column_mappings[distance].items()]
         consolidated_columns = [item[0] for item in column_info]
         source_columns = [item[1] for item in column_info]
         print(f'Consolidated columns: {consolidated_columns}')
@@ -80,12 +87,32 @@ class AddTimes:
 
     def get_time_data(self, db_handler, table):
         field_list = self.distance_columns_all[table]
-        data, col_names = self.query_table(db_handler, table, field_list, return_col_names=True)
-        time_df = pd.DataFrame(data, columns=col_names)
+        data = self.query_table(db_handler, table, field_list)
+        time_df = pd.DataFrame(data, columns=field_list)
+        return time_df
+
+    def add_race_ids(self):
+        for table, df in self.table_df_mappings.items():
+            table_index = self.table_mappings[table]
+            column_data = zip(df[self.column_mappings['date'][table_index]],
+                              df[self.column_mappings['track'][table_index]],
+                              df[self.column_mappings['race_num'][table_index]],
+                              )
+            race_ids = [str(item[0]) + str(item[1]) + str(item[2]) for item in column_data]
+            df['race_id'] = race_ids
+            df.set_index('race_id', inplace=True)
 
     def update_single_race_value(self, db_handler, table, field, value):
         sql = f'UPDATE {table} ' \
               f'SET {field}="{value}" ' \
+              f'WHERE track="{self.current_track}" ' \
+              f'AND date="{self.current_date}" ' \
+              f'AND race_num="{self.current_race_num}"'
+        print(sql)
+        db_handler.update_db(sql)
+
+    def update_race_values(self, db_handler, table, field_list, value_list):
+        sql = f'UPDATE {table} SET {self.concatenate_field_value_pairs(field_list, value_list)} ' \
               f'WHERE track="{self.current_track}" ' \
               f'AND date="{self.current_date}" ' \
               f'AND race_num="{self.current_race_num}"'
@@ -127,10 +154,10 @@ class AddTimes:
                 # Pull list of races to process from source_table
                 data = self.query_table(self.db_source,
                                         self.source_table,
-                                        [self.distance_mappings['track'][table_index],
-                                         self.distance_mappings['date'][table_index],
-                                         self.distance_mappings['race_num'][table_index],
-                                         self.distance_mappings['distance'][table_index]])
+                                        [self.column_mappings['track'][table_index],
+                                         self.column_mappings['date'][table_index],
+                                         self.column_mappings['race_num'][table_index],
+                                         self.column_mappings['distance'][table_index]])
                 print(data[:5])
 
                 # Loop over races and process the time data
@@ -199,8 +226,88 @@ class AddTimes:
 
                     else: pass
 
+    def attach_time_dfs(self):
+        for table in self.distance_columns_all:
+            setattr(self, table, self.get_time_data(self.table_db_mappings[table], table))
+
+        self.table_df_mappings = {
+            'race_general_results': self.race_general_results,
+            'horse_pps': self.horse_pps,
+            'horses_consolidated_races': self.horses_consolidated_races,
+        }
+
+        self.consolidated_df = self.horses_consolidated_races
+
+    def add_info_refactored(self):
+        df_processing_list = [
+            (self.race_general_results, 1),
+            (self.horse_pps, 2),
+        ]
+        for source_df, table_index in df_processing_list:
+            df_length = len(source_df)
+            for i in range(df_length):
+                # print(f'{i} of {df_length}')
+                distance_col = source_df.columns.get_loc(self.column_mappings['distance'][table_index])
+                distance = source_df.iloc[i, distance_col]
+
+                # Only process it if we've got the fractional time mappings set up
+                if distance in self.distances:
+                    race_id = source_df.iloc[i].name
+                    # If the race isn't in the consolidated data, add it to consolidated_db
+                    try: self.consolidated_df.loc[race_id]
+                    except KeyError:
+                            print(f'i: {i}--Race not in consolidated data ({race_id})(Dist.: {distance})')
+
+                            date_col = source_df.columns.get_loc(self.column_mappings['date'][table_index])
+                            track_col = source_df.columns.get_loc(self.column_mappings['track'][table_index])
+                            race_num_col = source_df.columns.get_loc(self.column_mappings['race_num'][table_index])
+
+                            self.current_date = source_df.iloc[i, date_col]
+                            self.current_track = source_df.iloc[i, track_col]
+                            self.current_race_num = source_df.iloc[i, race_num_col]
+
+                            fields_to_update = [self.column_mappings[distance][key][self.table_mappings[self.consolidated_table]]
+                                                for key in self.column_mappings[distance]]
+                            # print(f'Fields: {fields_to_update}')
+
+                            df_fields = [self.column_mappings[distance][key][table_index]
+                                         for key in self.column_mappings[distance]]
+                            col_indexes = [source_df.columns.get_loc(column) for column in df_fields]
+                            value_list = [source_df.iloc[i, column] for column in col_indexes]
+                            # print(f'Value list: {value_list}')
+                            self.add_blank_race_entry(self.db_consolidated_races,self.consolidated_table)
+                            self.update_race_values(self.db_consolidated_races,
+                                                    self.consolidated_table,
+                                                    fields_to_update,
+                                                    value_list)
+
+    def add_times(self):
+
+        self.connect_dbs()
+        print('Adding time dfs')
+        self.attach_time_dfs()
+        print('Adding race_ids')
+        self.add_race_ids()
+        print('Adding time info')
+        self.add_info_refactored()
+        print('Closing dbs')
+        self.close_dbs()
+
+    def connect_dbs(self):
+        for db in self.db_handler_list:
+            db.connect()
+
+    def close_dbs(self):
+        for db in self.db_handler_list:
+            db.close()
 
     def __init__(self):
+        # Set up database handlers
+        self.db_consolidated_races = dbh.QueryDB(db='horses_consolidated_races', initialize_db=False)
+        self.db_horses_data = dbh.QueryDB(db='horses_data', initialize_db=False)
+        self.db_horses_errata = dbh.QueryDB(db='horses_errata', initialize_db=False)
+        self.db_handler_list = [self.db_consolidated_races, self.db_horses_data, self.db_horses_errata]
+
         self.distances = [
             1100,  # 5 furlongs
             1210,  # 5.5 furlongs
@@ -213,7 +320,7 @@ class AddTimes:
             1870,  # 1 1/8 mile
             1980,  # 1 1/4 mile
         ]
-        self.distance_mappings = {
+        self.column_mappings = {
             # race_distance: {
             #   fractional_distance_1: [race_general_results, horse_pps]
             #   fractional_distance_2: [race_general results, horse_pps]
@@ -221,91 +328,92 @@ class AddTimes:
             # }
 
             1100: {  # 5 furlongs
-                'time_440': ['time_fraction_1', '2f_fraction'],
-                'time_880': ['time_fraction_2', '4f_fraction'],
-                'time_1100': ['time_final', 'final_time'],
+                'time_440': ['time_440', 'time_fraction_1', '2f_fraction'],
+                'time_880': ['time_880', 'time_fraction_2', '4f_fraction'],
+                'time_1100': ['time_1100', 'time_final', 'final_time'],
 
             },
 
             1210: {  # 5.5 furlongs
-                'time_440': ['time_fraction_1', '2f_fraction'],
-                'time_880': ['time_fraction_2', '4f_fraction'],
-                'time_1100': ['time_fraction_3', '5f_fraction'],
-                'time_1210': ['time_final', 'final_time'],
+                'time_440': ['time_440', 'time_fraction_1', '2f_fraction'],
+                'time_880': ['time_880', 'time_fraction_2', '4f_fraction'],
+                'time_1100': ['time_1100', 'time_fraction_3', '5f_fraction'],
+                'time_1210': ['time_1210', 'time_final', 'final_time'],
             },
 
             1320: {  # 6 furlongs
-                'time_440': ['time_fraction_1', '2f_fraction'],
-                'time_880': ['time_fraction_2', '4f_fraction'],
-                'time_1100': ['time_fraction_3', '5f_fraction'],
-                'time_1320': ['time_final', 'final_time'],
+                'time_440': ['time_440', 'time_fraction_1', '2f_fraction'],
+                'time_880': ['time_880', 'time_fraction_2', '4f_fraction'],
+                'time_1100': ['time_1100', 'time_fraction_3', '5f_fraction'],
+                'time_1320': ['time_1320', 'time_final', 'final_time'],
             },
 
             1430: {  # 6.5 furlongs
-                'time_440': ['time_fraction_1', '2f_fraction'],
-                'time_880': ['time_fraction_2', '4f_fraction'],
-                'time_1320': ['time_fraction_3', '6f_fraction'],
-                'time_1430': ['time_final', 'final_time'],
+                'time_440': ['time_440', 'time_fraction_1', '2f_fraction'],
+                'time_880': ['time_880', 'time_fraction_2', '4f_fraction'],
+                'time_1320': ['time_1320', 'time_fraction_3', '6f_fraction'],
+                'time_1430': ['time_1430', 'time_final', 'final_time'],
             },
 
             1540: {  # 7 furlongs
-                'time_440': ['time_fraction_1', '2f_fraction'],
-                'time_880': ['time_fraction_2', '4f_fraction'],
-                'time_1320': ['time_fraction_3', '6f_fraction'],
-                'time_1540': ['time_final', 'final_time'],
+                'time_440': ['time_440', 'time_fraction_1', '2f_fraction'],
+                'time_880': ['time_880', 'time_fraction_2', '4f_fraction'],
+                'time_1320': ['time_1320', 'time_fraction_3', '6f_fraction'],
+                'time_1540': ['time_1540', 'time_final', 'final_time'],
             },
 
             1650: {  # 7.5 furlongs
-                'time_440': ['time_fraction_1', '2f_fraction'],
-                'time_880': ['time_fraction_2', '4f_fraction'],
-                'time_1320': ['time_fraction_3', '6f_fraction'],
-                'time_1650': ['time_final', 'final_time'],
+                'time_440': ['time_440', 'time_fraction_1', '2f_fraction'],
+                'time_880': ['time_880', 'time_fraction_2', '4f_fraction'],
+                'time_1320': ['time_1320', 'time_fraction_3', '6f_fraction'],
+                'time_1650': ['time_1650', 'time_final', 'final_time'],
             },
 
             1760: {  # 1 mile
-                'time_440': ['time_fraction_1', '2f_fraction'],
-                'time_880': ['time_fraction_2', '4f_fraction'],
-                'time_1320': ['time_fraction_3', '6f_fraction'],
-                'time_1760': ['time_final', 'final_time'],
+                'time_440': ['time_440', 'time_fraction_1', '2f_fraction'],
+                'time_880': ['time_880', 'time_fraction_2', '4f_fraction'],
+                'time_1320': ['time_1320', 'time_fraction_3', '6f_fraction'],
+                'time_1760': ['time_1760', 'time_final', 'final_time'],
             },
 
             1830: {  # 1 mile, 70 yards
-                'time_440': ['time_fraction_1', '2f_fraction'],
-                'time_880': ['time_fraction_2', '4f_fraction'],
-                'time_1320': ['time_fraction_3', '6f_fraction'],
-                'time_1760': ['time_fraction_4', '8f_fraction'],
-                'time_1830': ['time_final', 'final_time'],
+                'time_440': ['time_440', 'time_fraction_1', '2f_fraction'],
+                'time_880': ['time_880', 'time_fraction_2', '4f_fraction'],
+                'time_1320': ['time_1320', 'time_fraction_3', '6f_fraction'],
+                'time_1760': ['time_1760', 'time_fraction_4', '8f_fraction'],
+                'time_1830': ['time_1830', 'time_final', 'final_time'],
             },
 
             1870: {  # 1 1/8 mile
-                'time_440': ['time_fraction_1', '2f_fraction'],
-                'time_880': ['time_fraction_2', '4f_fraction'],
-                'time_1320': ['time_fraction_3', '6f_fraction'],
-                'time_1760': ['time_fraction_4', '8f_fraction'],
-                'time_1870': ['time_final', 'final_time'],
+                'time_440': ['time_440', 'time_fraction_1', '2f_fraction'],
+                'time_880': ['time_880', 'time_fraction_2', '4f_fraction'],
+                'time_1320': ['time_1320', 'time_fraction_3', '6f_fraction'],
+                'time_1760': ['time_1760', 'time_fraction_4', '8f_fraction'],
+                'time_1870': ['time_1870', 'time_final', 'final_time'],
             },
 
             1980: {  # 1 1/4 mile
-                'time_440': ['time_fraction_1', '2f_fraction'],
-                'time_880': ['time_fraction_2', '4f_fraction'],
-                'time_1320': ['time_fraction_3', '6f_fraction'],
-                'time_1760': ['time_fraction_4', '8f_fraction'],
-                'time_1980': ['time_final', 'final_time'],
+                'time_440': ['time_440', 'time_fraction_1', '2f_fraction'],
+                'time_880': ['time_880', 'time_fraction_2', '4f_fraction'],
+                'time_1320': ['time_1320', 'time_fraction_3', '6f_fraction'],
+                'time_1760': ['time_1760', 'time_fraction_4', '8f_fraction'],
+                'time_1980': ['time_1980', 'time_final', 'final_time'],
             },
 
-            'track': ('track', 'track_code',),
-            'date': ('date', 'race_date',),
-            'race_num': ('race_num', 'race_num',),
-            'distance': ('distance', 'distance')
+            'track': ('track', 'track', 'track_code',),
+            'date': ('date', 'date', 'race_date',),
+            'race_num': ('race_num', 'race_num', 'race_num',),
+            'distance': ('distance', 'distance', 'distance')
 
         }
         self.table_mappings = {
-            'race_general_results': 0,
-            'horse_pps': 1,
+            'horses_consolidated_races': 0,
+            'race_general_results': 1,
+            'horse_pps': 2,
         }
         self.distance_columns_all = {
-            'hoses_consolidated_data': [
-                'date', 'track', 'race_num',
+            'horses_consolidated_races': [
+                'date', 'track', 'race_num', 'distance',
                 'time_440',
                 'time_660',
                 'time_880',
@@ -321,7 +429,7 @@ class AddTimes:
                 'time_1980',
             ],
             'race_general_results': [
-                'date', 'track', 'race_num',
+                'date', 'track', 'race_num', 'distance',
                 'time_fraction_1',
                 'time_fraction_2',
                 'time_fraction_3',
@@ -330,7 +438,7 @@ class AddTimes:
                 'time_final',
             ],
             'horse_pps': [
-              'race_date', 'track_code', 'race_num',
+              'race_date', 'track_code', 'race_num', 'distance',
                 '2f_fraction',
                 '3f_fraction',
                 '4f_fraction',
@@ -345,6 +453,13 @@ class AddTimes:
                 'final_time',
             ],
         }
+        self.table_db_mappings = {
+            'race_general_results': self.db_horses_data,
+            'horses_consolidated_races': self.db_consolidated_races,
+            'horse_pps': self.db_horses_data,
+        }
+        self.table_df_mappings = {}
+
 
 
         # State variables
@@ -354,11 +469,6 @@ class AddTimes:
         self.keys_to_ignore = ['source_file', 'race_conditions_text_1', 'race_conditions_text_2',
                                'race_conditions_text_3', 'race_conditions_text_4', 'race_conditions_text_5',
                                'race_conditions_text_6',]
-
-        # Set up database handlers
-        self.db_consolidated_races = None # dbh.QueryDB(db='horses_consolidated_races', initialize_db=False)
-        self.db_horses_data = None # dbh.QueryDB(db='horses_data', initialize_db=False)
-        self.db_horses_errata = dbh.QueryDB(db='horses_errata', initialize_db=False)
 
         # Time table set-up parameters
         self.consolidated_table = 'horses_consolidated_races'

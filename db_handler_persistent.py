@@ -6,6 +6,17 @@ logging.basicConfig(filename='db_handler.log', filemode='w', level=logging.DEBUG
 
 
 class QueryDB:
+
+    def connect(self):
+        self.connection = pymysql.connect(
+            host='localhost',
+            user=self.user,
+            password=self.password)
+
+    def close(self):
+        if self.connection:
+            self.connection.close()
+
     def query_db(self, sql_query, return_col_names=False):
         cursor = self.connection.cursor()
         self._use_db(self.connection, cursor)
@@ -19,7 +30,7 @@ class QueryDB:
     def update_db(self, sql_query):
         cursor = self.connection.cursor()
         self._use_db(self.connection, cursor)
-        sql_query = re.sub(r'"(NULL|nan|None)"', "NULL", sql_query)     # Correct NULL entry for insertion into db
+        sql_query = re.sub(r'[\'"](NULL|nan|None)[\'"]', "NULL", sql_query)     # Correct NULL entry for insertion into db
         print('Sending SQL update query')
         logging.debug(sql_query)
         cursor.execute(sql_query)
@@ -117,6 +128,7 @@ class QueryDB:
         self.db = db
         self.user = username
         self.password = password
+
         if initialize_db: self.initialize_db()
 
     def __enter__(self):

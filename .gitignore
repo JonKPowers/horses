@@ -3,3 +3,5 @@ data/
 *.zip
 main_py.log
 __*
+*.log
+
