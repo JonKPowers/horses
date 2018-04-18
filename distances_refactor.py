@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 import db_handler_persistent as dbh
 
 class AddTimes:
@@ -238,6 +239,38 @@ class AddTimes:
 
         self.consolidated_df = self.horses_consolidated_races
 
+    def set_df_col_dtype(self, df, column, dtype):
+        df[column] = df[column].astype(dtype)
+
+    def set_current_race_info(self, source_df, table_index, i):
+        date_col = self.get_col_index(source_df, 'date', table_index)
+        track_col = self.get_col_index(source_df, 'track', table_index)
+        race_num_col = self.get_col_index(source_df, 'race_num', table_index)
+
+        self.current_date = source_df.iloc[i, date_col]
+        self.current_track = source_df.iloc[i, track_col]
+        self.current_race_num = source_df.iloc[i, race_num_col]
+
+    def update_time_entries(self, source_df, distance, table_index, i, new_entry=False):
+        # Get list of consolidated_db fields for this distance to update
+        fields_to_update = [self.column_mappings[distance][key][self.table_mappings[self.consolidated_table]]
+                            for key in self.column_mappings[distance]]
+        # print(f'Fields: {fields_to_update}')
+
+        # Get list of columns, then their indexes, to pull new values from the source df
+        df_fields = [self.column_mappings[distance][key][table_index]
+                     for key in self.column_mappings[distance]]
+        col_indexes = [source_df.columns.get_loc(column) for column in df_fields]
+        value_list = [source_df.iloc[i, column] for column in col_indexes]
+        # print(f'Value list: {value_list}')
+
+        # Add the updated time values to the db
+        if new_entry: self.add_blank_race_entry(self.db_consolidated_races, self.consolidated_table)
+        self.update_race_values(self.db_consolidated_races,
+                                self.consolidated_table,
+                                fields_to_update,
+                                value_list)
+
     def add_info_refactored(self):
         df_processing_list = [
             (self.race_general_results, 1),
@@ -254,38 +287,38 @@ class AddTimes:
                 if distance in self.distances:
                     race_id = source_df.iloc[i].name
                     # If the race isn't in the consolidated data, add it to consolidated_db
-                    try: self.consolidated_df.loc[race_id]
+                    try:
+                        self.consolidated_df.loc[race_id]
+                        if self.all_consolidated_times_blank(race_id):
+                            self.set_current_race_info(source_df, table_index, i)
+                            self.update_time_entries(source_df, distance, table_index, i)
+
                     except KeyError:
                             print(f'i: {i}--Race not in consolidated data ({race_id})(Dist.: {distance})')
 
-                            date_col = source_df.columns.get_loc(self.column_mappings['date'][table_index])
-                            track_col = source_df.columns.get_loc(self.column_mappings['track'][table_index])
-                            race_num_col = source_df.columns.get_loc(self.column_mappings['race_num'][table_index])
+                            self.set_current_race_info(source_df, table_index, i)
+                            self.update_time_entries(source_df, distance, table_index, i, new_entry=True)
 
-                            self.current_date = source_df.iloc[i, date_col]
-                            self.current_track = source_df.iloc[i, track_col]
-                            self.current_race_num = source_df.iloc[i, race_num_col]
 
-                            fields_to_update = [self.column_mappings[distance][key][self.table_mappings[self.consolidated_table]]
-                                                for key in self.column_mappings[distance]]
-                            # print(f'Fields: {fields_to_update}')
 
-                            df_fields = [self.column_mappings[distance][key][table_index]
-                                         for key in self.column_mappings[distance]]
-                            col_indexes = [source_df.columns.get_loc(column) for column in df_fields]
-                            value_list = [source_df.iloc[i, column] for column in col_indexes]
-                            # print(f'Value list: {value_list}')
-                            self.add_blank_race_entry(self.db_consolidated_races,self.consolidated_table)
-                            self.update_race_values(self.db_consolidated_races,
-                                                    self.consolidated_table,
-                                                    fields_to_update,
-                                                    value_list)
+    def get_col_index(self, df, column, table_index=None):
+        if table_index:
+            return df.columns.get_loc(self.column_mappings[column][table_index])
+        else:
+            return df.columns.get_loc(column)
+
+    def all_consolidated_times_blank(self,  race_id):
+        times = self.consolidated_df.loc[race_id, self.time_columns_all]
+        if all([np.isnan(time) or time == None for time in times]):
+            return True
+        else:
+            return False
 
     def add_times(self):
-
         self.connect_dbs()
         print('Adding time dfs')
         self.attach_time_dfs()
+        self.set_df_col_dtype(self.horses_consolidated_races, 'time_660', 'float64')
         print('Adding race_ids')
         self.add_race_ids()
         print('Adding time info')
@@ -453,12 +486,16 @@ class AddTimes:
                 'final_time',
             ],
         }
+        self.time_columns_all = [
+            'time_440', 'time_880', 'time_1100', 'time_1210', 'time_1320', 'time_1430',
+            'time_1540', 'time_1650', 'time_1760', 'time_1830', 'time_1870', 'time_1980']
         self.table_db_mappings = {
             'race_general_results': self.db_horses_data,
             'horses_consolidated_races': self.db_consolidated_races,
             'horse_pps': self.db_horses_data,
         }
         self.table_df_mappings = {}
+
 
 
 
