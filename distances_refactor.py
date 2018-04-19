@@ -177,29 +177,6 @@ class AddTimes:
                             print('Not found in db')
                             self.add_blank_race_entry(self.db_consolidated_races, 'horses_consolidated_races')
 
-                        # Loop through the fractional times for the given race distance
-                        # for fraction in self.distance_mappings[distance]:
-                        #     # Grab the existing time value and new time value to be considered
-                        #     existing_value = self.get_consolidated_value(fraction)
-                        #     new_value = self.get_source_value(
-                        #         self.distance_mappings[distance][fraction][table_index])
-                        #
-                        #     # If there's no time value already, add one to the db
-                        #     if existing_value == None:
-                        #         self.update_consolidated_value(fraction, new_value)
-                        #     # If the current time value matches the new one, leave it alone
-                        #     elif existing_value == new_value:
-                        #         print(f'Data matches: {race[0]} {race[1]} {race[2]}')
-                        #     # If there's a mismatch between the current and new time values, do something
-                        #     elif not existing_value == new_value:
-                        #         print('Mismatch found!')
-                        #         print(f'Date: {race[0]}\nTrack: {race[1]}\nRace num: {race[2]}')
-                        #         print(f'Fraction {fraction}. '
-                        #               f'Existing value: {existing_value}. '
-                        #               f'New value: {new_value}')
-                        #         self.fix_time_value(existing_value, new_value, fraction)
-
-
                         for fraction, existing_value, new_value in self.get_value_pairs(distance, table_index):
                             print(f'Fraction: {fraction}. Existing value: {existing_value}. New value: {new_value}')
                             # If there's no time value already, add one to the db
@@ -218,13 +195,6 @@ class AddTimes:
                                 self.fix_time_value(existing_value, new_value, fraction)
                             else:
                                 raise AssertionError('Something weird happened')
-
-
-
-
-
-
-
                     else: pass
 
     def attach_time_dfs(self):

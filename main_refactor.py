@@ -1,12 +1,11 @@
 import tidy_it_up as tidy
-import db_functions
+import db_functions_refactor as db_functions
 from csv_definitions import file_structure as name_files
 import table_functions as tbl
 import features
-import CL_plot
+from progress.bar import Bar
 
 import os
-import sys
 import pathlib
 import re
 import pandas as pd
@@ -49,8 +48,8 @@ def main(file_to_process='', path='data'):
         file_paths = [file for file in file_paths if file.is_file()]
 
     # Create the database handler
-    db = db_functions.DbHandler(db='horses_data')
-
+    db = db_functions.DbHandler(db='horses_data', initialize_db=True)
+    db.connect_db()
 
     # Create the table handlers
     for table in tbl.tables:
@@ -61,8 +60,9 @@ def main(file_to_process='', path='data'):
     i = 1
     valid_extensions = ['1', '2', '3', '4', '5', '6', 'DRF']
     check_for_duplicates = True
+    num_of_files = len(file_paths)
 
-    # Process each csv file, then run it through its table handler to add to db
+    # Process each csv file, then run it through the table handlers to add to db
     for file in file_paths:
         file_start = datetime.datetime.now()
 
@@ -76,7 +76,7 @@ def main(file_to_process='', path='data'):
             file_already_processed = (file.parent / (file.suffix[1:] + '_file') /
                                       file.name).exists()
             if file_already_processed:
-                print('It looks like {} has already been processed.'.format(file.name))
+                print(f'It looks like {file.name} has already been processed.')
                 move_on = input('Should we skip this file? [Y/n/no to (a)ll duplicates] ').lower()
                 if move_on == 'n':
                     pass
@@ -86,39 +86,43 @@ def main(file_to_process='', path='data'):
                     print('Skipping {} ... '.format(file.name))
                     continue
 
-        logging.info('Processing {} ({} of {})'.format(file, i, len(file_paths)))
-        print('Processing {} ({} of {})'.format(file, i, len(file_paths)))
+        logging.info(f'Processing {file} ({i} of {num_of_files})')
+        print(f'Processing {file} ({i} of {num_of_files})')
 
         # Put the csv data into a dataframe
         try:
             table_data, extension = process_csv_file(file)
         except FileNotFoundError as e:
-            logging.info('File {} not found during process_csv_file()'.format(e))
-            print('There was a problem finding the file {}:'.format(file))
+            logging.info(f'File {e} not found during process_csv_file()')
+            print(f'There was a problem finding the file {file}')
             print('\t', e)
             continue
 
         # For each file, run it through the handlers for its file type
-        print('Adding {} info to database ...'.format(file))
+        bar = Bar('Adding to db:', max = len(table_handlers[extension]))
+        print(f'Adding {file} info to database ...')
         for handler in table_handlers[extension]:
             handler.process_data(table_data, db, file.name)
+            bar.next()
+        bar.finish()
 
         # Move the processed file to its processed-file directory
-        processed_dir = file.parent / (extension+'_file')
+        processed_dir = file.parent / (extension + '_file')
         processed_dir.mkdir(exist_ok=True)
-        print('Moving {} to {}'.format(file.name, processed_dir))
+        print(f'Moving {file.name} to {processed_dir}')
         file.rename(processed_dir / file.name)
 
         # Increment our progress-tracking counter
-        print('Time to process {}: {}'.format(file.name, str(datetime.datetime.now() - file_start)))
-        print('Elapsed time:', str(datetime.datetime.now() - start_time), '\n')
+        print(f'Time to process {file.name}: {str(datetime.datetime.now() - file_start)}')
+        print(f'Elapsed time: {str(datetime.datetime.now() - start_time)}\n')
         i += 1
 
+    db.close_db()
     end_time = datetime.datetime.now()
 
-    print("Start time:", str(start_time))
-    print("End time:", str(end_time))
-    print("Total time:", str(end_time - start_time))
+    print(f'Start time: {str(start_time)}')
+    print(f'End time: {str(end_time)}')
+    print(f'Total time: {str(end_time - start_time)}')
 
 
 def process_csv_file(file, add_features=True):

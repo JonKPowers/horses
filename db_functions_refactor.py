@@ -2,104 +2,93 @@ import pymysql.cursors
 import re
 import logging
 
-
-class SQLConnection:
-    def __init__(self, user, password):
-        self.user = user
-        self.password = password
-
-    def __enter__(self):
-        self.connection = pymysql.connect(
-            host='localhost',
-            user=self.user,
-            password=self.password
-        )
-
-        return self.connection
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        if self.connection:
-            self.connection.close()
-
-
 class DbHandler:
-    def __init__(self, db='horses_test', username='codelou', password='ABCabc123!'):
+    def __init__(self, db='horses_test', username='codelou', password='ABCabc123!', initialize_db=False):
         self.db = db
         self.user = username
         self.password = password
-        self.initialize_db()
+        self.connection = None
+        if initialize_db == True:
+            self.connect_db()
+            self.initialize_db()
 
-    def query_db(self, db, sql_query):
-        with SQLConnection(self.user, self.password) as db:
-            cursor = db.cursor()
-            self.__use_db(db, cursor)
-            cursor.execute(sql_query)
-            results = list(cursor)
-            results_cols = [item[0] for item in cursor.description]
+    def connect_db(self):
+        if not self.connection:
+            self.connection = pymysql.connect(
+                host='localhost',
+                user=self.user,
+                password=self.password
+            )
+
+    def close_db(self):
+        if self.connection:
+            self.connection.close()
+
+    def query_db(self, sql_query):
+        cursor = self.connection.cursor()
+        self.__use_db(cursor)
+        cursor.execute(sql_query)
+        results = list(cursor)
+        results_cols = [item[0] for item in cursor.description]
         return results, results_cols
 
     def update_db(self, sql_query):
-        with SQLConnection(self.user, self.password) as db:
-            cursor = db.cursor()
-            self.__use_db(db, cursor)
-            print('Sending SQL update query')
-            print(sql_query)
-            cursor.execute(sql_query)
-            db.commit()
-            print('Update query sent; change committed')
+        cursor = self.connection.cursor()
+        self.__use_db(cursor)
+        print('Sending SQL update query')
+        print(sql_query)
+        cursor.execute(sql_query)
+        self.connection.commit()
+        print('Update query sent; change committed')
         return None
 
     def initialize_db(self):
         """Checks to see if db exists. If not, creates it."""
-        with SQLConnection(self.user, self.password) as db:
-            cursor = db.cursor()
-            sql = "SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = '{}'".format(self.db)
-            db_exists = cursor.execute(sql)
-            if db_exists:
-                print("Database {} already exists--skipping create step".format(self.db))
-            elif db_exists == 0:
-                self.__create_db(db, cursor)
-                print("Created new database {}".format(self.db))
-            else:
-                print("There was a problem checking whether {} exists".format(self.db), end="")
-                print("--unexpected db_exists value.")
+        cursor = self.connection.cursor()
+        sql = f'SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = "{self.db}"'
+        db_exists = cursor.execute(sql)
+        if db_exists:
+            print(f'Database {self.db} already exists--skipping create step')
+        elif db_exists == 0:
+            self.__create_db(cursor)
+            print(f'Created new database {self.db}')
+        else:
+            print(f'There was a problem checking whether {self.db} exists--unexpected db_exists value.')
 
     def initialize_table(self, table_name, dtypes, unique_key, foreign_key):
         """Checks to see if a table exists. If not, creates it."""
-        with SQLConnection(self.user, self.password) as db:
-            cursor = db.cursor()
-            self.__use_db(db, cursor)
-            sql = "SELECT count(*) FROM information_schema.TABLES "
-            sql += "WHERE (TABLE_SCHEMA = '{}') AND (TABLE_NAME = '{}')".format(self.db, table_name)
-            cursor.execute(sql)
-            table_exists = [item for item in cursor][0][0]
-            if table_exists:
-                logging.info("Table {} already exists--skipping creation step.".format(table_name))
-            elif table_exists == 0:
-                self.__create_table(db, cursor, table_name, dtypes, unique_key, foreign_key)
-            else:
-                print("There was a problem checking whether {} exists".format(table_name), end="")
-                print("--unexpected table_exists value.")
+        cursor = self.connection.cursor()
+        self.__use_db(cursor)
+        sql = 'SELECT count(*) FROM information_schema.TABLES '
+        sql += f'WHERE (TABLE_SCHEMA = "{self.db}") AND (TABLE_NAME = "{table_name}")'
+        cursor.execute(sql)
+        table_exists = [item for item in cursor][0][0]
+        if table_exists:
+            logging.info("Table {} already exists--skipping creation step.".format(table_name))
+        elif table_exists == 0:
+            self.__create_table(cursor, table_name, dtypes, unique_key, foreign_key)
+        else:
+            print("There was a problem checking whether {} exists".format(table_name), end="")
+            print("--unexpected table_exists value.")
         # TO DO
         # Check whether table looks like it has the right number of columns and column names
 
     def add_to_table(self, table_name, table_data, sql_col_names, file_name):
-        with SQLConnection(self.user, self.password) as db:
-            cursor = db.cursor()
-            self.__use_db(db, cursor)
-            self.__insert_records(db, cursor, table_name, table_data, sql_col_names, file_name)
+        cursor = self.connection.cursor()
+        self.__use_db(cursor)
+        self.__insert_records(cursor, table_name, table_data, sql_col_names, file_name)
 
-    def __create_db(self, db, cursor):
+    def __create_db(self, cursor):
         sql = 'CREATE DATABASE {}'.format(self.db)
         cursor.execute(sql)
-        db.commit()
+        self.connection.commit()
 
-    def __use_db(self, db, cursor):
+    def __use_db(self, cursor):
         sql = 'USE {}'.format(self.db)
         cursor.execute(sql)
-        db.commit()
+        self.connection.commit()
 
-    def __create_table(self, db, cursor, table_name, dtypes, unique_key, foreign_key):
+    def __create_table(self, cursor, table_name, dtypes, unique_key, foreign_key):
         logging.info('Creating table {}'.format(table_name))
         sql = "CREATE TABLE {} (".format(table_name)
         sql += "id INT NOT NULL AUTO_INCREMENT, "
@@ -126,9 +115,9 @@ class DbHandler:
         except pymysql.err.ProgrammingError:
             print('Error creating table {}'.format(table_name))
             logging.info('Error creating table{}:\n\t{}'.format(table_name, sql))
-        db.commit()
+        self.connection.commit()
 
-    def __insert_records(self, db, cursor, table_name, table_data, sql_col_names, file_name):
+    def __insert_records(self, cursor, table_name, table_data, sql_col_names, file_name):
         for i in range(len(table_data)):
             values_string = file_name + "', '"
             for item in table_data[i:i+1].values[0]:
@@ -149,7 +138,7 @@ class DbHandler:
                     logging.info('Error adding entry: \n\t{}'.format(e))
                     logging.info('\t{} of {}: {}'.format(i+1, len(table_data), sql))
 
-        db.commit()
+        self.connection.commit()
 
         # -----------------TO DO-----------------------------------
         # Have it return something if the operation raises an error and move the file into a problem file folder.
