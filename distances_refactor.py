@@ -22,10 +22,7 @@ class AddTimes:
                                 ['track', 'date', 'race_num'])
 
     def query_table(self, db_handler, table_name, fields, where='', other='', return_col_names=False):
-        sql = 'SELECT '
-        for field in fields:
-            sql += f'{field}, '
-        sql = sql[:-2]                          # Chop off last ', '
+        sql = f'SELECT {", ".join(fields)}'
         sql += f' FROM {table_name}'
         if where:
             sql += f' WHERE {where}'

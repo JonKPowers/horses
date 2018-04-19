@@ -1,6 +1,7 @@
 import logging
 import db_handler as dbh
 
+
 class AddRacesInfo:
     def __init__(self):
         self.db_consolidated_races = dbh.QueryDB(db='horses_consolidated_races', initialize_db=True)
@@ -143,16 +144,27 @@ class AddRacesInfo:
 
         self.errata_table = 'aggregation_notes'
         self.errata_table_structure = {
-    'notes_on_data': ('TEXT',),
-    'looks_like_bad_data': ('TINYINT',),
-}
+            'notes_on_data': ('TEXT',),
+            'looks_like_bad_data': ('TINYINT',),
+        }
         self.errata_table_structure.update(self.consolidated_table_structure)
 
         self.table_to_index_mappings = {
-    'race_general_results' : 1,
-    'race_info': 2,
-    'horse_pps': 3,
-}
+            'race_general_results' : 1,
+            'race_info': 2,
+            'horse_pps': 3,
+        }
+        self.column_mappings = {
+            'track': ('track', 'track', 'track_code',),
+            'date': ('date', 'date', 'race_date',),
+            'race_num': ('race_num', 'race_num', 'race_num',),
+            'distance': ('distance', 'distance', 'distance'),
+        }
+
+        # State variables
+        self.current_date = None
+        self.current_track = None
+        self.current_race_num = None
 
         # Initialize tables
         unique = ['track', 'date', 'race_num']
@@ -164,105 +176,144 @@ class AddRacesInfo:
         errata_dtypes = {key: value[0] for key, value in self.errata_table_structure.items()}
         self.db_errata.initialize_table(self.errata_table, errata_dtypes, unique_key=unique, foreign_key=None)
 
-def query_table(db_handler, table_name, fields, where='', other='', return_col_names=False):
-    sql = 'SELECT '
-    for item in fields:
-        sql += item + ', '
-    sql = sql[:-2]  # Chop off last ', '
-    sql += f' FROM {table_name}'
-    if where:
-        sql += f' WHERE {where}'
-    if other:
-        sql += f' {other}'
-    return db_handler.query_db(sql, return_col_names)
+    def query_table(db_handler, table_name, fields, where='', other='', return_col_names=False):
+        sql = f'SELECT {", ".join(fields)}'
+        sql += f' FROM {table_name}'
+        if where:
+            sql += f' WHERE {where}'
+        if other:
+            sql += f' {other}'
+        return db_handler.query_db(sql, return_col_names)
 
+    def race_in_db(self, db_handler=None, table=None):
+        """
+        Returns True if a particular race (unique track-date-race_num) is in the db; otherwise returns false.
+        If no db_handler is provided, self.db_consolidated_races will be used.
+        If no table is provided, self.consolidated_table will be used.
+        For race info, self.current_date, self.current_track, and self.current_race_num will be used.
+        """
+        db_handler = db_handler or self.db_consolidated_races
+        table = table or self. consolidated_table
+        sql = f'SELECT COUNT(*) FROM {table} WHERE '
+        sql += f'track = "{self.current_track}" '
+        sql += f'AND date = "{self.current_date}" '
+        sql += f'AND race_num = "{self.current_race_num}"'
+        return db_handler.query_db(sql)[0][0]
 
-def race_in_db(db_handler, table, track, date, race_num):
-    """
-    Returns True if a particular race (unique track-date-race_num) is in the db; otherwise returns false
-    """
-    sql = f'SELECT COUNT(*) FROM {table} WHERE '
-    sql += f'track = "{track}" '
-    sql += f'AND date = "{date}" '
-    sql += f'AND race_num = "{race_num}"'
-    return db_handler.query_db(sql)[0][0]
+    def add_blank_race_entry(self, db_handler, table):
+        db_handler.add_to_table(table, [self.current_track, self.current_date, self.current_race_num],
+                                ['track', 'date', 'race_num'])
 
+    def where_for_current_race(self, table_index=None, no_table_mapping=False):
+        if no_table_mapping:
+            return f'track = "{self.current_track}" ' \
+                   f'AND date = "{self.current_date}" ' \
+                   f'AND race_num = "{self.current_race_num}"'
+        else:
+            return f'{self.column_mappings["track"][table_index]}="{self.current_track}" ' \
+                   f'AND {self.column_mappings["date"][table_index]}="{self.current_date}" ' \
+                   f'AND {self.column_mappings["race_num"][table_index]}="{self.current_race_num}"'
 
-def add_blank_race_entry(db_handler, table, track, date, race_num):
-    if not race_in_db(db_handler, table, track, date, race_num):
-        db_handler.add_to_table('aggregation_notes', [[track, date, race_num]], ['track', 'date', 'race_num'])
+    def get_single_race_value(self, db_handler, table, field, no_table_mapping=False):
+        table_index = self.table_to_index_mappings[table]
+        sql = f'SELECT {field} from {table}' + self.where_for_current_race(table_index=table_index,
+                                                                           no_table_mapping=no_table_mapping)
+        print(sql)
+        return db_handler.query_db(sql)[0][0]
 
+    def update_single_race_value(self, db_handler, table, field, value):
+        sql = f'UPDATE {table} ' \
+              f'SET {field}="{value}" ' \
+              f'WHERE track="{self.current_track}" ' \
+              f'AND date="{self.current_date}" ' \
+              f'AND race_num="{self.current_race_num}"'
+        print(sql)
+        db_handler.update_db(sql)
 
-def dict_values_match(dict_key, dict_1, dict_2):
-    keys_to_ignore= ['source_file', 'race_conditions_text_1', 'race_conditions_text_2', 'race_conditions_text_3',
-                     'race_conditions_text_4', 'race_conditions_text_5', 'race_conditions_text_6',]
-    if dict_key in keys_to_ignore:
-        return True
-    elif dict_1[dict_key] == dict_2[dict_key]:
-        return True
-    else:
-        return False
+    def dict_values_match(self, dict_key, dict_1, dict_2):
+        keys_to_ignore= ['source_file', 'race_conditions_text_1', 'race_conditions_text_2', 'race_conditions_text_3',
+                         'race_conditions_text_4', 'race_conditions_text_5', 'race_conditions_text_6',]
+        if dict_key in keys_to_ignore:
+            return True
+        elif dict_1[dict_key] == dict_2[dict_key]:
+            return True
+        else:
+            return False
 
+    def fix_race_type(self, db_handler, race_info_type, race_general_results_type, mismatch_category, track, date, race_num):
+        fix_it_dict = {
+            # Format: fix_name: race_general_results_type, race_info_type, equibase_race_type, replacement_value
+            'SOC_fix': ['N', 'CO', 'SOC', 'SOC'],
+            'WCL_fix': ['N', 'C', 'WCL', 'WCL'],
+            'MDT_fix': ['S', 'N', 'MDT', 'MDT'],
+            'STR_fix': ['R', 'N', 'STR', 'STR'],
+            'HCP_fix': ['A', 'N', 'HCP', 'HCP'],
+        }
 
-def get_single_race_value(db_handler, table, field, track, date, race_num, no_table_mapping=False):
-    if no_table_mapping:
-        sql = f'SELECT {field} FROM {table} WHERE track = "{track}" AND date = "{date}" AND race_num = "{race_num}"'
-    else:
-        table_index = table_to_index_mapping[table]
-        sql = f'SELECT {field} FROM {table} ' \
-              f'WHERE {table_structure["track"][table_index]}="{track}" ' \
-              f'AND {table_structure["date"][table_index]}="{date}" ' \
-              f'AND {table_structure["race_num"][table_index]}="{race_num}"'
-    return db_handler.query_db(sql)[0][0]
+        # Dict for items to ignore b/c they've already been fixed
+        already_fixed_dict = {key: [value[2], value[1]] for key, value in fix_it_dict.items()}
 
+        equibase_race_type = self.get_single_race_value(self.db_horses_data, 'race_general_results', 'race_type_equibase',
+                                                   track, date,race_num)
+        print(f'race_general_results data: {race_general_results_type}')
+        print(f'race_info data: {race_info_type}')
+        print(f'equibase_race_type: {equibase_race_type}')
 
-def update_single_race_value(db_handler, table, field, value, track, date, race_num):
-    sql = f'UPDATE {table} ' \
-          f'SET {field}="{value}" ' \
-          f'WHERE track="{track}" ' \
-          f'AND date="{date}" ' \
-          f'AND race_num="{race_num}"'
-    print(sql)
-    db_handler.update_db(sql)
+        for fix in fix_it_dict:
+            values = fix_it_dict[fix]
+            if race_general_results_type == values[0] and race_info_type == values[1] and equibase_race_type == values[2]:
+                self.update_single_race_value(db_handler, 'horses_consolidated_races', mismatch_category,
+                                         values[3], track, date, race_num)
+                self.add_blank_race_entry(self.db_errata, 'aggregation_notes', track, date, race_num)
+                self. update_single_race_value(self.db_errata, 'aggregation_notes', mismatch_category,
+                                         values[3], track, date, race_num)
+                return 1
 
+        for fixed in already_fixed_dict:
+            values = already_fixed_dict[fixed]
+            if race_general_results_type == values[0] and race_info_type == values[1]:
+                print('No change needed--already processed')
+                return 1
 
-def fix_race_type(db_handler, race_info_type, race_general_results_type, mismatch_category, track, date, race_num):
-    fix_it_dict = {
-        # Format: fix_name: race_general_results_type, race_info_type, equibase_race_type, replacement_value
-        'SOC_fix': ['N', 'CO', 'SOC', 'SOC'],
-        'WCL_fix': ['N', 'C', 'WCL', 'WCL'],
-        'MDT_fix': ['S', 'N', 'MDT', 'MDT'],
-        'STR_fix': ['R', 'N', 'STR', 'STR'],
-        'HCP_fix': ['A', 'N', 'HCP', 'HCP'],
-    }
+        return 0
 
-    # Dict for items to ignore b/c they've already been fixed
-    already_fixed_dict = {key: [value[2], value[1]] for key, value in fix_it_dict.items()}
-
-    equibase_race_type = get_single_race_value(db_horses_data, 'race_general_results', 'race_type_equibase',
-                                               track, date,race_num)
-    print(f'race_general_results data: {race_general_results_type}')
-    print(f'race_info data: {race_info_type}')
-    print(f'equibase_race_type: {equibase_race_type}')
-
-    for fix in fix_it_dict:
-        values = fix_it_dict[fix]
-        if race_general_results_type == values[0] and race_info_type == values[1] and equibase_race_type == values[2]:
-            update_single_race_value(db_handler, 'horses_consolidated_races', mismatch_category,
-                                     values[3], track, date, race_num)
-            add_blank_race_entry(db_horses_errata, 'aggregation_notes', track, date, race_num)
-            update_single_race_value(db_horses_errata, 'aggregation_notes', mismatch_category,
-                                     values[3], track, date, race_num)
-            return 1
-
-    for fixed in already_fixed_dict:
-        values = already_fixed_dict[fixed]
-        if race_general_results_type == values[0] and race_info_type == values[1]:
-            print('No change needed--already processed')
-            return 1
-
-    return 0
-
+    def prompt_for_user_correction_input(self, key, race):
+        print('Unable to fix this issue.')
+        user_input = input('(s)kip this mismatch category/mark as (b)ad/'
+                           'add (n)ote/(e)nter new value/(q)uit/(C)ontinue: ').lower()
+        if user_input == 'q':
+            return user_input
+        elif user_input == 's':
+            return user_input
+        elif user_input == 'b':
+            self.add_blank_race_entry(self.db_errata, 'aggregation_notes', *race)
+            self.update_single_race_value(self.db_errata,
+                                     'aggregation_notes',
+                                     'looks_like_bad_data',
+                                     '1',
+                                     *race)
+        elif user_input == 'n':
+            note = input('Enter note: ')
+            self.add_blank_race_entry(self.db_errata, 'aggregation_notes', *race)
+            old_note = self.get_single_race_value(self.db_errata,
+                                             'aggregation_notes',
+                                             'notes_on_data',
+                                             *race,
+                                             no_table_mapping=True)
+            self.update_single_race_value(self.db_errata,
+                                     'aggregation_notes',
+                                     'notes_on_data',
+                                     (str(old_note) + ' NEW NOTE: ' + note).strip(),
+                                     *race)
+        elif user_input == 'e':
+            new_value = input('Enter new value: ')
+            self.add_blank_race_entry(self.db_errata, 'aggregation_notes', *race)
+            self.update_single_race_value(self.db_consolidated_races,
+                                     'horses_consolidated_races',
+                                     key,
+                                     new_value,
+                                     *race)
+            self.update_single_race_value(self.db_errata, 'aggregation_notes', key, new_value, *race)
 
 def process_race_general_results():
     # Create dict with sql column names and corresponding race_general_results column names
@@ -287,43 +338,7 @@ def process_race_general_results():
         i += 1
 
 
-def prompt_for_user_correction_input(key, race):
-    print('Unable to fix this issue.')
-    user_input = input('(s)kip this mismatch category/mark as (b)ad/'
-                       'add (n)ote/(e)nter new value/(q)uit/(C)ontinue: ').lower()
-    if user_input == 'q':
-        return user_input
-    elif user_input == 's':
-        return user_input
-    elif user_input == 'b':
-        add_blank_race_entry(db_horses_errata, 'aggregation_notes', *race)
-        update_single_race_value(db_horses_errata,
-                                 'aggregation_notes',
-                                 'looks_like_bad_data',
-                                 '1',
-                                 *race)
-    elif user_input == 'n':
-        note = input('Enter note: ')
-        add_blank_race_entry(db_horses_errata, 'aggregation_notes', *race)
-        old_note = get_single_race_value(db_horses_errata,
-                                         'aggregation_notes',
-                                         'notes_on_data',
-                                         *race,
-                                         no_table_mapping=True)
-        update_single_race_value(db_horses_errata,
-                                 'aggregation_notes',
-                                 'notes_on_data',
-                                 (str(old_note) + ' NEW NOTE: ' + note).strip(),
-                                 *race)
-    elif user_input == 'e':
-        new_value = input('Enter new value: ')
-        add_blank_race_entry(db_horses_errata, 'aggregation_notes', *race)
-        update_single_race_value(db_consolidated_races,
-                                 'horses_consolidated_races',
-                                 key,
-                                 new_value,
-                                 *race)
-        update_single_race_value(db_horses_errata, 'aggregation_notes', key, new_value, *race)
+
 
 
 def process_race_info(table_to_process):
