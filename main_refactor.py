@@ -137,7 +137,7 @@ def main(file_to_process='', path='data'):
     print(f'End time: {str(end_time)}')
     print(f'Average times:')
     for file_type in processing_times:
-        print(f'\t{file_type} files: {sum(processing_times{file_type}) / len(processing_times[file_type])}')
+        print(f'\t{file_type} files: {sum(processing_times[file_type]) / len(processing_times[file_type])}')
     print(f'Total time: {str(end_time - start_time)}')
 
 
