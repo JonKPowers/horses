@@ -1,11 +1,14 @@
 import logging
 import db_handler as dbh
 
+import numpy as np
+import pandas as pd
 
 class AddRacesInfo:
     def __init__(self):
         self.db_consolidated_races = dbh.QueryDB(db='horses_consolidated_races', initialize_db=True)
         self.db_horses_data = dbh.QueryDB(db='horses_data')
+        self.db_horse_pps = dbh.QueryDB(db='horse_pps')
         self.db_errata = dbh.QueryDB(db='horses_errata', initialize_db=True)
 
         self.consolidated_table = 'horses_consolidated_races'
@@ -154,6 +157,12 @@ class AddRacesInfo:
             'race_info': 2,
             'horse_pps': 3,
         }
+        self.table_to_db_mappings = {
+            'race_general_results': self.db_horses_data,
+            'horse_pps': self.db_horse_pps,
+            'horses_consolidated_races': self.db_consolidated_races,
+            'horses_errata': self.db_errata,
+        }
         self.column_mappings = {
             'track': ('track', 'track', 'track_code',),
             'date': ('date', 'date', 'race_date',),
@@ -161,10 +170,23 @@ class AddRacesInfo:
             'distance': ('distance', 'distance', 'distance'),
         }
 
+        # Processing vairables
+        self.tables_to_process = [
+            'race_general_results',
+            'horse_pps',
+        ]
+
         # State variables
         self.current_date = None
         self.current_track = None
         self.current_race_num = None
+
+        self.df = {
+            'race_general_results': None,
+            'horse_pps': None,
+            'horses_errata': None,
+            'consolidated': None,
+        }
 
         # Initialize tables
         unique = ['track', 'date', 'race_num']
@@ -176,7 +198,7 @@ class AddRacesInfo:
         errata_dtypes = {key: value[0] for key, value in self.errata_table_structure.items()}
         self.db_errata.initialize_table(self.errata_table, errata_dtypes, unique_key=unique, foreign_key=None)
 
-    def query_table(db_handler, table_name, fields, where='', other='', return_col_names=False):
+    def query_table(self, db_handler, table_name, fields, where='', other='', return_col_names=False):
         sql = f'SELECT {", ".join(fields)}'
         sql += f' FROM {table_name}'
         if where:
@@ -221,9 +243,26 @@ class AddRacesInfo:
         print(sql)
         return db_handler.query_db(sql)[0][0]
 
+    def set_current_race_info(self, source_df, i):
+        date_col = source_df.columns.get_loc('date')
+        track_col = source_df.columns.get_loc('track')
+        race_num_col = source_df.columns.get_loc('race_num')
+
+        self.current_date = source_df.iloc[i, date_col]
+        self.current_track = source_df.iloc[i, track_col]
+        self.current_race_num = source_df.iloc[i, race_num_col]
+
     def update_single_race_value(self, db_handler, table, field, value):
         sql = f'UPDATE {table} ' \
               f'SET {field}="{value}" ' \
+              f'WHERE track="{self.current_track}" ' \
+              f'AND date="{self.current_date}" ' \
+              f'AND race_num="{self.current_race_num}"'
+        print(sql)
+        db_handler.update_db(sql)
+
+    def update_race_values(self, db_handler, table, field_list, value_list):
+        sql = f'UPDATE {table} SET {self.concatenate_field_value_pairs(field_list, value_list)} ' \
               f'WHERE track="{self.current_track}" ' \
               f'AND date="{self.current_date}" ' \
               f'AND race_num="{self.current_race_num}"'
@@ -315,112 +354,92 @@ class AddRacesInfo:
                                      *race)
             self.update_single_race_value(self.db_errata, 'aggregation_notes', key, new_value, *race)
 
-def process_race_general_results():
-    # Create dict with sql column names and corresponding race_general_results column names
-    db_dict = {key: value[table_to_index_mapping['race_general_results']] for key, value in table_structure.items()
-               if value[table_to_index_mapping['race_general_results']]}
-    sql_columns = [key for key, _ in db_dict.items()]
-    source_columns = [db_dict[column] for column in sql_columns]
+    def get_time_data(self, db_handler, table):
+        table_index = self.table_to_index_mappings[table]
+        field_dict = {key: value[table_index] for key, value in self.consolidated_table_structure if value[table_index]}
+        source_fields = field_dict.values()
+        consolidated_fields = field_dict.keys()
+        data = self.query_table(db_handler, table, source_fields)
+        return pd.DataFrame(data, columns=consolidated_fields)
 
-    # Pull list of race identifiers stored in race_general_results.
-    list_of_races  = query_table(db_horses_data, 'race_general_results', ['track', 'date', 'race_num'])
+    def attach_dfs(self):
+        # Pull each table and put data into a df located at self.df[table]
+        for table in self.tables_to_process:
+            self.df[table] = self.get_time_data(self.table_to_db_mappings[table], table)
 
-    # For each race, pull info from db and add it to new table:
-    i = 0
-    for race in list_of_races:
-        total_num = len(list_of_races)
-        print(f'i: {i} of {total_num}. {race}')
-        race_data = query_table(db_horses_data,
-                                             'race_general_results',
-                                             source_columns,
-                                             where='track="{}" AND date="{}" AND race_num="{}"'.format(*race))
-        db_consolidated_races.add_to_table(table_name, race_data, sql_columns)
-        i += 1
+    def add_race_ids(self):
+        for table in self.tables_to_process:
+            # Gather some processing variables
+            table_index = self.table_to_index_mappings[table]
+            date_column = self.consolidated_table_structure['date'][table_index]
+            track_column = self.consolidated_table_structure['track'][table_index]
+            race_num_column = self.consolidated_table_structure['race_num'][table_index]
+            df = self.df[table]
 
+            # Zip up date, track, and race_num for races in the df being processed.
+            column_data = zip(df[date_column], df[track_column], df[race_num_column])
 
+            # Concatenate them, add them as a column to the df, and set that as the df's index
+            race_ids = [str(item[0]) + str(item[1]) + str(item[2]) for item in column_data]
+            df['race_id'] = race_ids
+            df.set_index('race_id', inplace=True)
 
-
-
-def process_race_info(table_to_process):
-    # Create dict with sql col names and corresponding columns in table_to_process
-    db_dict = {key: value[table_to_index_mapping[table_to_process]] for key, value in table_structure.items()
-               if value[table_to_index_mapping[table_to_process]]}
-    sql_columns = [key for key, _ in db_dict.items()]
-    source_columns = [db_dict[column] for column in sql_columns]
-
-    # Pull list of race identifiers stored in table_to_process
-    list_of_races = query_table(db_horses_data, table_to_process, ['track', 'date', 'race_num'])
-
-    # Variable to hold race identifiers for data issues and UX
-    races_with_inconsistent_data = []
-    races_added=  []
-    temp_skip_keys = []
-
-    i = 0
-    total_num = len(list_of_races)
-
-    for race in list_of_races:
-        print(f'i: {i} of {total_num}. {race}')
-        in_db = race_in_db(db_consolidated_races, table_name, *race)
-        race_data = query_table(db_horses_data,
-                                table_to_process,
-                                source_columns,
-                                where='track="{}" AND date="{}" AND race_num="{}"'.format(*race))
-
-        # If the race isn't in the db, add in data from race_info:
-        if not in_db:
-            print('Not in db')
-            races_added.append(race)
-            db_consolidated_races.add_to_table(table_name, race_data, sql_columns)
-        # If it is in the db, check that values match
+    def all_consolidated_fields_blank(self,  race_id, fields):
+        data = self.df['consolidated'].loc[race_id, fields]
+        if all([np.isnan(item) or item == None for item in data]):
+            return True
         else:
-            print('Is in db')
-            # Pull info on race from database
-            data_in_db = query_table(db_consolidated_races,
-                                     table_name,
-                                     sql_columns,
-                                     where='track="{}" AND date="{}" AND race_num="{}"'.format(*race))
-            # Generate dict for each database column showing whether database info matches new info
-            info_in_db = dict(zip(sql_columns, data_in_db[0]))
-            new_info = dict(zip(sql_columns, race_data[0]))
-            info_matches = {key: dict_values_match(key, info_in_db, new_info) for key in sql_columns}
+            return False
 
-            # Do nothing if all the info matches
-            if all(info_matches.values()):
-                print('All the info matches')
+    def any_consolidated_fields_blank(self,  race_id, fields):
+        data = self.df['consolidated'].loc[race_id, fields]
+        if any([np.isnan(item) or item == None for item in data]):
+            return True
+        else:
+            return False
 
-            # If the info doesn't all match, try to fix it. If can't, then prompt the user for what to do.
-            if not all(info_matches.values()):
-                races_with_inconsistent_data.append(race)
-                inconsistent_keys = [key for key in info_matches.keys() if info_matches[key] == False]
-                for key in inconsistent_keys:
-                    if key not in temp_skip_keys:
-                        print(f'**********\nMismatch ({race[0]}, {str(race[1])}, {str(race[2])})'
-                              f' : {key}')
-                        print(f'horse_consolidated_races: {info_in_db[key]}')
-                        print(f'race_info: {new_info[key]}')
+    def consolidated_field_blank(self, race_id, field):
+        data = self.df['consolidated'].loc[race_id, field]
+        if np.isnan(data) or data == None:
+            return True
+        else:
+            return False
 
-                        if fix_race_type(db_consolidated_races, new_info[key], info_in_db[key], key, *race):
-                            print('Successfully fixed!')
-                        else:
-                            user_input = prompt_for_user_correction_input(key, race)
-                            if  user_input == 'q':
-                                return races_with_inconsistent_data, races_added
-                            elif user_input == 's':
-                                temp_skip_keys.append(key)
+    def concatenate_field_value_pairs(self, field_list, value_list):
+        pairs = [f'{field} = \'{value}\'' for field, value in zip(field_list, value_list)]
+        return ', '.join(pairs)
 
-        i += 1
-    return races_with_inconsistent_data, races_added
+    def process_dfs(self, table=None):
+        # Allow processing of a single table if passed as an argument
+        tables = [table] if table else self.tables_to_process
 
+        # Iterate through the tables to process
+        for source_table in tables:
+            df = self.df[source_table]
+            columns = df.columns.tolist()
+            consolidated_df = self.df[self.consolidated_table]
+            for i in range(len(df)):
+                # Get the race_id from the current row (which is the row index)
+                race_id = df.iloc[i].name
+                try:
+                    consolidated_df.loc[race_id]    # Will fail if race_id isn't in conoslidated df,
+                                                    #  so triggers exception handling
+                    self.set_current_race_info(df, i)
+                    # If race is in the consolidated db, check to make sure entries are not blank.
+                    if self.all_consolidated_fields_blank(race_id, columns):
+                        self.update_race_values(self.db_consolidated_races, self.consolidated_table,
+                                                columns, df.iloc[i].tolist())
 
+                    elif self.any_consolidated_fields_blank(race_id, columns):
+                        for column in columns:
+                            column_data = consolidated_df.loc[race_id, column]
+                            if column_data == None or np.isnan(column_data):
+                                self.update_single_race_value(self.db_consolidated_races, self.consolidated_table,
+                                                              column, source_table.loc[race_id, column])
+                except KeyError:
+                    print(f'i: {i}--Race not in consolidated races ({race_id})')
 
-
-
-
-
-
-
-
-
-
+                    self.set_current_race_info(df, i)
+                    self.update_race_values(self.db_consolidated_races, self.consonlidated_table,
+                                            columns, df.iloc[i].tolist())
 

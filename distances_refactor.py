@@ -198,6 +198,7 @@ class AddTimes:
         for table in self.distance_columns_all:
             setattr(self, table, self.get_time_data(self.table_db_mappings[table], table))
 
+
         self.table_df_mappings = {
             'race_general_results': self.race_general_results,
             'horse_pps': self.horse_pps,
