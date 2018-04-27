@@ -31,7 +31,17 @@ table_handlers = {
     '4': [],
     '5': [],
     '6': [],
-    'DRF': []
+    'DRF': [],
+}
+
+processing_times = {
+    '1': [],
+    '2': [],
+    '3': [],
+    '4': [],
+    '5': [],
+    '6': [],
+    'DRF': [],
 }
 
 
@@ -113,8 +123,11 @@ def main(file_to_process='', path='data'):
         file.rename(processed_dir / file.name)
 
         # Increment our progress-tracking counter
+        time_to_process = datetime.datetime.now() - file_start
+        processing_times[extension].append(time_to_process)
         print(f'Time to process {file.name}: {str(datetime.datetime.now() - file_start)}')
-        print(f'Elapsed time: {str(datetime.datetime.now() - start_time)}\n')
+        print(f'Average time to process {extension} files: {sum(processing_times[extension]) / len(processing_times[extension])}')
+        print(f'Elapsed time: {str(time_to_process)}\n')
         i += 1
 
     db.close_db()
@@ -122,6 +135,9 @@ def main(file_to_process='', path='data'):
 
     print(f'Start time: {str(start_time)}')
     print(f'End time: {str(end_time)}')
+    print(f'Average times:')
+    for file_type in processing_times:
+        print(f'\t{file_type} files: {sum(processing_times{file_type}) / len(processing_times[file_type])}')
     print(f'Total time: {str(end_time - start_time)}')
 
 
