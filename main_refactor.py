@@ -70,6 +70,7 @@ def main(file_to_process='', path='data'):
     i = 1
     valid_extensions = ['1', '2', '3', '4', '5', '6', 'DRF']
     check_for_duplicates = True
+    skip_duplicates = False
     num_of_files = len(file_paths)
 
     # Process each csv file, then run it through the table handlers to add to db
@@ -85,13 +86,15 @@ def main(file_to_process='', path='data'):
         if check_for_duplicates:
             file_already_processed = (file.parent / (file.suffix[1:] + '_file') /
                                       file.name).exists()
-            if file_already_processed:
+            if file_already_processed and not skip_duplicates:
                 print(f'It looks like {file.name} has already been processed.')
-                move_on = input('Should we skip this file? [Y/n/no to (a)ll duplicates] ').lower()
+                move_on = input('Should we skip this file? [Y/n/no to (a)ll duplicates/(s)kip all duplicates] ').lower()
                 if move_on == 'n':
                     pass
                 if move_on == 'a':
                     check_for_duplicates = False
+                if move_on =='s':
+                    skip_duplicates = True
                 else:
                     print('Skipping {} ... '.format(file.name))
                     continue
