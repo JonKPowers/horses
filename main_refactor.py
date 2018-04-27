@@ -124,7 +124,7 @@ def main(file_to_process='', path='data'):
 
         # Increment our progress-tracking counter
         time_to_process = datetime.datetime.now() - file_start
-        processing_times[extension].append(time_to_process)
+        processing_times[extension].append(time_to_process.total_seconds())
         print(f'Time to process {file.name}: {str(datetime.datetime.now() - file_start)}')
         print(f'Average time to process {extension} files: {sum(processing_times[extension]) / len(processing_times[extension])}')
         print(f'Elapsed time: {str(time_to_process)}\n')
