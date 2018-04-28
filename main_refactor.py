@@ -98,7 +98,6 @@ def main(file_to_process='', path='data'):
                 else:
                     print('Skipping {} ... '.format(file.name))
                     continue
-
         logging.info(f'Processing {file} ({i} of {num_of_files})')
         print(f'Processing {file} ({i} of {num_of_files})')
 

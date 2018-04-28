@@ -8,10 +8,9 @@ logging.basicConfig(filename='db_handler.log', filemode='w', level=logging.DEBUG
 class QueryDB:
 
     def connect(self):
-        self.connection = pymysql.connect(
-            host='localhost',
-            user=self.user,
-            password=self.password)
+        if not self.connection: self.connection = pymysql.connect(host='localhost',
+                                                                  user=self.user,
+                                                                  password=self.password)
 
     def close(self):
         if self.connection:
@@ -39,6 +38,7 @@ class QueryDB:
 
     def initialize_db(self):
         """Checks to see if db exists. If not, creates it."""
+        if not self.connection: self.connect()
         cursor = self.connection.cursor()
         sql = f'SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = "{self.db}"'
         db_exists = cursor.execute(sql)
@@ -115,6 +115,7 @@ class QueryDB:
             sql = re.sub(r"'(NULL|nan|None)'", "NULL", sql)             # NULL should be sent in SQL w/o quote marks
                                                                         # nan and None should be stored as NULL
             # print('{} of {}: {}'.format(i+1,len(table_data), sql))
+            print(sql)
             logging.debug(f'{i+1} of {len(table_data)}: {sql}')
             try:
                 cursor.execute(sql)
@@ -128,6 +129,7 @@ class QueryDB:
         self.db = db
         self.user = username
         self.password = password
+        self.connection = None
 
         if initialize_db: self.initialize_db()
 

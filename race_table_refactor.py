@@ -1,146 +1,153 @@
 import logging
-import db_handler as dbh
+import db_handler_persistent as dbh
 
 import numpy as np
 import pandas as pd
+import datetime
+import re
+from progress.bar import Bar
 
 class AddRacesInfo:
     def __init__(self):
         self.db_consolidated_races = dbh.QueryDB(db='horses_consolidated_races', initialize_db=True)
         self.db_horses_data = dbh.QueryDB(db='horses_data')
-        self.db_horse_pps = dbh.QueryDB(db='horse_pps')
         self.db_errata = dbh.QueryDB(db='horses_errata', initialize_db=True)
+        self.db_handlers = [
+            self.db_consolidated_races,
+            self.db_horses_data,
+            self.db_errata,
+        ]
 
         self.consolidated_table = 'horses_consolidated_races'
         self.consolidated_table_structure = {
-            # Format 'sql_col_name': ('sql_datatype', 'race_general_results_col', 'race_info col', 'horse_pps col')
-            'source_file': ('VARCHAR(255)', 'source_file', 'source_file', 'source_file',),
-            'track': ('VARCHAR(255)', 'track', 'track', 'track_code',),
-            'date': ('DATE', 'date', 'date', 'race_date',),
-            'race_num': ('TINYINT', 'race_num', 'race_num', 'race_num',),
-            'race_name': ('VARCHAR(255)', 'race_name', None, None,),
-            'time_local': ('INT', 'off_time', None, None,),
-            'time_zone':('VARCHAR(255)', None, None, None,),
+            # Format 'sql_col_name': ('sql_datatype', 'horses_consolidated_races_col', 'race_general_results_col', 'race_info col', 'horse_pps col')
+            'source_file': ('VARCHAR(255)', 'source_file', 'source_file', 'source_file', 'source_file',),
+            'track': ('VARCHAR(255)', 'track', 'track', 'track', 'track_code',),
+            'date': ('DATE', 'date', 'date', 'date', 'race_date',),
+            'race_num': ('TINYINT', 'race_num', 'race_num', 'race_num', 'race_num',),
+            'race_name': ('VARCHAR(255)', 'race_name', 'race_name', None, None,),
+            'time_local': ('INT', 'time_local', 'off_time', None, None,),
+            'time_zone':('VARCHAR(255)', 'time_zone', None, None, None,),
 
-            'temperature': ('INT', 'race_temp', None, None,),
-            'weather': ('VARCHAR(255)', 'weather', None, None,),
+            'temperature': ('INT', 'temperature', 'race_temp', None, None,),
+            'weather': ('VARCHAR(255)', 'weather', 'weather', None, None,),
 
-            'distance': ('INT', 'distance', 'distance', 'distance',),
-            'run_up_distance': ('INT', 'run_up_dist', None, None,),
-            'temp_rail_distance': ('INT', 'temp_rail_dist', None, None),
-            'about_distance_flag': ('TINYINT', 'about_distance', None, None,),
+            'distance': ('INT', 'distance', 'distance', 'distance', 'distance',),
+            'run_up_distance': ('INT', 'run_up_distance', 'run_up_dist', None, None,),
+            'temp_rail_distance': ('INT', 'temp_rail_distance', 'temp_rail_dist', None, None),
+            'about_distance_flag': ('TINYINT', 'about_distance_flag', 'about_distance', None, None,),
 
-            'surface': ('VARCHAR(255)', 'surface_new', 'surface', 'surface',),
+            'surface': ('VARCHAR(255)', 'surface', 'surface_new', 'surface', 'surface',),
             # 'sealed_track'
-            'track_condition': ('VARCHAR(255)', 'track_condition', None, 'track_condition',),
-            'chute_start': ('TINYINT', 'chute_start', None, 'special_chute',),
+            'track_condition': ('VARCHAR(255)', 'track_condition', 'track_condition', None, 'track_condition',),
+            'chute_start': ('TINYINT', 'chute_start', 'chute_start', None, 'special_chute',),
 
-            'off_turf': ('TINYINT', 'off_turf', None, None,),
-            'off_turf_dist_change': ('TINYINT', 'off_turf_distance_change', None, None),
+            'off_turf': ('TINYINT', 'off_turf', 'off_turf', None, None,),
+            'off_turf_dist_change': ('TINYINT', 'off_turf_dist_change', 'off_turf_distance_change', None, None),
 
-            'field_size': ('INT', 'field_size', None, 'num_of_horses',),
-            'breed': ('VARCHAR(255)', 'breed', 'breed', None),
+            'field_size': ('INT', 'field_size', 'field_size', None, 'num_of_horses',),
+            'breed': ('VARCHAR(255)', 'breed', 'breed', 'breed', None),
 
-            'purse': ('INT', 'purse', 'purse', 'race_purse',),
+            'purse': ('INT', 'purse', 'purse', 'purse', 'race_purse',),
 
-            'race_type': ('VARCHAR(255)', 'race_type_BRIS', 'race_type', 'race_type',),
+            'race_type': ('VARCHAR(255)', 'race_type', 'race_type_BRIS', 'race_type', 'race_type',),
 
-            'claiming_price_base': ('INT', 'max_claim', 'claiming_price', 'highest_claim_price',),
-            'optional_claiming_price': ('INT', 'optional_claiming_price', 'optional_claiming_price', None),
+            'claiming_price_base': ('INT', 'claiming_price_base', 'max_claim', 'claiming_price', 'highest_claim_price',),
+            'optional_claiming_price': ('INT', 'optional_claiming_price', 'optional_claiming_price', 'optional_claiming_price', None),
 
-            'time_440': ('FLOAT', None, None, None),        # 2 furlongs
-            'time_660': ('FLOAT', None, None, None),        # 3_furlongs
-            'time_880': ('FLOAT', None, None, None),        # 4 furlongs
-            'time_1100': ('FLOAT', None, None, None),       # 5 furlongs
-            'time_1210': ('FLOAT', None, None, None),       # 5.5 furlongs
-            'time_1320': ('FLOAT', None, None, None),       # 6 furlongs
-            'time_1430': ('FLOAT', None, None, None),       # 6.5 furlongs
-            'time_1540': ('FLOAT', None, None, None),       # 7 furlongs
-            'time_1650': ('FLOAT', None, None, None),       # 7.5 furlongs
-            'time_1760': ('FLOAT', None, None, None),       # 1 mile
-            'time_1830': ('FLOAT', None, None, None),       # 1 mile, 70 yards
-            'time_1870': ('FLOAT', None, None, None),       # 1 1/8 miles (9 furlongs)
-            'time_1980': ('FLOAT', None, None, None),       # 1 1/4 miles (10 furlongs)
+            'time_440': ('FLOAT', 'time_440', None, None, None),        # 2 furlongs
+            'time_660': ('FLOAT', 'time_660', None, None, None),        # 3_furlongs
+            'time_880': ('FLOAT', 'time_880', None, None, None),        # 4 furlongs
+            'time_1100': ('FLOAT', 'time_1100', None, None, None),       # 5 furlongs
+            'time_1210': ('FLOAT', 'time_1210', None, None, None),       # 5.5 furlongs
+            'time_1320': ('FLOAT', 'time_1320', None, None, None),       # 6 furlongs
+            'time_1430': ('FLOAT', 'time_1430', None, None, None),       # 6.5 furlongs
+            'time_1540': ('FLOAT', 'time_1540', None, None, None),       # 7 furlongs
+            'time_1650': ('FLOAT', 'time_1650', None, None, None),       # 7.5 furlongs
+            'time_1760': ('FLOAT', 'time_1760', None, None, None),       # 1 mile
+            'time_1830': ('FLOAT', 'time_1830', None, None, None),       # 1 mile, 70 yards
+            'time_1870': ('FLOAT', 'time_1870', None, None, None),       # 1 1/8 miles (9 furlongs)
+            'time_1980': ('FLOAT', 'time_1980', None, None, None),       # 1 1/4 miles (10 furlongs)
 
 
-            'allowed_age_two': ('TINYINT', 'allowed_age_two', 'allowed_age_two', 'allowed_age_two',),
-            'allowed_age_three': ('TINYINT', 'allowed_age_three', 'allowed_age_three', 'allowed_age_three',),
-            'allowed_age_four': ('TINYINT', 'allowed_age_four', 'allowed_age_four', 'allowed_age_four',),
-            'allowed_age_five': ('TINYINT', 'allowed_age_five', 'allowed_age_five', 'allowed_age_five',),
-            'allowed_age_older': ('TINYINT', 'allowed_age_older', 'allowed_age_older', 'allowed_age_older',),
+            'allowed_age_two': ('TINYINT', 'allowed_age_two', 'allowed_age_two', 'allowed_age_two', 'allowed_age_two',),
+            'allowed_age_three': ('TINYINT', 'allowed_age_three', 'allowed_age_three', 'allowed_age_three', 'allowed_age_three',),
+            'allowed_age_four': ('TINYINT', 'allowed_age_four', 'allowed_age_four', 'allowed_age_four', 'allowed_age_four',),
+            'allowed_age_five': ('TINYINT', 'allowed_age_five', 'allowed_age_five', 'allowed_age_five', 'allowed_age_five',),
+            'allowed_age_older': ('TINYINT', 'allowed_age_older', 'allowed_age_older', 'allowed_age_older', 'allowed_age_older',),
 
-            'allowed_fillies': ('TINYINT', 'allowed_fillies', 'allowed_fillies', 'allowed_fillies',),
-            'allowed_mares': ('TINYINT', 'allowed_mares', 'allowed_mares', 'allowed_mares',),
-            'allowed_colts_geldings': ('TINYINT', 'allowed_colts_geldings', 'allowed_colts_geldings', 'allowed_colts_geldings',),
+            'allowed_fillies': ('TINYINT', 'allowed_fillies', 'allowed_fillies', 'allowed_fillies', 'allowed_fillies',),
+            'allowed_mares': ('TINYINT', 'allowed_mares', 'allowed_mares', 'allowed_mares', 'allowed_mares',),
+            'allowed_colts_geldings': ('TINYINT', 'allowed_colts_geldings', 'allowed_colts_geldings', 'allowed_colts_geldings', 'allowed_colts_geldings',),
 
-            'statebred_race': ('TINYINT', 'statebred_race', 'statebred_race', 'statebred_race',),
+            'statebred_race': ('TINYINT', 'statebred_race', 'statebred_race', 'statebred_race', 'statebred_race',),
 
-            'race_conditions_1_claim_start_req_price': ('INT', 'condition_1_claim_start_required_price', 'condition_1_claim_start_required_price', None,),
-            'race_conditions_1_claim_start_time_limit': ('INT', 'condition_1_claim_start_required_months', 'condition_1_claim_start_required_months', None,),
-            'race_conditions_1_not_won_limit': ('INT', 'condition_1_number_limit', 'condition_1_number_limit', None,),
-            'race_conditions_1_money_limit': ('INT', 'condition_1_money_limit', 'condition_1_money_limit', None,),
-            'race_conditions_1_time_limit': ('FLOAT', 'condition_1_time_limit_months', 'condition_1_time_limit_months', None,),
-            'race_conditions_1_excluded_claiming': ('TINYINT', 'condition_1_excluded_claiming', 'condition_1_excluded_claiming', None,),
-            'race_conditions_1_excluded_maiden': ('TINYINT', 'condition_1_excluded_maiden', 'condition_1_excluded_maiden', None,),
-            'race_conditions_1_excluded_optional': ('TINYINT', 'condition_1_excluded_optional', 'condition_1_excluded_optional', None,),
-            'race_conditions_1_excluded_restricted': ('TINYINT', 'condition_1_excluded_restricted', 'condition_1_excluded_restricted', None,),
-            'race_conditions_1_excluded_restricted_allowance': ('TINYINT', 'condition_1_excluded_restricted_allowance', 'condition_1_excluded_restricted_allowance', None,),
-            'race_conditions_1_excluded_starter': ('TINYINT', 'condition_1_excluded_starter', 'condition_1_excluded_starter', None,),
-            'race_conditions_1_excluded_state_sired': ('TINYINT', 'condition_1_excluded_state_sired', 'condition_1_excluded_state_sired', None),
-            'race_conditions_1_excluded_state_sired_stakes': ('TINYINT', 'condition_1_excluded_state_sired_stakes', 'condition_1_excluded_state_sired_stakes', None,),
-            'race_conditions_1_excluded_statebred': ('TINYINT', 'condition_1_excluded_statebred', 'condition_1_excluded_statebred', None,),
-            'race_conditions_1_excluded_statebred_allowance': ('TINYINT', 'condition_1_excluded_statebred_allowance', 'condition_1_excluded_statebred_allowance', None,),
-            'race_conditions_1_excluded_statebred_stakes': ('TINYINT', 'condition_1_excluded_statebred_stakes', 'condition_1_excluded_statebred_stakes', None,),
-            'race_conditions_1_excluded_trial': ('TINYINT', 'condition_1_excluded_trial', 'condition_1_excluded_trial', None,),
-            'race_conditions_1_excluded_waiver': ('TINYINT', 'condition_1_excluded_waiver', 'condition_1_excluded_waiver', None,),
-            'race_conditions_1_excluded_waiver_claiming': ('TINYINT', 'condition_1_excluded_waiver_claiming', 'condition_1_excluded_waiver_claiming', None,),
+            'race_conditions_1_claim_start_req_price': ('INT', 'race_conditions_1_claim_start_req_price', 'condition_1_claim_start_required_price', 'condition_1_claim_start_required_price', None,),
+            'race_conditions_1_claim_start_time_limit': ('INT', 'race_conditions_1_claim_start_time_limit', 'condition_1_claim_start_required_months', 'condition_1_claim_start_required_months', None,),
+            'race_conditions_1_not_won_limit': ('INT', 'race_conditions_1_not_won_limit', 'condition_1_number_limit', 'condition_1_number_limit', None,),
+            'race_conditions_1_money_limit': ('INT', 'race_conditions_1_money_limit', 'condition_1_money_limit', 'condition_1_money_limit', None,),
+            'race_conditions_1_time_limit': ('FLOAT', 'race_conditions_1_time_limit', 'condition_1_time_limit_months', 'condition_1_time_limit_months', None,),
+            'race_conditions_1_excluded_claiming': ('TINYINT', 'race_conditions_1_excluded_claiming', 'condition_1_excluded_claiming', 'condition_1_excluded_claiming', None,),
+            'race_conditions_1_excluded_maiden': ('TINYINT', 'race_conditions_1_excluded_maiden', 'condition_1_excluded_maiden', 'condition_1_excluded_maiden', None,),
+            'race_conditions_1_excluded_optional': ('TINYINT', 'race_conditions_1_excluded_optional', 'condition_1_excluded_optional', 'condition_1_excluded_optional', None,),
+            'race_conditions_1_excluded_restricted': ('TINYINT', 'race_conditions_1_excluded_restricted', 'condition_1_excluded_restricted', 'condition_1_excluded_restricted', None,),
+            'race_conditions_1_excluded_restricted_allowance': ('TINYINT', 'race_conditions_1_excluded_restricted_allowance', 'condition_1_excluded_restricted_allowance', 'condition_1_excluded_restricted_allowance', None,),
+            'race_conditions_1_excluded_starter': ('TINYINT', 'race_conditions_1_excluded_starter', 'condition_1_excluded_starter', 'condition_1_excluded_starter', None,),
+            'race_conditions_1_excluded_state_sired': ('TINYINT', 'race_conditions_1_excluded_state_sired', 'condition_1_excluded_state_sired', 'condition_1_excluded_state_sired', None),
+            'race_conditions_1_excluded_state_sired_stakes': ('TINYINT', 'race_conditions_1_excluded_state_sired_stakes', 'condition_1_excluded_state_sired_stakes', 'condition_1_excluded_state_sired_stakes', None,),
+            'race_conditions_1_excluded_statebred': ('TINYINT', 'race_conditions_1_excluded_statebred', 'condition_1_excluded_statebred', 'condition_1_excluded_statebred', None,),
+            'race_conditions_1_excluded_statebred_allowance': ('TINYINT', 'race_conditions_1_excluded_statebred_allowance', 'condition_1_excluded_statebred_allowance', 'condition_1_excluded_statebred_allowance', None,),
+            'race_conditions_1_excluded_statebred_stakes': ('TINYINT', 'race_conditions_1_excluded_statebred_stakes', 'condition_1_excluded_statebred_stakes', 'condition_1_excluded_statebred_stakes', None,),
+            'race_conditions_1_excluded_trial': ('TINYINT', 'race_conditions_1_excluded_trial', 'condition_1_excluded_trial', 'condition_1_excluded_trial', None,),
+            'race_conditions_1_excluded_waiver': ('TINYINT', 'race_conditions_1_excluded_waiver', 'condition_1_excluded_waiver', 'condition_1_excluded_waiver', None,),
+            'race_conditions_1_excluded_waiver_claiming': ('TINYINT', 'race_conditions_1_excluded_waiver_claiming', 'condition_1_excluded_waiver_claiming', 'condition_1_excluded_waiver_claiming', None,),
 
-            'race_conditions_2_claim_start_req_price': ('INT', 'condition_2_claim_start_required_price', 'condition_2_claim_start_required_price', None,),
-            'race_conditions_2_claim_start_time_limit': ('INT', 'condition_2_claim_start_required_months', 'condition_2_claim_start_required_months', None,),
-            'race_conditions_2_not_won_limit': ('INT', 'condition_2_number_limit', 'condition_2_number_limit', None,),
-            'race_conditions_2_money_limit': ('INT', 'condition_2_money_limit', 'condition_2_money_limit', None,),
-            'race_conditions_2_time_limit': ('FLOAT', 'condition_2_time_limit_months', 'condition_2_time_limit_months', None,),
-            'race_conditions_2_excluded_claiming': ('TINYINT', 'condition_2_excluded_claiming', 'condition_2_excluded_claiming', None,),
-            'race_conditions_2_excluded_maiden': ('TINYINT', 'condition_2_excluded_maiden', 'condition_2_excluded_maiden', None,),
-            'race_conditions_2_excluded_optional': ('TINYINT', 'condition_2_excluded_optional', 'condition_2_excluded_optional', None,),
-            'race_conditions_2_excluded_restricted': ('TINYINT', 'condition_2_excluded_restricted', 'condition_2_excluded_restricted', None,),
-            'race_conditions_2_excluded_restricted_allowance': ('TINYINT', 'condition_2_excluded_restricted_allowance', 'condition_2_excluded_restricted_allowance', None,),
-            'race_conditions_2_excluded_starter': ('TINYINT', 'condition_2_excluded_starter', 'condition_2_excluded_starter', None,),
-            'race_conditions_2_excluded_state_sired': ('TINYINT', 'condition_2_excluded_state_sired', 'condition_2_excluded_state_sired', None),
-            'race_conditions_2_excluded_state_sired_stakes': ('TINYINT', 'condition_2_excluded_state_sired_stakes', 'condition_2_excluded_state_sired_stakes', None,),
-            'race_conditions_2_excluded_statebred': ('TINYINT', 'condition_2_excluded_statebred', 'condition_2_excluded_statebred', None,),
-            'race_conditions_2_excluded_statebred_allowance': ('TINYINT', 'condition_2_excluded_statebred_allowance', 'condition_2_excluded_statebred_allowance', None,),
-            'race_conditions_2_excluded_statebred_stakes': ('TINYINT', 'condition_2_excluded_statebred_stakes', 'condition_2_excluded_statebred_stakes', None,),
-            'race_conditions_2_excluded_trial': ('TINYINT', 'condition_2_excluded_trial', 'condition_2_excluded_trial', None,),
-            'race_conditions_2_excluded_waiver': ('TINYINT', 'condition_2_excluded_waiver', 'condition_2_excluded_waiver', None,),
-            'race_conditions_2_excluded_waiver_claiming': ('TINYINT', 'condition_2_excluded_waiver_claiming', 'condition_2_excluded_waiver_claiming', None,),
+            'race_conditions_2_claim_start_req_price': ('INT', 'race_conditions_2_claim_start_req_price', 'condition_2_claim_start_required_price', 'condition_2_claim_start_required_price', None,),
+            'race_conditions_2_claim_start_time_limit': ('INT', 'race_conditions_2_claim_start_time_limit', 'condition_2_claim_start_required_months', 'condition_2_claim_start_required_months', None,),
+            'race_conditions_2_not_won_limit': ('INT', 'race_conditions_2_not_won_limit', 'condition_2_number_limit', 'condition_2_number_limit', None,),
+            'race_conditions_2_money_limit': ('INT', 'race_conditions_2_money_limit', 'condition_2_money_limit', 'condition_2_money_limit', None,),
+            'race_conditions_2_time_limit': ('FLOAT', 'race_conditions_2_time_limit', 'condition_2_time_limit_months', 'condition_2_time_limit_months', None,),
+            'race_conditions_2_excluded_claiming': ('TINYINT', 'race_conditions_2_excluded_claiming', 'condition_2_excluded_claiming', 'condition_2_excluded_claiming', None,),
+            'race_conditions_2_excluded_maiden': ('TINYINT', 'race_conditions_2_excluded_maiden', 'condition_2_excluded_maiden', 'condition_2_excluded_maiden', None,),
+            'race_conditions_2_excluded_optional': ('TINYINT', 'race_conditions_2_excluded_optional', 'condition_2_excluded_optional', 'condition_2_excluded_optional', None,),
+            'race_conditions_2_excluded_restricted': ('TINYINT', 'race_conditions_2_excluded_restricted', 'condition_2_excluded_restricted', 'condition_2_excluded_restricted', None,),
+            'race_conditions_2_excluded_restricted_allowance': ('TINYINT', 'race_conditions_2_excluded_restricted_allowance', 'condition_2_excluded_restricted_allowance', 'condition_2_excluded_restricted_allowance', None,),
+            'race_conditions_2_excluded_starter': ('TINYINT', 'race_conditions_2_excluded_starter', 'condition_2_excluded_starter', 'condition_2_excluded_starter', None,),
+            'race_conditions_2_excluded_state_sired': ('TINYINT', 'race_conditions_2_excluded_state_sired', 'condition_2_excluded_state_sired', 'condition_2_excluded_state_sired', None),
+            'race_conditions_2_excluded_state_sired_stakes': ('TINYINT', 'race_conditions_2_excluded_state_sired_stakes', 'condition_2_excluded_state_sired_stakes', 'condition_2_excluded_state_sired_stakes', None,),
+            'race_conditions_2_excluded_statebred': ('TINYINT', 'race_conditions_2_excluded_statebred', 'condition_2_excluded_statebred', 'condition_2_excluded_statebred', None,),
+            'race_conditions_2_excluded_statebred_allowance': ('TINYINT', 'race_conditions_2_excluded_statebred_allowance', 'condition_2_excluded_statebred_allowance', 'condition_2_excluded_statebred_allowance', None,),
+            'race_conditions_2_excluded_statebred_stakes': ('TINYINT', 'race_conditions_2_excluded_statebred_stakes', 'condition_2_excluded_statebred_stakes', 'condition_2_excluded_statebred_stakes', None,),
+            'race_conditions_2_excluded_trial': ('TINYINT', 'race_conditions_2_excluded_trial', 'condition_2_excluded_trial', 'condition_2_excluded_trial', None,),
+            'race_conditions_2_excluded_waiver': ('TINYINT', 'race_conditions_2_excluded_waiver', 'condition_2_excluded_waiver', 'condition_2_excluded_waiver', None,),
+            'race_conditions_2_excluded_waiver_claiming': ('TINYINT', 'race_conditions_2_excluded_waiver_claiming', 'condition_2_excluded_waiver_claiming', 'condition_2_excluded_waiver_claiming', None,),
 
-            'race_conditions_3_claim_start_req_price': ('INT', 'condition_3_claim_start_required_price', 'condition_3_claim_start_required_price', None,),
-            'race_conditions_3_claim_start_time_limit': ('INT', 'condition_3_claim_start_required_months', 'condition_3_claim_start_required_months', None,),
-            'race_conditions_3_not_won_limit': ('INT', 'condition_3_number_limit', 'condition_3_number_limit', None,),
-            'race_conditions_3_money_limit': ('INT', 'condition_3_money_limit', 'condition_3_money_limit', None,),
-            'race_conditions_3_time_limit': ('FLOAT', 'condition_3_time_limit_months', 'condition_3_time_limit_months', None,),
-            'race_conditions_3_excluded_claiming': ('TINYINT', 'condition_3_excluded_claiming', 'condition_3_excluded_claiming', None,),
-            'race_conditions_3_excluded_maiden': ('TINYINT', 'condition_3_excluded_maiden', 'condition_3_excluded_maiden', None,),
-            'race_conditions_3_excluded_optional': ('TINYINT', 'condition_3_excluded_optional', 'condition_3_excluded_optional', None,),
-            'race_conditions_3_excluded_restricted': ('TINYINT', 'condition_3_excluded_restricted', 'condition_3_excluded_restricted', None,),
-            'race_conditions_3_excluded_restricted_allowance': ('TINYINT', 'condition_3_excluded_restricted_allowance', 'condition_3_excluded_restricted_allowance', None,),
-            'race_conditions_3_excluded_starter': ('TINYINT', 'condition_3_excluded_starter', 'condition_3_excluded_starter', None,),
-            'race_conditions_3_excluded_state_sired': ('TINYINT', 'condition_3_excluded_state_sired', 'condition_3_excluded_state_sired', None),
-            'race_conditions_3_excluded_state_sired_stakes': ('TINYINT', 'condition_3_excluded_state_sired_stakes', 'condition_3_excluded_state_sired_stakes', None,),
-            'race_conditions_3_excluded_statebred': ('TINYINT', 'condition_3_excluded_statebred', 'condition_3_excluded_statebred', None,),
-            'race_conditions_3_excluded_statebred_allowance': ('TINYINT', 'condition_3_excluded_statebred_allowance', 'condition_3_excluded_statebred_allowance', None,),
-            'race_conditions_3_excluded_statebred_stakes': ('TINYINT', 'condition_3_excluded_statebred_stakes', 'condition_3_excluded_statebred_stakes', None,),
-            'race_conditions_3_excluded_trial': ('TINYINT', 'condition_3_excluded_trial', 'condition_3_excluded_trial', None,),
-            'race_conditions_3_excluded_waiver': ('TINYINT', 'condition_3_excluded_waiver', 'condition_3_excluded_waiver', None,),
-            'race_conditions_3_excluded_waiver_claiming': ('TINYINT', 'condition_3_excluded_waiver_claiming', 'condition_3_excluded_waiver_claiming', None,),
+            'race_conditions_3_claim_start_req_price': ('INT', 'race_conditions_3_claim_start_req_price', 'condition_3_claim_start_required_price', 'condition_3_claim_start_required_price', None,),
+            'race_conditions_3_claim_start_time_limit': ('INT', 'race_conditions_3_claim_start_time_limit', 'condition_3_claim_start_required_months', 'condition_3_claim_start_required_months', None,),
+            'race_conditions_3_not_won_limit': ('INT', 'race_conditions_3_not_won_limit', 'condition_3_number_limit', 'condition_3_number_limit', None,),
+            'race_conditions_3_money_limit': ('INT', 'race_conditions_3_money_limit', 'condition_3_money_limit', 'condition_3_money_limit', None,),
+            'race_conditions_3_time_limit': ('FLOAT', 'race_conditions_3_time_limit', 'condition_3_time_limit_months', 'condition_3_time_limit_months', None,),
+            'race_conditions_3_excluded_claiming': ('TINYINT', 'race_conditions_3_excluded_claiming', 'condition_3_excluded_claiming', 'condition_3_excluded_claiming', None,),
+            'race_conditions_3_excluded_maiden': ('TINYINT', 'race_conditions_3_excluded_maiden', 'condition_3_excluded_maiden', 'condition_3_excluded_maiden', None,),
+            'race_conditions_3_excluded_optional': ('TINYINT', 'race_conditions_3_excluded_optional', 'condition_3_excluded_optional', 'condition_3_excluded_optional', None,),
+            'race_conditions_3_excluded_restricted': ('TINYINT', 'race_conditions_3_excluded_restricted', 'condition_3_excluded_restricted', 'condition_3_excluded_restricted', None,),
+            'race_conditions_3_excluded_restricted_allowance': ('TINYINT', 'race_conditions_3_excluded_restricted_allowance', 'condition_3_excluded_restricted_allowance', 'condition_3_excluded_restricted_allowance', None,),
+            'race_conditions_3_excluded_starter': ('TINYINT', 'race_conditions_3_excluded_starter', 'condition_3_excluded_starter', 'condition_3_excluded_starter', None,),
+            'race_conditions_3_excluded_state_sired': ('TINYINT', 'race_conditions_3_excluded_state_sired', 'condition_3_excluded_state_sired', 'condition_3_excluded_state_sired', None),
+            'race_conditions_3_excluded_state_sired_stakes': ('TINYINT', 'race_conditions_3_excluded_state_sired_stakes', 'condition_3_excluded_state_sired_stakes', 'condition_3_excluded_state_sired_stakes', None,),
+            'race_conditions_3_excluded_statebred': ('TINYINT', 'race_conditions_3_excluded_statebred', 'condition_3_excluded_statebred', 'condition_3_excluded_statebred', None,),
+            'race_conditions_3_excluded_statebred_allowance': ('TINYINT', 'race_conditions_3_excluded_statebred_allowance', 'condition_3_excluded_statebred_allowance', 'condition_3_excluded_statebred_allowance', None,),
+            'race_conditions_3_excluded_statebred_stakes': ('TINYINT', 'race_conditions_3_excluded_statebred_stakes', 'condition_3_excluded_statebred_stakes', 'condition_3_excluded_statebred_stakes', None,),
+            'race_conditions_3_excluded_trial': ('TINYINT', 'race_conditions_3_excluded_trial', 'condition_3_excluded_trial', 'condition_3_excluded_trial', None,),
+            'race_conditions_3_excluded_waiver': ('TINYINT', 'race_conditions_3_excluded_waiver', 'condition_3_excluded_waiver', 'condition_3_excluded_waiver', None,),
+            'race_conditions_3_excluded_waiver_claiming': ('TINYINT', 'race_conditions_3_excluded_waiver_claiming', 'condition_3_excluded_waiver_claiming', 'condition_3_excluded_waiver_claiming', None,),
 
-            'race_conditions_text_1': ('VARCHAR(255)', 'race_conditions_1', 'race_cond_1', None,),
-            'race_conditions_text_2': ('VARCHAR(255)', 'race_conditions_2', 'race_cond_2', None,),
-            'race_conditions_text_3': ('VARCHAR(255)', 'race_conditions_3', 'race_cond_3', None,),
-            'race_conditions_text_4': ('VARCHAR(255)', 'race_conditions_4', 'race_cond_4', None,),
-            'race_conditions_text_5': ('VARCHAR(255)', 'race_conditions_5', 'race_cond_5', None,),
-            'race_conditions_text_6': ('VARCHAR(255)', None, 'race_cond_6', None,),
+            'race_conditions_text_1': ('VARCHAR(255)', 'race_conditions_text_1', 'race_conditions_1', 'race_cond_1', None,),
+            'race_conditions_text_2': ('VARCHAR(255)', 'race_conditions_text_2', 'race_conditions_2', 'race_cond_2', None,),
+            'race_conditions_text_3': ('VARCHAR(255)', 'race_conditions_text_3', 'race_conditions_3', 'race_cond_3', None,),
+            'race_conditions_text_4': ('VARCHAR(255)', 'race_conditions_text_4', 'race_conditions_4', 'race_cond_4', None,),
+            'race_conditions_text_5': ('VARCHAR(255)', 'race_conditions_text_5', 'race_conditions_5', 'race_cond_5', None,),
+            'race_conditions_text_6': ('VARCHAR(255)', 'race_conditions_text_6', None, 'race_cond_6', None,),
 
             # 'race_notes': (),
 }
@@ -153,15 +160,16 @@ class AddRacesInfo:
         self.errata_table_structure.update(self.consolidated_table_structure)
 
         self.table_to_index_mappings = {
-            'race_general_results' : 1,
-            'race_info': 2,
-            'horse_pps': 3,
+            'horses_consolidated_races': 1,
+            'race_general_results' : 2,
+            'race_info': 3,
+            'horse_pps': 4,
         }
         self.table_to_db_mappings = {
             'race_general_results': self.db_horses_data,
-            'horse_pps': self.db_horse_pps,
+            'horse_pps': self.db_horses_data,
             'horses_consolidated_races': self.db_consolidated_races,
-            'horses_errata': self.db_errata,
+            self.errata_table: self.db_errata,
         }
         self.column_mappings = {
             'track': ('track', 'track', 'track_code',),
@@ -170,10 +178,16 @@ class AddRacesInfo:
             'distance': ('distance', 'distance', 'distance'),
         }
 
-        # Processing vairables
+        # Processing variables
         self.tables_to_process = [
             'race_general_results',
             'horse_pps',
+        ]
+        self.tables_to_attach = [
+            'race_general_results',
+            'horse_pps',
+            'horses_consolidated_races',
+            # 'horses_errata',
         ]
 
         # State variables
@@ -205,6 +219,7 @@ class AddRacesInfo:
             sql += f' WHERE {where}'
         if other:
             sql += f' {other}'
+        # print(sql)
         return db_handler.query_db(sql, return_col_names)
 
     def race_in_db(self, db_handler=None, table=None):
@@ -223,7 +238,8 @@ class AddRacesInfo:
         return db_handler.query_db(sql)[0][0]
 
     def add_blank_race_entry(self, db_handler, table):
-        db_handler.add_to_table(table, [self.current_track, self.current_date, self.current_race_num],
+        db_handler.add_to_table(table,
+                                [[self.current_track, self.current_date, self.current_race_num]],
                                 ['track', 'date', 'race_num'])
 
     def where_for_current_race(self, table_index=None, no_table_mapping=False):
@@ -258,14 +274,16 @@ class AddRacesInfo:
               f'WHERE track="{self.current_track}" ' \
               f'AND date="{self.current_date}" ' \
               f'AND race_num="{self.current_race_num}"'
-        print(sql)
+        # print(sql)
         db_handler.update_db(sql)
 
-    def update_race_values(self, db_handler, table, field_list, value_list):
+    def update_race_values(self, db_handler, table, field_list, value_list, new_entry=False):
         sql = f'UPDATE {table} SET {self.concatenate_field_value_pairs(field_list, value_list)} ' \
               f'WHERE track="{self.current_track}" ' \
               f'AND date="{self.current_date}" ' \
               f'AND race_num="{self.current_race_num}"'
+
+        if new_entry: self.add_blank_race_entry(db_handler, table)
         print(sql)
         db_handler.update_db(sql)
 
@@ -355,20 +373,27 @@ class AddRacesInfo:
             self.update_single_race_value(self.db_errata, 'aggregation_notes', key, new_value, *race)
 
     def get_time_data(self, db_handler, table):
-        table_index = self.table_to_index_mappings[table]
-        field_dict = {key: value[table_index] for key, value in self.consolidated_table_structure if value[table_index]}
-        source_fields = field_dict.values()
-        consolidated_fields = field_dict.keys()
+        if table == self.errata_table:
+            source_fields = self.errata_table_structure.keys()
+            consolidated_fields = self.errata_table_structure.keys()
+        else:
+            table_index = self.table_to_index_mappings[table]
+            field_dict = {key: value[table_index] for key, value in self.consolidated_table_structure.items()
+                          if value[table_index]}
+            source_fields = field_dict.values()
+            consolidated_fields = field_dict.keys()
         data = self.query_table(db_handler, table, source_fields)
         return pd.DataFrame(data, columns=consolidated_fields)
 
-    def attach_dfs(self):
+    def attach_dfs(self, tables_to_attach=None):
+        tables_to_attach = tables_to_attach or self.tables_to_attach
         # Pull each table and put data into a df located at self.df[table]
-        for table in self.tables_to_process:
+        for table in tables_to_attach:
+            print(f'Attaching {table}...')
             self.df[table] = self.get_time_data(self.table_to_db_mappings[table], table)
 
     def add_race_ids(self):
-        for table in self.tables_to_process:
+        for table in self.tables_to_attach:
             # Gather some processing variables
             table_index = self.table_to_index_mappings[table]
             date_column = self.consolidated_table_structure['date'][table_index]
@@ -377,7 +402,7 @@ class AddRacesInfo:
             df = self.df[table]
 
             # Zip up date, track, and race_num for races in the df being processed.
-            column_data = zip(df[date_column], df[track_column], df[race_num_column])
+            column_data = zip(df['date'], df['track'], df['race_num'])
 
             # Concatenate them, add them as a column to the df, and set that as the df's index
             race_ids = [str(item[0]) + str(item[1]) + str(item[2]) for item in column_data]
@@ -385,15 +410,15 @@ class AddRacesInfo:
             df.set_index('race_id', inplace=True)
 
     def all_consolidated_fields_blank(self,  race_id, fields):
-        data = self.df['consolidated'].loc[race_id, fields]
-        if all([np.isnan(item) or item == None for item in data]):
+        data = self.df[self.consolidated_table].loc[race_id, fields]
+        if all([item == None or (type(item) != str and not isinstance(item, datetime.date) and np.isnan(item)) for item in data]):
             return True
         else:
             return False
 
     def any_consolidated_fields_blank(self,  race_id, fields):
-        data = self.df['consolidated'].loc[race_id, fields]
-        if any([np.isnan(item) or item == None for item in data]):
+        data = self.df[self.consolidated_table].loc[race_id, fields]
+        if any([item == None or (type(item) != str and not isinstance(item, datetime.date) and np.isnan(item)) for item in data]):
             return True
         else:
             return False
@@ -405,41 +430,82 @@ class AddRacesInfo:
         else:
             return False
 
+    def escape_and_clean(self, item):
+        escaped_item = re.sub(r"(['\\])", r'\\\1', str(item))   # Escape textual backslashes and tick marks
+        cleaned_item = re.sub(u"\uFFFD", "", escaped_item)      # Fix oddball <?> character
+        return cleaned_item.strip()                             # Strip off any leading or trailing whitespace
+
     def concatenate_field_value_pairs(self, field_list, value_list):
+        value_list = [self.escape_and_clean(item) for item in value_list]
         pairs = [f'{field} = \'{value}\'' for field, value in zip(field_list, value_list)]
         return ', '.join(pairs)
 
+    def connect_dbs(self):
+        for db in self.db_handlers:
+            db.connect()
+
+    def close_dbs(self):
+        for db in self.db_handlers:
+            db.close()
+
     def process_dfs(self, table=None):
         # Allow processing of a single table if passed as an argument
-        tables = [table] if table else self.tables_to_process
+        tables = table or self.tables_to_process
+        print(tables)
 
         # Iterate through the tables to process
         for source_table in tables:
+            print(f'Processing {source_table}')
             df = self.df[source_table]
+            bar = Bar('Processing existing data', max=len(df))
             columns = df.columns.tolist()
             consolidated_df = self.df[self.consolidated_table]
             for i in range(len(df)):
+                bar.next()
                 # Get the race_id from the current row (which is the row index)
                 race_id = df.iloc[i].name
                 try:
                     consolidated_df.loc[race_id]    # Will fail if race_id isn't in conoslidated df,
                                                     #  so triggers exception handling
+
                     self.set_current_race_info(df, i)
                     # If race is in the consolidated db, check to make sure entries are not blank.
                     if self.all_consolidated_fields_blank(race_id, columns):
+                        print(f'Race entry found in consolidated_df. Race id :{race_id}')
+                        print(f'All fields found blank. Race id: {race_id}')
                         self.update_race_values(self.db_consolidated_races, self.consolidated_table,
                                                 columns, df.iloc[i].tolist())
 
                     elif self.any_consolidated_fields_blank(race_id, columns):
+                        race_data = df.iloc[i]
                         for column in columns:
                             column_data = consolidated_df.loc[race_id, column]
-                            if column_data == None or np.isnan(column_data):
-                                self.update_single_race_value(self.db_consolidated_races, self.consolidated_table,
-                                                              column, source_table.loc[race_id, column])
+                            self.current_col_data = column_data
+                            self.current_col = column
+                            # If the consolidated table is missing data, try to fill it in
+                            if column_data == None or (type(column_data) != str and not isinstance(column_data, datetime.date) and np.isnan(column_data)):
+                                source_data = race_data[column]
+                                self.current_source_data = source_data
+                                # Only replace the data if the source table has data to stick in there
+                                if source_data is not None and not (type(source_data) != str and not isinstance(source_data, datetime.date) and np.isnan(source_data)):
+                                    print(f'Race entry found in consolidated_df. Race id :{race_id}')
+                                    print(f'Updating {race_id} b/c column was empty.\n\tColumn: {column}\n\tOld Data: {column_data}. New data: {source_data}')
+                                    self.update_single_race_value(self.db_consolidated_races, self.consolidated_table,
+                                                                  column, source_data)
                 except KeyError:
                     print(f'i: {i}--Race not in consolidated races ({race_id})')
 
                     self.set_current_race_info(df, i)
-                    self.update_race_values(self.db_consolidated_races, self.consonlidated_table,
-                                            columns, df.iloc[i].tolist())
+                    self.update_race_values(self.db_consolidated_races, self.consolidated_table,
+                                            columns, df.iloc[i].tolist(), new_entry=True)
+        bar.finish()
 
+    def add_to_consolidated_table(self):
+        self.connect_dbs()
+        print('Attaching dfs to AddRacesInfo instance ...')
+        self.attach_dfs()
+        self.add_race_ids()
+        print('Processing source tables ...')
+        self.process_dfs()
+        self.close_dbs()
+        print('Done')
