@@ -37,6 +37,9 @@ class AddRacesInfo:
             'temp_rail_distance': ('INT', 'temp_rail_distance', 'temp_rail_dist', None, None),
             'about_distance_flag': ('TINYINT', 'about_distance_flag', 'about_distance', None, None,),
 
+            'standard_weight': ('TINYINT', None, None, 'standard_weight', None),
+            'three_year_old_weight': ('TINYINT', None, None, 'three_year_old_weight', None),
+
             'surface': ('VARCHAR(255)', 'surface', 'surface_new', 'surface', 'surface',),
             # 'sealed_track'
             'track_condition': ('VARCHAR(255)', 'track_condition', 'track_condition', None, 'track_condition',),
@@ -167,6 +170,7 @@ class AddRacesInfo:
         }
         self.table_to_db_mappings = {
             'race_general_results': self.db_horses_data,
+            'race_info': self.db_horses_data,
             'horse_pps': self.db_horses_data,
             'horses_consolidated_races': self.db_consolidated_races,
             self.errata_table: self.db_errata,
@@ -181,10 +185,12 @@ class AddRacesInfo:
         # Processing variables
         self.tables_to_process = [
             'race_general_results',
+            'race_info',
             'horse_pps',
         ]
         self.tables_to_attach = [
             'race_general_results',
+            'race_info',
             'horse_pps',
             'horses_consolidated_races',
             # 'horses_errata',
@@ -197,9 +203,10 @@ class AddRacesInfo:
 
         self.df = {
             'race_general_results': None,
+            'race_info': None,
             'horse_pps': None,
             'horses_errata': None,
-            'consolidated': None,
+            'horse_consolidated_races': None,
         }
 
         # Initialize tables
@@ -372,7 +379,7 @@ class AddRacesInfo:
                                      *race)
             self.update_single_race_value(self.db_errata, 'aggregation_notes', key, new_value, *race)
 
-    def get_time_data(self, db_handler, table):
+    def get_race_data(self, db_handler, table):
         if table == self.errata_table:
             source_fields = self.errata_table_structure.keys()
             consolidated_fields = self.errata_table_structure.keys()
@@ -390,7 +397,7 @@ class AddRacesInfo:
         # Pull each table and put data into a df located at self.df[table]
         for table in tables_to_attach:
             print(f'Attaching {table}...')
-            self.df[table] = self.get_time_data(self.table_to_db_mappings[table], table)
+            self.df[table] = self.get_race_data(self.table_to_db_mappings[table], table)
 
     def add_race_ids(self):
         for table in self.tables_to_attach:
