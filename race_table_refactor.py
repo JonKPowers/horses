@@ -37,8 +37,8 @@ class AddRacesInfo:
             'temp_rail_distance': ('INT', 'temp_rail_distance', 'temp_rail_dist', None, None),
             'about_distance_flag': ('TINYINT', 'about_distance_flag', 'about_distance', None, None,),
 
-            'standard_weight': ('TINYINT', None, None, 'standard_weight', None),
-            'three_year_old_weight': ('TINYINT', None, None, 'three_year_old_weight', None),
+            'standard_weight': ('SMALLINT', None, None, 'standard_weight', None),
+            'three_year_old_weight': ('SMALLINT', None, None, 'three_year_old_weight', None),
 
             'surface': ('VARCHAR(255)', 'surface', 'surface_new', 'surface', 'surface',),
             # 'sealed_track'
@@ -263,7 +263,7 @@ class AddRacesInfo:
         table_index = self.table_to_index_mappings[table]
         sql = f'SELECT {field} from {table}' + self.where_for_current_race(table_index=table_index,
                                                                            no_table_mapping=no_table_mapping)
-        print(sql)
+        # print(sql)
         return db_handler.query_db(sql)[0][0]
 
     def set_current_race_info(self, source_df, i):
@@ -291,7 +291,7 @@ class AddRacesInfo:
               f'AND race_num="{self.current_race_num}"'
 
         if new_entry: self.add_blank_race_entry(db_handler, table)
-        print(sql)
+        # print(sql)
         db_handler.update_db(sql)
 
     def dict_values_match(self, dict_key, dict_1, dict_2):
@@ -500,7 +500,7 @@ class AddRacesInfo:
                                     self.update_single_race_value(self.db_consolidated_races, self.consolidated_table,
                                                                   column, source_data)
                 except KeyError:
-                    print(f'i: {i}--Race not in consolidated races ({race_id})')
+                    # print(f'i: {i}--Race not in consolidated races ({race_id})')
 
                     self.set_current_race_info(df, i)
                     self.update_race_values(self.db_consolidated_races, self.consolidated_table,

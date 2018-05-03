@@ -37,7 +37,7 @@ class AddHorsePerformances:
             'days_since_last_race': ('INT', 'days_since_last_race', None, 'days_since_last_race'),
             'favorite': ('INT', 'favorite', 'favorite', 'favorite'),
 
-            'weight':('TINYINT', 'weight', 'weight', 'weight'),
+            'weight':('SMALLINT', 'weight', 'weight', 'weight'),
 
 
             'dead_heat_finish': ('TINYINT', 'dead_heat_finish', 'dead_heat_finish', None),
@@ -47,32 +47,36 @@ class AddHorsePerformances:
             'position_440': ('TINYINT', 'position_440', None, None),
             'position_660': ('TINYINT', 'position_660', None, None),
             'position_880': ('TINYINT', 'position_880', None, None),
+            'position_990': ('TINYINT', 'position_990', None, None),
             'position_1100': ('TINYINT', 'position_1100', None, None),
             'position_1210': ('TINYINT', 'position_1210', None, None),
             'position_1320': ('TINYINT', 'position_1320', None, None),
             'position_1430': ('TINYINT', 'position_1430', None, None),
             'position_1540': ('TINYINT', 'position_1540', None, None),
+            'position_1610': ('TINYINT', 'position_1610', None, None),
             'position_1650': ('TINYINT', 'position_1650', None, None),
             'position_1760': ('TINYINT', 'position_1760', None, None),
             'position_1830': ('TINYINT', 'position_1830', None, None),
             'position_1870': ('TINYINT', 'position_1870', None, None),
             'position_1980': ('TINYINT', 'position_1980', None, None),
 
-            'lead_or_beaten_0': ('TINYINT', 'lead_or_beaten_0', None, None),
-            'lead_or_beaten_330': ('TINYINT', 'lead_or_beaten_330', None, None),
-            'lead_or_beaten_440': ('TINYINT', 'lead_or_beaten_440', None, None),
-            'lead_or_beaten_660': ('TINYINT', 'lead_or_beaten_660', None, None),
-            'lead_or_beaten_880': ('TINYINT', 'lead_or_beaten_880', None, None),
-            'lead_or_beaten_1100': ('TINYINT', 'lead_or_beaten_1100', None, None),
-            'lead_or_beaten_1210': ('TINYINT', 'lead_or_beaten_1210', None, None),
-            'lead_or_beaten_1320': ('TINYINT', 'lead_or_beaten_1320', None, None),
-            'lead_or_beaten_1430': ('TINYINT', 'lead_or_beaten_1430', None, None),
-            'lead_or_beaten_1540': ('TINYINT', 'lead_or_beaten_1540', None, None),
-            'lead_or_beaten_1650': ('TINYINT', 'lead_or_beaten_1650', None, None),
-            'lead_or_beaten_1760': ('TINYINT', 'lead_or_beaten_1760', None, None),
-            'lead_or_beaten_1830': ('TINYINT', 'lead_or_beaten_1830', None, None),
-            'lead_or_beaten_1870': ('TINYINT', 'lead_or_beaten_1870', None, None),
-            'lead_or_beaten_1980': ('TINYINT', 'lead_or_beaten_1980', None, None),
+            'lead_or_beaten_0': ('SMALLINT', 'lead_or_beaten_0', None, None),
+            'lead_or_beaten_330': ('SMALLINT', 'lead_or_beaten_330', None, None),
+            'lead_or_beaten_440': ('SMALLINT', 'lead_or_beaten_440', None, None),
+            'lead_or_beaten_660': ('SMALLINT', 'lead_or_beaten_660', None, None),
+            'lead_or_beaten_880': ('SMALLINT', 'lead_or_beaten_880', None, None),
+            'lead_or_beaten_990': ('SMALLINT', 'lead_or_beaten_990', None, None),
+            'lead_or_beaten_1100': ('SMALLINT', 'lead_or_beaten_1100', None, None),
+            'lead_or_beaten_1210': ('SMALLINT', 'lead_or_beaten_1210', None, None),
+            'lead_or_beaten_1320': ('SMALLINT', 'lead_or_beaten_1320', None, None),
+            'lead_or_beaten_1430': ('SMALLINT', 'lead_or_beaten_1430', None, None),
+            'lead_or_beaten_1540': ('SMALLINT', 'lead_or_beaten_1540', None, None),
+            'lead_or_beaten_1610': ('SMALLINT', 'lead_or_beaten_1610', None, None),
+            'lead_or_beaten_1650': ('SMALLINT', 'lead_or_beaten_1650', None, None),
+            'lead_or_beaten_1760': ('SMALLINT', 'lead_or_beaten_1760', None, None),
+            'lead_or_beaten_1830': ('SMALLINT', 'lead_or_beaten_1830', None, None),
+            'lead_or_beaten_1870': ('SMALLINT', 'lead_or_beaten_1870', None, None),
+            'lead_or_beaten_1980': ('SMALLINT', 'lead_or_beaten_1980', None, None),
 
             'meds_adjunct_bleeder': ('TINYINT', 'meds_adjunct_bleeder', 'adjunct_bleeder_meds', None),
             'meds_bute': ('TINYINT', 'meds_bute', 'bute', 'medication_bute'),
@@ -100,7 +104,7 @@ class AddHorsePerformances:
             'equip_nasal_strip_off': ('TINYINT', 'equip_nasal_strip_off', 'equip_nasal_strip_off', None),
             'equip_bar_shoe': ('TINYINT', 'equip_bar_shoe', 'equip_bar_shoe', 'bar_shoe'),
             'equip_nasal_strip': ('TINYINT', 'equip_nasal_strip', 'equip_nasal_strip', None),
-            'equip_turndowns': ('TINYINT', 'equip_turndowns', 'equip_turndows', None),
+            'equip_turndowns': ('TINYINT', 'equip_turndowns', 'equip_turndowns', None),
             'equip_spurs': ('TINYINT', 'equip_spurs', 'equip_spurs', None),
             'equip_cheek_piece': ('TINYINT', 'equip_cheek_piece', 'equip_cheek_piece', None),
             'equip_queens_plates': ('TINYINT', 'equip_queens_plates', 'equip_queens_plates', None),
@@ -111,8 +115,27 @@ class AddHorsePerformances:
             'jockey_id': ('VARCHAR(255)', 'jockey_id', 'jockey_id', None),
             'jockey': ('VARCHAR(255)', 'jockey', 'jockey', 'jockey'),
             'trainer_id': ('VARCHAR(255)', 'trainer_id', 'trainer_id', None),
-            'trainer': ('VARCHAR(255)', 'trainer', 'trainer', 'trainer'),
+            'trainer': ('VARCHAR(255)', 'trainer', 'trainer_name', 'trainer'),
 }
+
+        self.additional_fields = {
+            'position_gate_call': [None, None, None, 'gate_call_position'],
+            'position_start_call': [None, None, 'position_start_call', 'start_call_position'],
+            'position_1st_call': [None, None, 'position_1st_call', '1st_call_position'],
+            'position_2d_call': [None, None, 'position_2d_call', '2d_call_position'],
+            'position_3d_call': [None, None, 'position_3d_call', None],
+            'position_stretch_call': [None, None, 'position_stretch_call', 'stretch_call_position'],
+            'position_finish': [None, None, 'position_finish_unofficial', 'finish_call_position'],
+
+            'lead_or_beaten_lengths_start_call': [None, None, 'lead_or_beaten_lengths_start_call', 'start_call_lead_or_beaten_lengths'],
+            'lead_or_beaten_lengths_1st_call': [None, None, 'lead_or_beaten_lengths_1st_call', '1st_call_lead_or_beaten_lengths'],
+            'lead_or_beaten_lengths_2d_call': [None, None, 'lead_or_beaten_lengths_2d_call', '2d_call_lead_or_beaten_lengths'],
+            'lead_or_beaten_lengths_3d_call': [None, None, 'lead_or_beaten_lengths_3d_call', None],
+            'lead_or_beaten_lengths_stretch_call': [None, None, 'lead_or_beaten_lengths_stretch_call', 'stretch_call_lead_or_beaten_lengths'],
+            'lead_or_beaten_lengths_finish': [None, None, 'lead_or_beaten_lengths_finish', 'finish_call_lead_or_beaten_lengths'],
+        }
+
+        self.distances_to_process = [1100, 1210, 1320, 1430, 1540, 1650, 1760, 1830, 1870, 1980]
 
         self.position_distance_mappings = {
             # Format: distance(int): {'consolidated_col_1': [None, None, 'race_horse_info_col', 'horse_pps_col'] ...}
@@ -123,78 +146,78 @@ class AddHorsePerformances:
             #       - Position at stretch call (1 furlong from finish)
             #       - Position at finish (unofficial--we don't care about disqualification for purposes of model training)
             1100: {
-                'position_0': [None, None, 'position_start_call', ''],
-                'position_330': [None, None, 'position_1st_call', ''],
-                'position_660': [None, None, 'position_2d_call', ''],
-                'position_880': [None, None, 'position_stretch_call', ''],
-                'position_1100': [None, None, 'position_finish_unofficial', ''],
+                'position_0': [None, None, 'position_start_call', 'position_start_call'],
+                'position_330': [None, None, 'position_1st_call', 'position_1st_call'],
+                'position_660': [None, None, 'position_2d_call', 'position_2d_call'],
+                'position_880': [None, None, 'position_stretch_call', 'position_stretch_call'],
+                'position_1100': [None, None, 'position_finish', 'position_finish'],
             },
             1210: {
-                'position_0': [None, None, 'position_start_call', ''],
-                'position_440': [None, None, 'position_1st_call', ''],
-                'position_660': [None, None, 'position_2d_call', ''],
-                'position_990': [None, None, 'position_stretch_call', ''],
-                'position_1210': [None, None, 'position_finish_unofficial', ''],
+                'position_0': [None, None, 'position_start_call', 'position_start_call'],
+                'position_440': [None, None, 'position_1st_call', 'position_1st_call'],
+                'position_660': [None, None, 'position_2d_call', 'position_2d_call'],
+                'position_990': [None, None, 'position_stretch_call', 'position_stretch_call'],
+                'position_1210': [None, None, 'position_finish', 'position_finish_call'],
             },
             1320: {
-                'position_0': [None, None, 'position_start_call', ''],
-                'position_440': [None, None, 'position_1st_call', ''],
-                'position_880': [None, None, 'position_2d_call', ''],
-                'position_1100': [None, None, 'position_stretch_call', ''],
-                'position_1320': [None, None, 'position_finish_unofficial', ''],
+                'position_0': [None, None, 'position_start_call', 'position_start_call'],
+                'position_440': [None, None, 'position_1st_call', 'position_1st_call'],
+                'position_880': [None, None, 'position_2d_call', 'position_2d_call'],
+                'position_1100': [None, None, 'position_stretch_call', 'position_stretch_call'],
+                'position_1320': [None, None, 'position_finish', 'position_finish'],
             },
             1430: {
-                'position_0': [None, None, 'position_start_call', ''],
-                'position_440': [None, None, 'position_1st_call', ''],
-                'position_880': [None, None, 'position_2d_call', ''],
-                'position_1210': [None, None, 'position_stretch_call', ''],
-                'position_1430': [None, None, 'position_finish_unofficial', ''],
+                'position_0': [None, None, 'position_start_call', 'position_start_call'],
+                'position_440': [None, None, 'position_1st_call', 'position_1st_call'],
+                'position_880': [None, None, 'position_2d_call', 'position_2d_call'],
+                'position_1210': [None, None, 'position_stretch_call', 'position_stretch_call'],
+                'position_1430': [None, None, 'position_finish', 'position_finish'],
             },
             1540: {
-                'position_0': [None, None, 'position_start_call', ''],
-                'position_440': [None, None, 'position_1st_call', ''],
-                'position_880': [None, None, 'position_2d_call', ''],
-                'position_1320': [None, None, 'position_stretch_call', ''],
-                'position_1540': [None, None, 'position_finish_unofficial', ''],
+                'position_0': [None, None, 'position_start_call', 'position_start_call'],
+                'position_440': [None, None, 'position_1st_call', 'position_1st_call'],
+                'position_880': [None, None, 'position_2d_call', 'position_2d_call'],
+                'position_1320': [None, None, 'position_stretch_call', 'position_stretch_call'],
+                'position_1540': [None, None, 'position_finish', 'position_finish_call'],
             },
             1650: {
-                'position_0': [None, None, 'position_start_call', ''],
-                'position_440': [None, None, 'position_1st_call', ''],
-                'position_880': [None, None, 'position_2d_call', ''],
-                'position_1430': [None, None, 'position_stretch_call', ''],
-                'position_1650': [None, None, 'position_finish_unofficial', ''],
+                'position_0': [None, None, 'position_start_call', 'position_start_call'],
+                'position_440': [None, None, 'position_1st_call', 'position_1st_call'],
+                'position_880': [None, None, 'position_2d_call', 'position_2d_call'],
+                'position_1430': [None, None, 'position_stretch_call', 'position_stretch_call'],
+                'position_1650': [None, None, 'position_finish', 'position_finish'],
             },
             1760: {
-                'position_0': [None, None, 'position_start_call', ''],
-                'position_440': [None, None, 'position_1st_call', ''],
-                'position_880': [None, None, 'position_2d_call', ''],
-                'position_1320': [None, None, 'position_3d_call', ''],
-                'position_1540': [None, None, 'position_stretch_Call', ''],
-                'position_1760': [None, None, 'position_finish_unofficial', ''],
+                'position_0': [None, None, 'position_start_call', 'position_gate_call'],
+                'position_440': [None, None, 'position_1st_call', 'position_start_call'],
+                'position_880': [None, None, 'position_2d_call', 'position_1st_call'],
+                'position_1320': [None, None, 'position_3d_call', 'position_2d_call'],
+                'position_1540': [None, None, 'position_stretch_call', 'position_stretch_call'],
+                'position_1760': [None, None, 'position_finish', 'position_finish'],
             },
             1830: {
-                'position_0': [None, None, 'position_start_call', ''],
-                'position_440': [None, None, 'position_1st_call', ''],
-                'position_880': [None, None, 'position_2d_call', ''],
-                'position_1320': [None, None, 'position_3d_call', ''],
-                'position_1610': [None, None, 'position_stretch_call', ''],
-                'position_1830': [None, None, 'position_finish_unofficial'],
+                'position_0': [None, None, 'position_start_call', 'position_gate_call'],
+                'position_440': [None, None, 'position_1st_call', 'start_call'],
+                'position_880': [None, None, 'position_2d_call', 'position_1st_call'],
+                'position_1320': [None, None, 'position_3d_call', 'position_2d_call'],
+                'position_1610': [None, None, 'position_stretch_call', 'position_stretch_call'],
+                'position_1830': [None, None, 'position_finish', 'position_finish_call'],
             },
             1870: {
-                'position_0': [None, None, 'position_start_call', ''],
-                'position_440': [None, None, 'position_1st_call', ''],
-                'position_880': [None, None, 'position_2d_call', ''],
-                'position_1320': [None, None, 'position_3d_call', ''],
-                'position_1650': [None, None, 'position_stretch_call', ''],
-                'position_1870': [None, None, 'position_finish_unofficial', ''],
+                'position_0': [None, None, 'position_start_call', 'position_gate_call'],
+                'position_440': [None, None, 'position_1st_call', 'position_start_call'],
+                'position_880': [None, None, 'position_2d_call', 'position_1st_call'],
+                'position_1320': [None, None, 'position_3d_call', 'position_2d_call'],
+                'position_1650': [None, None, 'position_stretch_call', 'position_stretch_call'],
+                'position_1870': [None, None, 'position_finish', 'position_finish'],
             },
             1980: {
-                'position_0': [None, None, 'position_start_call', ''],
-                'position_440': [None, None, 'position_1st_call', ''],
-                'position_880': [None, None, 'position_2d_call', ''],
-                'position_1320': [None, None, 'position_3d_call', ''],
-                'position_1760': [None, None, 'position_stretch_call', ''],
-                'position_1980': [None, None, 'position_finish_unofficial', ''],
+                'position_0': [None, None, 'position_start_call', 'position_gate_call'],
+                'position_440': [None, None, 'position_1st_call', 'position_start_call'],
+                'position_880': [None, None, 'position_2d_call', 'position_1st_call'],
+                'position_1320': [None, None, 'position_3d_call', 'position_2d_call'],
+                'position_1760': [None, None, 'position_stretch_call', 'position_stretch_call'],
+                'position_1980': [None, None, 'position_finish_unofficial', 'position_finish'],
             },
         }
         self.lead_or_beaten_distance_mappings = {
@@ -206,78 +229,78 @@ class AddHorsePerformances:
             #       - Margin at stretch call (1 furlong from finish)
             #       - Margin at finish (unofficial--we don't care about disqualification for purposes of model training)
             1100: {
-                'lead_or_beaten_0': [None, None, 'lead_or_beaten_lengths_start_call', ''],
-                'lead_or_beaten_330': [None, None, 'lead_or_beaten_lengths_1st_call', ''],
-                'lead_or_beaten_660': [None, None, 'lead_or_beaten_lengths_2d_call', ''],
-                'lead_or_beaten_880': [None, None, 'lead_or_beaten_lengths_stretch_call', ''],
-                'lead_or_beaten_1100': [None, None, 'lead_or_beaten_lengths_finish', ''],
+                'lead_or_beaten_0': [None, None, 'lead_or_beaten_lengths_start_call', 'lead_or_beaten_lengths_start_call'],
+                'lead_or_beaten_330': [None, None, 'lead_or_beaten_lengths_1st_call', 'lead_or_beaten_lengths_1st_call'],
+                'lead_or_beaten_660': [None, None, 'lead_or_beaten_lengths_2d_call', 'lead_or_beaten_lengths_2d_call'],
+                'lead_or_beaten_880': [None, None, 'lead_or_beaten_lengths_stretch_call', 'lead_or_beaten_lengths_stretch_call'],
+                'lead_or_beaten_1100': [None, None, 'lead_or_beaten_lengths_finish', 'lead_or_beaten_lengths_finish'],
             },
             1210: {
-                'lead_or_beaten_0': [None, None, 'lead_or_beaten_lengths_start_call', ''],
-                'lead_or_beaten_440': [None, None, 'lead_or_beaten_lengths_1st_call', ''],
-                'lead_or_beaten_660': [None, None, 'lead_or_beaten_lengths_2d_call', ''],
-                'lead_or_beaten_990': [None, None, 'lead_or_beaten_lengths_stretch_call', ''],
-                'lead_or_beaten_1210': [None, None, 'lead_or_beaten_lengths_finish', ''],
+                'lead_or_beaten_0': [None, None, 'lead_or_beaten_lengths_start_call', 'lead_or_beaten_lengths_start_call'],
+                'lead_or_beaten_440': [None, None, 'lead_or_beaten_lengths_1st_call', 'lead_or_beaten_lengths_1st_call'],
+                'lead_or_beaten_660': [None, None, 'lead_or_beaten_lengths_2d_call', 'lead_or_beaten_lengths_2d_call'],
+                'lead_or_beaten_990': [None, None, 'lead_or_beaten_lengths_stretch_call', 'lead_or_beaten_lengths_stretch_call'],
+                'lead_or_beaten_1210': [None, None, 'lead_or_beaten_lengths_finish', 'lead_or_beaten_lengths_finish'],
             },
             1320: {
-                'lead_or_beaten_0': [None, None, 'lead_or_beaten_lengths_start_call', ''],
-                'lead_or_beaten_440': [None, None, 'lead_or_beaten_lengths_1st_call', ''],
-                'lead_or_beaten_880': [None, None, 'lead_or_beaten_lengths_2d_call', ''],
-                'lead_or_beaten_1100': [None, None, 'lead_or_beaten_lengths_stretch_call', ''],
-                'lead_or_beaten_1320': [None, None, 'lead_or_beaten_lengths_finish', ''],
+                'lead_or_beaten_0': [None, None, 'lead_or_beaten_lengths_start_call', 'lead_or_beaten_lengths_start_call'],
+                'lead_or_beaten_440': [None, None, 'lead_or_beaten_lengths_1st_call', 'lead_or_beaten_lengths_1st_call'],
+                'lead_or_beaten_880': [None, None, 'lead_or_beaten_lengths_2d_call', 'lead_or_beaten_lengths_2d_call'],
+                'lead_or_beaten_1100': [None, None, 'lead_or_beaten_lengths_stretch_call', 'lead_or_beaten_lengths_stretch_call'],
+                'lead_or_beaten_1320': [None, None, 'lead_or_beaten_lengths_finish', 'lead_or_beaten_lengths_finish'],
             },
             1430: {
-                'lead_or_beaten_0': [None, None, 'lead_or_beaten_lengths_start_call', ''],
-                'lead_or_beaten_440': [None, None, 'lead_or_beaten_lengths_1st_call', ''],
-                'lead_or_beaten_880': [None, None, 'lead_or_beaten_lengths_2d_call', ''],
-                'lead_or_beaten_1210': [None, None, 'lead_or_beaten_lengths_stretch_call', ''],
-                'lead_or_beaten_1430': [None, None, 'lead_or_beaten_lengths_finish', ''],
+                'lead_or_beaten_0': [None, None, 'lead_or_beaten_lengths_start_call', 'lead_or_beaten_lengths_start_call'],
+                'lead_or_beaten_440': [None, None, 'lead_or_beaten_lengths_1st_call', 'lead_or_beaten_lengths_1st_call'],
+                'lead_or_beaten_880': [None, None, 'lead_or_beaten_lengths_2d_call', 'lead_or_beaten_lengths_2d_call'],
+                'lead_or_beaten_1210': [None, None, 'lead_or_beaten_lengths_stretch_call', 'lead_or_beaten_lengths_stretch_call'],
+                'lead_or_beaten_1430': [None, None, 'lead_or_beaten_lengths_finish', 'lead_or_beaten_lengths_finish'],
             },
             1540: {
-                'lead_or_beaten_0': [None, None, 'lead_or_beaten_lengths_start_call', ''],
-                'lead_or_beaten_440': [None, None, 'lead_or_beaten_lengths_1st_call', ''],
-                'lead_or_beaten_880': [None, None, 'lead_or_beaten_lengths_2d_call', ''],
-                'lead_or_beaten_1320': [None, None, 'lead_or_beaten_lengths_stretch_call', ''],
-                'lead_or_beaten_1540': [None, None, 'lead_or_beaten_lengths_position_finish', ''],
+                'lead_or_beaten_0': [None, None, 'lead_or_beaten_lengths_start_call', 'lead_or_beaten_lengths_start_call'],
+                'lead_or_beaten_440': [None, None, 'lead_or_beaten_lengths_1st_call', 'lead_or_beaten_lengths_1st_call'],
+                'lead_or_beaten_880': [None, None, 'lead_or_beaten_lengths_2d_call', 'lead_or_beaten_lengths_2d_call'],
+                'lead_or_beaten_1320': [None, None, 'lead_or_beaten_lengths_stretch_call', 'lead_or_beaten_lengths_stretch_call'],
+                'lead_or_beaten_1540': [None, None, 'lead_or_beaten_lengths_position_finish', 'lead_or_beaten_lengths_position_finish'],
             },
             1650: {
-                'lead_or_beaten_0': [None, None, 'lead_or_beaten_lengths_start_call', ''],
-                'lead_or_beaten_440': [None, None, 'lead_or_beaten_lengths_1st_call', ''],
-                'lead_or_beaten_880': [None, None, 'lead_or_beaten_lengths_2d_call', ''],
-                'lead_or_beaten_1430': [None, None, 'lead_or_beaten_lengths_stretch_call', ''],
-                'lead_or_beaten_1650': [None, None, 'lead_or_beaten_lengths_finish', ''],
+                'lead_or_beaten_0': [None, None, 'lead_or_beaten_lengths_start_call', 'lead_or_beaten_lengths_start_call'],
+                'lead_or_beaten_440': [None, None, 'lead_or_beaten_lengths_1st_call', 'lead_or_beaten_lengths_1st_call'],
+                'lead_or_beaten_880': [None, None, 'lead_or_beaten_lengths_2d_call', 'lead_or_beaten_lengths_2d_call'],
+                'lead_or_beaten_1430': [None, None, 'lead_or_beaten_lengths_stretch_call', 'lead_or_beaten_lengths_stretch_call'],
+                'lead_or_beaten_1650': [None, None, 'lead_or_beaten_lengths_finish', 'lead_or_beaten_lengths_finish'],
             },
             1760: {
-                'lead_or_beaten_0': [None, None, 'lead_or_beaten_lengths_start_call', ''],
-                'lead_or_beaten_440': [None, None, 'lead_or_beaten_lengths_1st_call', ''],
-                'lead_or_beaten_880': [None, None, 'lead_or_beaten_lengths_2d_call', ''],
-                'lead_or_beaten_1320': [None, None, 'lead_or_beaten_lengths_3d_call', ''],
-                'lead_or_beaten_1540': [None, None, 'lead_or_beaten_lengths_stretch_Call', ''],
-                'lead_or_beaten_1760': [None, None, 'lead_or_beaten_lengths_finish', ''],
+                'lead_or_beaten_0': [None, None, 'lead_or_beaten_lengths_start_call', None],
+                'lead_or_beaten_440': [None, None, 'lead_or_beaten_lengths_1st_call', 'lead_or_beaten_lengths_start_call'],
+                'lead_or_beaten_880': [None, None, 'lead_or_beaten_lengths_2d_call', 'lead_or_beaten_lengths_1st_call'],
+                'lead_or_beaten_1320': [None, None, 'lead_or_beaten_lengths_3d_call', 'lead_or_beaten_lengths_2d_call'],
+                'lead_or_beaten_1540': [None, None, 'lead_or_beaten_lengths_stretch_call', 'lead_or_beaten_lengths_stretch_call'],
+                'lead_or_beaten_1760': [None, None, 'lead_or_beaten_lengths_finish', 'lead_or_beaten_lengths_finish'],
             },
             1830: {
-                'lead_or_beaten_0': [None, None, 'lead_or_beaten_lengths_start_call', ''],
-                'lead_or_beaten_440': [None, None, 'lead_or_beaten_lengths_1st_call', ''],
-                'lead_or_beaten_880': [None, None, 'lead_or_beaten_lengths_2d_call', ''],
-                'lead_or_beaten_1320': [None, None, 'lead_or_beaten_lengths_3d_call', ''],
-                'lead_or_beaten_1610': [None, None, 'lead_or_beaten_lengths_stretch_call', ''],
-                'lead_or_beaten_1830': [None, None, 'lead_or_beaten_lengths_finish'],
+                'lead_or_beaten_0': [None, None, 'lead_or_beaten_lengths_start_call', None],
+                'lead_or_beaten_440': [None, None, 'lead_or_beaten_lengths_1st_call', 'lead_or_beaten_lengths_start_call'],
+                'lead_or_beaten_880': [None, None, 'lead_or_beaten_lengths_2d_call', 'lead_or_beaten_lengths_1st_call'],
+                'lead_or_beaten_1320': [None, None, 'lead_or_beaten_lengths_3d_call', 'lead_or_beaten_lengths_2d_call'],
+                'lead_or_beaten_1610': [None, None, 'lead_or_beaten_lengths_stretch_call', 'lead_or_beaten_lengths_stretch_call'],
+                'lead_or_beaten_1830': [None, None, 'lead_or_beaten_lengths_finish', 'lead_or_beaten_lengths_finish'],
             },
             1870: {
-                'lead_or_beaten_0': [None, None, 'lead_or_beaten_lengths_start_call', ''],
-                'lead_or_beaten_440': [None, None, 'lead_or_beaten_lengths_1st_call', ''],
-                'lead_or_beaten_880': [None, None, 'lead_or_beaten_lengths_2d_call', ''],
-                'lead_or_beaten_1320': [None, None, 'lead_or_beaten_lengths_3d_call', ''],
-                'lead_or_beaten_1650': [None, None, 'lead_or_beaten_lengths_stretch_call', ''],
-                'lead_or_beaten_1870': [None, None, 'lead_or_beaten_lengths_finish', ''],
+                'lead_or_beaten_0': [None, None, 'lead_or_beaten_lengths_start_call', None],
+                'lead_or_beaten_440': [None, None, 'lead_or_beaten_lengths_1st_call', 'lead_or_beaten_lengths_start_call'],
+                'lead_or_beaten_880': [None, None, 'lead_or_beaten_lengths_2d_call', 'lead_or_beaten_lengths_1st_call'],
+                'lead_or_beaten_1320': [None, None, 'lead_or_beaten_lengths_3d_call', 'lead_or_beaten_lengths_2d_call'],
+                'lead_or_beaten_1650': [None, None, 'lead_or_beaten_lengths_stretch_call', 'lead_or_beaten_lengths_stretch_call'],
+                'lead_or_beaten_1870': [None, None, 'lead_or_beaten_lengths_finish', 'lead_or_beaten_lengths_finish'],
             },
             1980: {
-                'lead_or_beaten_0': [None, None, 'lead_or_beaten_lengths_start_call', ''],
-                'lead_or_beaten_440': [None, None, 'lead_or_beaten_lengths_1st_call', ''],
-                'lead_or_beaten_880': [None, None, 'lead_or_beaten_lengths_2d_call', ''],
-                'lead_or_beaten_1320': [None, None, 'lead_or_beaten_lengths_3d_call', ''],
-                'lead_or_beaten_1760': [None, None, 'lead_or_beaten_lengths_stretch_call', ''],
-                'lead_or_beaten_1980': [None, None, 'llead_or_beaten_lengths_finish', ''],
+                'lead_or_beaten_0': [None, None, 'lead_or_beaten_lengths_start_call', None],
+                'lead_or_beaten_440': [None, None, 'lead_or_beaten_lengths_1st_call', 'lead_or_beaten_lengths_start_call'],
+                'lead_or_beaten_880': [None, None, 'lead_or_beaten_lengths_2d_call', 'lead_or_beaten_lengths_1st_call'],
+                'lead_or_beaten_1320': [None, None, 'lead_or_beaten_lengths_3d_call', 'lead_or_beaten_lengths_2d_call'],
+                'lead_or_beaten_1760': [None, None, 'lead_or_beaten_lengths_stretch_call', 'lead_or_beaten_lengths_stretch_call'],
+                'lead_or_beaten_1980': [None, None, 'lead_or_beaten_lengths_finish', 'lead_or_beaten_lengths_finish'],
             },
         }
 
@@ -297,6 +320,7 @@ class AddHorsePerformances:
             'race_horse_info': self.db_horses_data,
             'horse_pps': self.db_horses_data,
             'horses_consolidated_performances': self.db_consolidated_races,
+            'horses_consolidated_races': self.db_consolidated_races,
             self.errata_table: self.db_errata,
         }
         self.column_mappings = {
@@ -315,6 +339,7 @@ class AddHorsePerformances:
             'race_horse_info',
             'horse_pps',
             'horses_consolidated_performances',
+            'horses_consolidated_races',
             # 'horses_errata',
         ]
 
@@ -328,6 +353,7 @@ class AddHorsePerformances:
             'race_horse_info': None,
             'horse_pps': None,
             'horses_consolidated_performances': None,
+
         }
 
         # Initialize tables
@@ -399,7 +425,7 @@ class AddHorsePerformances:
               f'AND horse_name="{self.current_horse}"'
 
         if new_entry: self.add_horse_race_entry(db_handler, table)
-        print(sql)
+        # print(sql)
         db_handler.update_db(sql)
 
     def dict_values_match(self, dict_key, dict_1, dict_2):
@@ -487,20 +513,20 @@ class AddHorsePerformances:
                                      *race)
             self.update_single_race_value(self.db_errata, 'aggregation_notes', key, new_value, *race)
 
-    def get_race_data(self, db_handler, table, distance):
+    def get_race_data(self, db_handler, table):
         if table == self.errata_table:
             source_fields = self.errata_table_structure.keys()
             consolidated_fields = self.errata_table_structure.keys()
+        elif table == 'horses_consolidated_races':
+            source_fields = ['date', 'track', 'race_num', 'distance']
+            consolidated_fields = ['date', 'track', 'race_num', 'distance']
         else:
             table_index = self.table_to_index_mappings[table]
             field_dict = {key: value[table_index] for key, value in self.consolidated_table_structure.items()
                           if value[table_index]}
-            position_fields = {key: value[table_index] for key, value in
-                               self.position_distance_mappings[distance].items() if value[table_index] }
-            margin_fields = {key: value[table_index] for key, value in
-                             self.lead_or_beaten_distance_mappings[distance].items() if value[table_index]}
-            field_dict.update(position_fields)
-            field_dict.update(margin_fields)
+            additional_fields = {key: value[table_index] for key, value in self.additional_fields.items()
+                                 if value[table_index]}
+            field_dict.update(additional_fields)
             fields = [(key, value) for key, value in field_dict.items()]
             source_fields = [item for _, item in fields]
             consolidated_fields = [item for item, _ in fields]
@@ -513,6 +539,13 @@ class AddHorsePerformances:
         for table in tables_to_attach:
             print(f'Attaching {table}...')
             self.df[table] = self.get_race_data(self.table_to_db_mappings[table], table)
+        self.df['horses_consolidated_races'] = self.get_race_data(self.db_consolidated_races,
+                                                                  'horses_consolidated_races')
+
+    def current_race_id(self, include_horse=False):
+        race_id = str(self.current_date) + str(self.current_track) + str(self.current_race_num)
+        if include_horse: race_id += str(self.current_horse).upper()
+        return race_id
 
     def add_race_ids(self):
         for table in self.tables_to_attach:
@@ -520,10 +553,18 @@ class AddHorsePerformances:
             df = self.df[table]
 
             # Zip up date, track, and race_num for races in the df being processed.
-            race_id_data = zip(df['date'], df['track'], df['race_num'], df['horse_name'])
+            # For horses_consolidated_data, don't include a horse name (because there isn't one in that table)
+            race_id_data = zip(df['date'], df['track'], df['race_num'], df['horse_name']) if \
+                table != 'horses_consolidated_races' else zip(df['date'], df['track'], df['race_num'])
+
+            print(f'Adding race ids to {table}')
+            self.current_race_id_data = race_id_data
 
             # Concatenate them, add them as a column to the df, and set that as the df's index
-            race_ids = [str(item[0]) + str(item[1]) + str(item[2]) + str(item[3]) for item in race_id_data]
+            if table == 'horses_consolidated_races':
+                race_ids = [str(item[0]) + str(item[1]) + str(item[2]) for item in race_id_data]
+            else:
+                race_ids = [str(item[0]) + str(item[1]) + str(item[2]) + str(item[3]).upper() for item in race_id_data]
             df['race_id'] = race_ids
             df.set_index('race_id', inplace=True)
 
@@ -536,7 +577,8 @@ class AddHorsePerformances:
 
     def any_consolidated_fields_blank(self,  race_id, fields):
         data = self.df[self.consolidated_table].loc[race_id, fields]
-        if any([item == None or (type(item) != str and not isinstance(item, datetime.date) and np.isnan(item)) for item in data]):
+        missing_data = [item == None or (type(item) != str and not isinstance(item, datetime.date) and np.isnan(item)) for item in data]
+        if any(missing_data):
             return True
         else:
             return False
@@ -566,6 +608,17 @@ class AddHorsePerformances:
         for db in self.db_handlers:
             db.close()
 
+    def get_position_mapping(self, table, distance):
+        table_index = self.table_to_index_mappings[table]
+        map = {value[table_index]: key for key, value in self.position_distance_mappings[distance].items()}
+        return map
+
+
+    def get_margin_mapping(self, table, distance):
+        table_index = self.table_to_index_mappings[table]
+        map = {value[table_index]: key for key, value in self.lead_or_beaten_distance_mappings[distance].items()}
+        return map
+
     def process_dfs(self, table=None):
         # Allow processing of a single table if passed as an argument
         tables = table or self.tables_to_process
@@ -576,54 +629,99 @@ class AddHorsePerformances:
             print(f'Processing {source_table}')
             df = self.df[source_table]
             bar = Bar('Processing existing data', max=len(df))
-            columns = df.columns.tolist()
             consolidated_df = self.df[self.consolidated_table]
             for i in range(len(df)):
                 bar.next()
+
+                # Set state
+                self.set_current_info(df, i)
+
+                # Set distance state and continue if we don't have coverage for the distance
+                try:
+                    distance = self.df['horses_consolidated_races'].loc[self.current_race_id(), 'distance']
+                except KeyError:
+                    continue
+                if distance not in self.distances_to_process: continue
+
+                # Work out position/margin columns to drop after mapping
+                table_index = self.table_to_index_mappings[source_table]
+                additional_cols = [key for key in self.additional_fields if self.additional_fields[key][table_index] is not None]
+                position_cols = [key for key in self.get_position_mapping(source_table, distance).keys()]
+                margin_cols = [key for key in self.get_margin_mapping(source_table, distance).keys()]
+                drop_columns = [col for col in additional_cols if col not in position_cols and col not in margin_cols]
+                # print('Additional_cols:', additional_cols)
+                # print('Position_cols:', position_cols)
+                # print('Margin_cols:', margin_cols)
+                # print('Drop cols:', drop_columns)
+
                 # Get the race_id from the current row (which is the row index)
                 race_id = df.iloc[i].name
+
+                # Pull row data and set appropriate position/margin column names for distance
+                row_data = df.iloc[i]
+                    # Position column names
+                row_data = row_data.rename(self.get_position_mapping(source_table, distance))
+                    # Margin column names
+                row_data = row_data.rename(self.get_margin_mapping(source_table, distance))
+
+                    # Drop unused columsn that conflict with consolidated table schema
+                self.current_row_data = row_data
+                row_data = row_data.drop(drop_columns)
+                columns = row_data.index.tolist()
+                self.current_columns = columns
+
                 try:
-                    consolidated_df.loc[race_id]    # Will fail if race_id isn't in conoslidated df,
+                    consolidated_df.loc[race_id]    # Will fail if race_id isn't in consolidated df,
                                                     #  so triggers exception handling
 
-                    self.set_current_info(df, i)
                     # If race is in the consolidated db, check to make sure entries are not blank.
                     if self.all_consolidated_fields_blank(race_id, columns):
                         print(f'Race entry found in consolidated_df. Race id :{race_id}')
                         print(f'All fields found blank. Race id: {race_id}')
                         self.update_race_values(self.db_consolidated_races, self.consolidated_table,
-                                                columns, df.iloc[i].tolist())
+                                                columns, row_data.tolist())
+
 
                     elif self.any_consolidated_fields_blank(race_id, columns):
-                        race_data = df.iloc[i]
-                        for column in columns:
-                            column_data = consolidated_df.loc[race_id, column]
-                            self.current_col_data = column_data
-                            self.current_col = column
-                            # If the consolidated table is missing data, try to fill it in
-                            if column_data == None or (type(column_data) != str and not isinstance(column_data, datetime.date) and np.isnan(column_data)):
-                                source_data = race_data[column]
-                                self.current_source_data = source_data
-                                # Only replace the data if the source table has data to stick in there
-                                if source_data is not None and not (type(source_data) != str and not isinstance(source_data, datetime.date) and np.isnan(source_data)):
-                                    print(f'Race entry found in consolidated_df. Race id :{race_id}')
-                                    print(f'Updating {race_id} b/c column was empty.\n\tColumn: {column}\n\tOld Data: {column_data}. New data: {source_data}')
-                                    self.update_single_race_value(self.db_consolidated_races, self.consolidated_table,
-                                                                  column, source_data)
-                except KeyError:
-                    print(f'i: {i}--Race not in consolidated races ({race_id})')
+                        print(f'Some fields blank ({race_id})')
+                        consolidated_data = self.df[self.consolidated_table].loc[race_id, columns]
+                        missing_consolidated_data = [item == None or (type(item) != str and not isinstance(item, datetime.date) and np.isnan(item)) for item in consolidated_data]
+                        column_data = consolidated_df.loc[race_id, columns]
+                        missing_column_data = [item == None or (type(item) != str and not isinstance(item, datetime.date) and np.isnan(item)) for item in column_data]
 
-                    self.set_current_info(df, i)
+                        # Generate boolean list showing whether there is data missing in consolidated_data that isn't missing in column_data
+                        fix_it_list = [item[0] == True and item[1] == False for item in zip(missing_consolidated_data, missing_column_data)]
+
+                        if any(fix_it_list):
+                            print(f'Mismatch: column_data: {column_data}')
+                            for column in columns:
+                                self.current_col_data = column_data
+                                self.current_col = column
+                                # If the consolidated table is missing data, try to fill it in
+                                if column_data == None or (type(column_data) != str and not isinstance(column_data, datetime.date) and np.isnan(column_data)):
+                                    source_data = row_data[column]
+                                    self.current_source_data = source_data
+                                    # Only replace the data if the source table has data to stick in there
+                                    if source_data is not None and not (type(source_data) != str and not isinstance(source_data, datetime.date) and np.isnan(source_data)):
+                                        print(f'Race entry found in consolidated_df. Race id :{race_id}')
+                                        print(f'Updating {race_id} b/c column was empty.\n\tColumn: {column}\n\tOld Data: {column_data}. New data: {source_data}')
+                                        self.update_single_race_value(self.db_consolidated_races, self.consolidated_table,
+                                                                      column, source_data)
+                except KeyError:
+                    # print(f'i: {i}--Race not in consolidated races ({race_id})')
+
+                    # Pull row data and set column names to match consolidated data column names
                     self.update_race_values(self.db_consolidated_races, self.consolidated_table,
-                                            columns, df.iloc[i].tolist(), new_entry=True)
+                                            columns, row_data.tolist(), new_entry=True)
         bar.finish()
 
-    def add_to_consolidated_table(self):
+    def add_to_consolidated_table(self, table=None):
+        table = table or None
         self.connect_dbs()
         print('Attaching dfs to AddRacesInfo instance ...')
         self.attach_dfs()
         self.add_race_ids()
         print('Processing source tables ...')
-        self.process_dfs()
+        self.process_dfs(table=table)
         self.close_dbs()
         print('Done')

@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 import db_handler_persistent as dbh
+import datetime
 
 class AddTimes:
 
@@ -28,7 +29,7 @@ class AddTimes:
             sql += f' WHERE {where}'
         if other:
             sql += f' {other}'
-        print(sql)
+        # print(sql)
         return db_handler.query_db(sql, return_col_names)
 
     def where_for_current_race(self, table_index=None, no_table_mapping=False):
@@ -52,7 +53,7 @@ class AddTimes:
         table_index = self.table_mappings[table]
         sql = f'SELECT {field} FROM {table} ' + self.where_for_current_race(no_table_mapping=no_table_mapping,
                                                                             table_index=table_index)
-        print(sql)
+        # print(sql)
         return db_handler.query_db(sql)[0][0]
 
     def get_consolidated_value(self, field):
@@ -106,7 +107,7 @@ class AddTimes:
               f'WHERE track="{self.current_track}" ' \
               f'AND date="{self.current_date}" ' \
               f'AND race_num="{self.current_race_num}"'
-        print(sql)
+        # print(sql)
         db_handler.update_db(sql)
 
     def update_race_values(self, db_handler, table, field_list, value_list):
@@ -114,7 +115,7 @@ class AddTimes:
               f'WHERE track="{self.current_track}" ' \
               f'AND date="{self.current_date}" ' \
               f'AND race_num="{self.current_race_num}"'
-        print(sql)
+        # print(sql)
         db_handler.update_db(sql)
 
     def update_consolidated_value(self, field, value):
@@ -267,8 +268,6 @@ class AddTimes:
                             self.set_current_race_info(source_df, table_index, i)
                             self.update_time_entries(source_df, distance, table_index, i, new_entry=True)
 
-
-
     def get_col_index(self, df, column, table_index=None):
         if table_index:
             return df.columns.get_loc(self.column_mappings[column][table_index])
@@ -277,7 +276,7 @@ class AddTimes:
 
     def all_consolidated_times_blank(self,  race_id):
         times = self.consolidated_df.loc[race_id, self.time_columns_all]
-        if all([np.isnan(time) or time == None for time in times]):
+        if all([time == None or (type(time) != str and not isinstance(time, datetime.date) and np.isnan(time)) for time in times]):
             return True
         else:
             return False

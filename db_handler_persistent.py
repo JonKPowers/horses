@@ -30,11 +30,11 @@ class QueryDB:
         cursor = self.connection.cursor()
         self._use_db(self.connection, cursor)
         sql_query = re.sub(r'[\'"](NULL|nan|None)[\'"]', "NULL", sql_query)     # Correct NULL entry for insertion into db
-        print('Sending SQL update query')
+        # print('Sending SQL update query')
         logging.debug(sql_query)
         cursor.execute(sql_query)
         self.connection.commit()
-        print('Update query sent; change committed')
+        # print('Update query sent; change committed')
 
     def initialize_db(self):
         """Checks to see if db exists. If not, creates it."""
@@ -115,7 +115,7 @@ class QueryDB:
             sql = re.sub(r"'(NULL|nan|None)'", "NULL", sql)             # NULL should be sent in SQL w/o quote marks
                                                                         # nan and None should be stored as NULL
             # print('{} of {}: {}'.format(i+1,len(table_data), sql))
-            print(sql)
+            # print(sql)
             logging.debug(f'{i+1} of {len(table_data)}: {sql}')
             try:
                 cursor.execute(sql)
