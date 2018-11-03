@@ -6,6 +6,7 @@ import re
 
 logging.basicConfig(filename='aggregation_functions.log', filemode='w', level=logging.DEBUG)
 
+
 class SQLConnection:
     def __init__(self, user, password):
         self.user = user

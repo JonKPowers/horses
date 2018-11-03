@@ -7,6 +7,7 @@ import datetime
 import re
 from progress.bar import Bar
 
+
 class AddHorsePerformances:
     def __init__(self):
         self.db_consolidated_races = dbh.QueryDB(db='horses_consolidated_races', initialize_db=True)
@@ -613,7 +614,6 @@ class AddHorsePerformances:
         map = {value[table_index]: key for key, value in self.position_distance_mappings[distance].items()}
         return map
 
-
     def get_margin_mapping(self, table, distance):
         table_index = self.table_to_index_mappings[table]
         map = {value[table_index]: key for key, value in self.lead_or_beaten_distance_mappings[distance].items()}
@@ -664,7 +664,7 @@ class AddHorsePerformances:
                     # Margin column names
                 row_data = row_data.rename(self.get_margin_mapping(source_table, distance))
 
-                    # Drop unused columsn that conflict with consolidated table schema
+                    # Drop unused columns that conflict with consolidated table schema
                 self.current_row_data = row_data
                 row_data = row_data.drop(drop_columns)
                 columns = row_data.index.tolist()

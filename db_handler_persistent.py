@@ -26,6 +26,21 @@ class QueryDB:
         results_cols = [item[0] for item in cursor.description]
         return (results, results_cols) if return_col_names else results
 
+    def generate_query(self, table_name, fields, where='', other='', print_query=False):
+        sql = f'SELECT {", ".join(fields)}'
+        sql += f' FROM {table_name}'
+        if where: sql += f' WHERE {where}'
+        if other: sql += f' {other}'
+        if print_query: print(sql)
+        return sql
+
+    def generate_update_query(self, table, field_list, value_list, where='', other='', print_query=False):
+        sql = f'UPDATE {table} SET {self.concatenate_field_value_pairs(field_list, value_list)} '
+        if where: sql += f'WHERE {where}'
+        if other: sql += f'{other}'
+        if print_query: print(sql)
+        return sql
+
     def update_db(self, sql_query):
         cursor = self.connection.cursor()
         self._use_db(self.connection, cursor)
@@ -35,6 +50,16 @@ class QueryDB:
         cursor.execute(sql_query)
         self.connection.commit()
         # print('Update query sent; change committed')
+
+    def concatenate_field_value_pairs(self, field_list, value_list):
+        value_list = [self.escape_and_clean(item) for item in value_list]
+        pairs = [f'{field} = \'{value}\'' for field, value in zip(field_list, value_list)]
+        return ', '.join(pairs)
+
+    def escape_and_clean(self, item):
+        escaped_item = re.sub(r"(['\\])", r'\\\1', str(item))   # Escape textual backslashes and tick marks
+        cleaned_item = re.sub(u"\uFFFD", "", escaped_item)      # Fix oddball <?> character
+        return cleaned_item.strip()                             # Strip off any leading or trailing whitespace
 
     def initialize_db(self):
         """Checks to see if db exists. If not, creates it."""
@@ -107,16 +132,13 @@ class QueryDB:
         for i in range(len(table_data)):
             values_string = ''
             for item in table_data[i]:
-                escaped_item = re.sub(r"(['\\])", r'\\\1', str(item))   # Escape textual backslashes and tick marks
-                cleaned_item = re.sub(u"\uFFFD", "", escaped_item)      # Fix oddball <?> character
-                values_string += cleaned_item.strip() + "', '"          # Strip off any leading or trailing whitespace
+                values_string += self.escape_and_clean(item) + "', '"   # Strip off any leading or trailing whitespace
             values_string = values_string[:-4]                          # Chop off extra "', '"
             sql = f"INSERT INTO {table_name} ({', '.join(sql_col_names)}) VALUES ('{values_string}')"
             sql = re.sub(r"'(NULL|nan|None)'", "NULL", sql)             # NULL should be sent in SQL w/o quote marks
                                                                         # nan and None should be stored as NULL
-            # print('{} of {}: {}'.format(i+1,len(table_data), sql))
-            # print(sql)
-            logging.debug(f'{i+1} of {len(table_data)}: {sql}')
+            print(sql)
+
             try:
                 cursor.execute(sql)
             except (pymysql.err.ProgrammingError, pymysql.err.IntegrityError) as e:

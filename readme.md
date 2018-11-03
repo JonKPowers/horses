@@ -17,7 +17,7 @@ are taken out of the data. The output plots will be placed in an image file call
 This program **requires Python 3.6** to run.
 
 In addition to cloning this repo to your local machine, you'll need to download the zipped data file 
-[here](http://www.JonKPowers.com/horse_data.zip) and extract it into a data subdirectory at `/path_to_repo/data/`. 
+[here](http://www.JonKPowers.com/horse_data.zip) [LINK NOW DISABLED] and extract it into a data subdirectory at `/path_to_repo/data/`. 
 The repo's root directory should contain files like `main.py` and `database_functions.py`, and the `data/` directory
 should contain a little over 9,000 files, mostly having a `.1` extension.  
 
