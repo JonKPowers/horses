@@ -209,8 +209,7 @@ class AddRacesInfo:
             'horse_consolidated_races': None,
         }
 
-        # Initialize tables
-        unique = ['track', 'date', 'race_num']
+
 
         consolidated_races_dtypes = {key: value[0] for key, value in self.consolidated_table_structure.items()}
         self.db_consolidated_races.initialize_table(self.consolidated_table, consolidated_races_dtypes,

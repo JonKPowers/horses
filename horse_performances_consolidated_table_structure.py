@@ -91,8 +91,8 @@ CONSOLIDATED_TABLE_STRUCTURE = {
     'equip_no_shoes':       ('TINYINT',     'equip_no_shoes',       'equip_no_shoes',           None),
     'equip_tongue_tie':     ('TINYINT',     'equip_tongue_tie',     'equip_tongue_tie',         None),
 
-    'jockey_id':            ('VARCHAR(255)',    'jockey_id',    'jockey_id',    None),
+    'jockey_id':            ('INT',             'jockey_id',    'jockey_id',    None),
     'jockey':               ('VARCHAR(255)',    'jockey',       'jockey',       'jockey'),
-    'trainer_id':           ('VARCHAR(255)',    'trainer_id',   'trainer_id',   None),
+    'trainer_id':           ('INT',             'trainer_id',   'trainer_id',   None),
     'trainer':              ('VARCHAR(255)',    'trainer',      'trainer_name', 'trainer'),
 }

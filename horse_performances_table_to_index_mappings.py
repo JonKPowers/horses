@@ -4,7 +4,13 @@
 # lookup consolidated_table_structure[horse_name][3]
 
 TABLE_TO_INDEX_MAPPINGS = {
+    # Past performance consolidated tables:
     'horses_consolidated_performances': 1,
     'race_horse_info' : 2,
     'horse_pps': 3,
+
+    # Race consolidations tables:
+    'horses_consolidated_races': 1,
+    'race_general_results': 2,
+    'race_info': 3,
 }

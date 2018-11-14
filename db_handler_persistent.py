@@ -45,16 +45,15 @@ class QueryDB:
         cursor = self.connection.cursor()
         self._use_db(self.connection, cursor)
         sql_query = re.sub(r'[\'"](NULL|nan|None)[\'"]', "NULL", sql_query)     # Correct NULL entry for insertion into db
-        # print('Sending SQL update query')
-        logging.debug(sql_query)
+        if self.verbose: print(f'Update SQL: {sql_query}')
         cursor.execute(sql_query)
         self.connection.commit()
         # print('Update query sent; change committed')
 
-    def concatenate_field_value_pairs(self, field_list, value_list):
+    def concatenate_field_value_pairs(self, field_list, value_list, separator=', '):
         value_list = [self.escape_and_clean(item) for item in value_list]
         pairs = [f'{field} = \'{value}\'' for field, value in zip(field_list, value_list)]
-        return ', '.join(pairs)
+        return separator.join(pairs)
 
     def escape_and_clean(self, item):
         escaped_item = re.sub(r"(['\\])", r'\\\1', str(item))   # Escape textual backslashes and tick marks
@@ -79,6 +78,20 @@ class QueryDB:
         cursor = self.connection.cursor()
         self._use_db(self.connection, cursor)
         self._insert_records(self.connection, cursor, table_name, table_data, sql_col_names)
+
+    def delete_from_table(self, table_name, where_fields, where_values):
+        if len(where_fields) < 1 or len(where_values) < 1:
+            print('Deletion of entire table not allowed.')
+            return
+        elif len(where_fields) != len(where_values):
+            print('Lengths of fields and values for deletion do not match')
+            return
+        else:
+            where_clause = self.concatenate_field_value_pairs(where_fields, where_values, separator=" and ")
+            sql = f'DELETE FROM {table_name} WHERE {where_clause};'
+
+        if self.verbose: print(sql)
+        self._send_query_and_commit(sql)
 
     def initialize_table(self, table_name, dtypes, unique_key, foreign_key):
         """Checks to see if a table exists. If not, creates it."""
@@ -128,7 +141,7 @@ class QueryDB:
             logging.info(f'Error creating table{table_name}:\n\t{sql}')
         db.commit()
 
-    def _insert_records(self, db, cursor, table_name, table_data, sql_col_names):
+    def _insert_records(self, db, cursor, table_name, table_data, sql_col_names, print_sql=False):
         for i in range(len(table_data)):
             values_string = ''
             for item in table_data[i]:
@@ -137,7 +150,7 @@ class QueryDB:
             sql = f"INSERT INTO {table_name} ({', '.join(sql_col_names)}) VALUES ('{values_string}')"
             sql = re.sub(r"'(NULL|nan|None)'", "NULL", sql)             # NULL should be sent in SQL w/o quote marks
                                                                         # nan and None should be stored as NULL
-            print(sql)
+            if print_sql: print(sql)
 
             try:
                 cursor.execute(sql)
@@ -147,11 +160,18 @@ class QueryDB:
                     logging.info(f'\t{i+1} of {len(table_data)}: {sql}')
         db.commit()
 
-    def __init__(self, db, username='codelou', password='ABCabc123!', initialize_db=False):
+    def _send_query_and_commit(self, query):
+        cursor = self.connection.cursor()
+        cursor.execute(query)
+        self.connection.commit()
+
+
+    def __init__(self, db, username='codelou', password='ABCabc123!', initialize_db=False, verbose=False):
         self.db = db
         self.user = username
         self.password = password
         self.connection = None
+        self.verbose = verbose
 
         if initialize_db: self.initialize_db()
 

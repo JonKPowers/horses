@@ -4,4 +4,6 @@ data/
 main_py.log
 __*
 *.log
+.idea/
+venv/
 
