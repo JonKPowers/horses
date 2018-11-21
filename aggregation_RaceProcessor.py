@@ -4,13 +4,15 @@ class RaceProcessor:
     # The RaceProcessor class is intended to process the race or past performance data and aggregate it into
     # consolidated tables. It's primary method is add_to_consolidated_data().
 
-    def __init__(self, db_handler, db_consolidated_handler, db_consolidated_races_handler, include_horse=False):
+    def __init__(self, db_handler, db_consolidated_handler, db_consolidated_races_handler, include_horse=False, verbose=False):
         self.db = db_handler
         self.consolidated_db = db_consolidated_handler
         self.consolidated_races_db = db_consolidated_races_handler
 
         self.table = db_handler.table
         self.table_index = self.db.constants.TABLE_TO_INDEX_MAPPINGS[self.table]
+
+        self.verbose = verbose
 
         # Variable to control whether horse information is part of the source table
         self.include_horse = include_horse
@@ -23,10 +25,14 @@ class RaceProcessor:
         current_horse = None
         current_distance = None
 
+        # Set up dict to track the unresolvable issues that were found
+        self.unfixed_data = {}
+
     def add_to_consolidated_data(self):
         # Setup progress bar
         print("Consolidating data")
-        bar = Bar(f'Processing {self.table} data', max=len(self.db.data))
+        bar = Bar(f'Processing {self.table} data', max=len(self.db.data),
+                  suffix='%(percent).3f%% - %(index)d/%(max)d - %(eta)s secs.')
 
         # Loop through each row of dataframe and process that race info
         for i in range(len(self.db.data)):
@@ -48,6 +54,7 @@ class RaceProcessor:
                 try:
                     distance = self.db.data.loc[self.get_current_race_id(include_horse=self.include_horse), 'distance']
                 except KeyError:
+                    self.unfixed_data['distance_missing'].append(self.current_race_id)
                     print(f'No race distance info found for {self.current_race_id}')
                     continue
             if distance not in self.db.constants.DISTANCES_TO_PROCESS: continue
@@ -62,6 +69,7 @@ class RaceProcessor:
                 # This will throw an exception if there is no entry in the consolidated table. The race info is
                 # added by the exception handler.
                 self.consolidated_db.data.loc[self.get_current_race_id(include_horse=self.include_horse)]
+                if self.verbose: print(f'Race {self.current_race_id} found--checking for discrepancies')
 
                 # If we've gotten this far, there is an entry.
                 # We'll only be checking whether the non-race_id fields are blank, so generate a list of those
@@ -97,11 +105,20 @@ class RaceProcessor:
                                       columns_to_check)
 
             except KeyError:    # Add the race if there isn't already an entry in the consolidated db
+                if self.verbose: print(f'Race {self.current_race_id} not found--adding to db')
                 self.consolidated_db.add_blank_entry(self.get_current_race_id(as_tuple=True, include_horse=self.include_horse),
                                                      include_horse=self.include_horse)
                 self.consolidated_db.update_race_values(columns,
                                                         row_data.tolist(),
                                                         self.get_current_race_id(as_sql=True, include_horse=self.include_horse))
+
+        with open(f'unfixed_data_{self.table}.txt', 'w') as file:
+            for key in self.unfixed_data.keys():
+                file.write(f'{key}:\t')
+                for item in self.unfixed_data[key]:
+                    file.write(f'{item}, ')
+                file.write('\n')
+        bar.finish()
 
     def set_current_info(self, i):
 

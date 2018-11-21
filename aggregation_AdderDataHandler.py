@@ -180,8 +180,9 @@ class AdderDataHandler:
 
         if item == None:                    # An item is "blank" if:
             return True                     # (1) it's value is None
+                                            # (2) it's NaN (isnan() will throw a TypeError if the input is str or date)
         elif type(item) != str and not isinstance(item, datetime.date) and np.isnan(item):
-            return True                     # (2) it's NaN (isnan() will throw a TypeError if the input is str or date)
+            return True
         elif type(item) == str and item == '':
             return True                     # (3) it's a blank string
         else:

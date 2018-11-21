@@ -1,5 +1,5 @@
 import logging
-import pymysql
+import _mysql
 import re
 
 logging.basicConfig(filename='db_handler.log', filemode='w', level=logging.DEBUG)

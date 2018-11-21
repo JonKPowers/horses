@@ -6,4 +6,4 @@ __*
 *.log
 .idea/
 venv/
-
+unfixed*.txt

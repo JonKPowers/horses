@@ -71,18 +71,19 @@ class RaceAggregator(RaceProcessor):
         bar = Bar(f'Processing {self.table} data', max=len(self.db.data), suffix='%(percent).3f%% - %(index)d/%(max)d - %(eta)s secs.')
 
         # Generate a list of the columns to check by pulling a row from the dataframe and extracting the
-        # column names (this will be a pandas index since the resulting row is returns as a pandas series
-        # with the column names serving as the index. Then we strip off the non-race_id columns from that list
+        # column names (this will be a pandas index since the resulting row is returned as a pandas series
+        # with the column names serving as the index). Then we strip off the non-race_id columns from that list
         # and set up the issue-tracking dictionary.
 
         dummy_row = self.db.data.iloc[0]
         columns = dummy_row.index.tolist()
         del dummy_row
 
-        race_id_fields = ['source_file', 'date', 'track', 'race_num', 'horse_name'] if self.include_horse \
-            else ['source_file', 'date', 'track', 'race_num']
+        race_id_fields = ['date', 'track', 'race_num', 'horse_name'] if self.include_horse \
+            else ['date', 'track', 'race_num']
         columns_to_check = [item for item in columns if item not in race_id_fields]
 
+        # Create dict keys for the conflict-tracking dictionary
         for column in columns_to_check:
             self.unfixed_data[column] = list()
         try:
@@ -163,7 +164,7 @@ class RaceAggregator(RaceProcessor):
             # through and working out what is driving the issue. Further research may reveal patterns in the
             # discrepancies that we can code a solution to.
             self.unfixed_data['distance'].append(self.current_race_id)
-            self.consolidated_db.delete_entry(self.get_current_race_id(as_tuple=True))
+            # self.consolidated_db.delete_entry(self.get_current_race_id(as_tuple=True))
 
         # Run the appropriate discrepancy resolver depending on the column involved.
         if column == 'distance':
@@ -201,6 +202,11 @@ class RaceAggregator(RaceProcessor):
             self.unfixed_data['allowed_age_older'].append(self.current_race_id)
         elif column == 'breed':
             self.unfixed_data['breed'].append(self.current_race_id)
+        elif column == 'race_conditions_1_not_won_limit':
+            self.unfixed_data['race_conditions_1_not_won_limit'].append(self.current_race_id)
+        elif column == 'race_conditions_1_time_limit':
+            self.unfixed_data['race_conditions_1_time_limit'].append(self.current_race_id)
+
         else:
             print('Other type of discrepancy')
             print(f'Data mismatch: {column}. New data: {new_data}. Consolidated data: {existing_data}')
