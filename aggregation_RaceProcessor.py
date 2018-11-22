@@ -136,10 +136,10 @@ class RaceProcessor:
 
     def get_current_race_id(self, include_horse=False, as_sql=False, as_tuple=False):
         if as_sql:
-            race_id = f'track="{self.current_track}" ' \
-                      f'AND date="{self.current_date}" ' \
-                      f'AND race_num="{self.current_race_num}"'
-            if include_horse: race_id += f' AND horse_name="{self.current_horse}"'
+            race_id = f'track=\'{self.current_track}\' ' \
+                      f'AND date=\'{self.current_date}\' ' \
+                      f'AND race_num=\'{self.current_race_num}\''
+            if include_horse: race_id += f' AND horse_name=\'{self.current_horse}\''
         elif as_tuple:
             if include_horse:
                 race_id= (str(self.current_date), str(self.current_track), str(self.current_race_num), str(self.current_horse))
@@ -166,7 +166,12 @@ class RaceProcessor:
         #
         #   new data is in the first position in the zip objects and the consolidated data is in the second position
 
+        global_columns_to_ignore = ['source_file', 'race_conditions_text_1', 'race_conditions_text_2',
+                                    'race_conditions_text_3', 'race_conditions_text_4', 'race_conditions_text_5',
+                                    'race_conditions_text_6', ]
+
         for mask, data, column in zip(zipped_masks, zipped_data, columns):
+            if column in global_columns_to_ignore: continue
             if mask[0] == True == mask[1]:              # If both sources are missing data, do nothing and move on
                 continue
             elif mask[0] == True and mask[1] == False:    # If data is only missing from new data, leave the

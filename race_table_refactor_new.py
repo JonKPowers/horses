@@ -44,7 +44,8 @@ class RaceAggregator(RaceProcessor):
     # distance, times, winner, etc. into the consolidated races table. It's primary method is
     # add_to_consolidated_data().
 
-    def __init__(self, db_handler, db_consolidated_handler, db_consolidated_races_handler=None, include_horse=False):
+    def __init__(self, db_handler, db_consolidated_handler, db_consolidated_races_handler=None, include_horse=False,
+                 verbose=False):
         self.db = db_handler
         self.consolidated_db = db_consolidated_handler
         self.consolidated_races_db = db_consolidated_races_handler
@@ -54,6 +55,9 @@ class RaceAggregator(RaceProcessor):
 
         # Variable to control whether horse information is part of the source table
         self.include_horse = include_horse
+
+        # Variable to control how much information is printed
+        self.verbose = verbose
 
         # State-tracking variables
         current_race_id = None
@@ -86,6 +90,7 @@ class RaceAggregator(RaceProcessor):
         # Create dict keys for the conflict-tracking dictionary
         for column in columns_to_check:
             self.unfixed_data[column] = list()
+        self.unfixed_data['other'] = list()
         try:
             del column
         except Exception as e:
@@ -143,7 +148,7 @@ class RaceAggregator(RaceProcessor):
                                                         row_data.tolist(),
                                                         self.get_current_race_id(as_sql=True, include_horse=self.include_horse))
 
-        with open(f'unfixed_data_{self.table}.txt', 'w') as file:
+        with open(f'logs/unfixed_data_{self.table} {datetime.datetime.now().strftime("%Y-%m-%d %H:%M")}.txt', 'w') as file:
             for key in self.unfixed_data.keys():
                 file.write(f'{key}:\t')
                 for item in self.unfixed_data[key]:
@@ -158,6 +163,16 @@ class RaceAggregator(RaceProcessor):
                          'race_conditions_text_4', 'race_conditions_text_5', 'race_conditions_text_6',]
         if column in keys_to_ignore: return
 
+        def print_mismatch(pause=False):
+            print(f'\nData mismatch {self.current_race_id}: {column}. New data: {new_data}. Consolidated data: {existing_data}')
+            if pause: input("Press enter to continue")
+
+        def update_to_new_data():
+            self.consolidated_db.update_race_values([column], [new_data], self.get_current_race_id(as_sql=True))
+
+        def add_to_unfixed_data():
+            self.unfixed_data[column].append(self.current_race_id)
+
         def distances():
             # If we find a discrepancy in the distances, delete the race and note the race_id in the tracking
             # dictionary. There probably isn't a simple way to resolve these discrepancies without manually going
@@ -166,49 +181,78 @@ class RaceAggregator(RaceProcessor):
             self.unfixed_data['distance'].append(self.current_race_id)
             # self.consolidated_db.delete_entry(self.get_current_race_id(as_tuple=True))
 
+        def fix_race_type():
+            # todo Change to equibase race types, which are more descriptive and varied; prefer those over race_info:
+            # fix_it_dict = {
+            #     # Format: fix_name: race_general_results_type, race_info_type, equibase_race_type, replacement_value
+            #     'SOC_fix': ['N', 'CO', 'SOC', 'SOC'],
+            #     'WCL_fix': ['N', 'C', 'WCL', 'WCL'],
+            #     'MDT_fix': ['S', 'N', 'MDT', 'MDT'],
+            #     'STR_fix': ['R', 'N', 'STR', 'STR'],
+            #     'HCP_fix': ['A', 'N', 'HCP', 'HCP'],
+            # }
+            # Types of mismatches:
+            # Race info: N. Horse PPS: C
+            # Race info: N. Horse PPS: CO
+            if (new_data in ['C', 'CO'] and existing_data == 'N') or (new_data == 'N' and existing_data in ['C', 'CO']):
+                race_set_as_claiming = existing_data in ['C', 'CO']
+                race_is_claiming_race = self.consolidated_db.data.loc[self.current_race_id, 'claiming_price_base'] != 0
+                if race_is_claiming_race and not race_set_as_claiming:
+                    if self.verbose: print('\nUpdating db to mark race as claiming race')
+                    update_to_new_data()
+                elif not race_is_claiming_race and race_set_as_claiming:
+                    if self.verbose: print('\nRace incorrectly set as claiming... fixing')
+                    update_to_new_data()
+            # todo Race info: N. Horse PPS: S
+            # todo N and A combos, S and N, R and N
+
+            else:
+                if self.verbose: print_mismatch()
+                add_to_unfixed_data()
+
+        def fix_surface():
+            # Most of the surface discrepancies stem from changes from a planned turf race to dirt or all weather
+            # surfaces. todo Work out a way to check whether there was a planned change that matches the observed discrepancy
+            if (existing_data in ['T', 't'] and new_data in ['D', 'd', 'A']) or (new_data in ['T', 't'] and existing_data in ['D', 'd', 'A']):
+                # Assume that there was a move to the dirt or all weather surface, and set the value to that.
+                # todo is this a good assumption? Can we cross check with a switch flag?
+                if self.verbose: print('\nLikely move from planned turf race')
+                if existing_data in ['T', 't']: update_to_new_data()
+            elif existing_data in ['T', 't'] and new_data in ['T', 't']:
+                # For our purposes turf is turf, regardless of whether it's inner or outer turf.
+                pass
+            elif existing_data in ['A', 'D', 'd'] and new_data in ['A', 'D', 'd']:
+                # todo Something
+                pass
+            else:
+                print_mismatch(pause=True)
+                add_to_unfixed_data()
+            # todo: [T/t]
+
         # Run the appropriate discrepancy resolver depending on the column involved.
         if column == 'distance':
-            # print(f'Discrepancy is in {column} column.');
-            distances()
+            print_mismatch(pause=True)
         elif column == 'race_type':
-            self.unfixed_data['race_type'].append(self.current_race_id)
+            fix_race_type()
         elif column == 'surface':
-            self.unfixed_data['surface'].append(self.current_race_id)
-        elif column == 'claiming_price_base':
-            self.unfixed_data['claiming_price_base'].append(self.current_race_id)
-        elif column == 'track_condition':
-            self.unfixed_data['track_condition'].append(self.current_race_id)
-        elif column == 'purse':
-            self.unfixed_data['purse'].append(self.current_race_id)
-        elif column == 'allowed_colts_geldings':
-            self.unfixed_data['allowed_colts_geldings'].append(self.current_race_id)
-        elif column == 'allowed_mares':
-            self.unfixed_data['allowed_mares'].append(self.current_race_id)
-        elif column == 'allowed_fillies':
-            self.unfixed_data['allowed_fillies'].append(self.current_race_id)
-        elif column == 'statebred_race':
-            self.unfixed_data['statebred_race'].append(self.current_race_id)
-        elif column == 'field_size':
-            self.unfixed_data['field_size'].append(self.current_race_id)
-        elif column == 'allowed_age_two':
-            self.unfixed_data['allowed_age_two'].append(self.current_race_id)
-        elif column == 'allowed_age_three':
-            self.unfixed_data['allowed_age_three'].append(self.current_race_id)
-        elif column == 'allowed_age_four':
-            self.unfixed_data['allowed_age_four'].append(self.current_race_id)
-        elif column == 'allowed_age_five':
-            self.unfixed_data['allowed_age_five'].append(self.current_race_id)
-        elif column == 'allowed_age_older':
-            self.unfixed_data['allowed_age_older'].append(self.current_race_id)
-        elif column == 'breed':
-            self.unfixed_data['breed'].append(self.current_race_id)
-        elif column == 'race_conditions_1_not_won_limit':
-            self.unfixed_data['race_conditions_1_not_won_limit'].append(self.current_race_id)
-        elif column == 'race_conditions_1_time_limit':
-            self.unfixed_data['race_conditions_1_time_limit'].append(self.current_race_id)
+            fix_surface()
+        elif column == 'claiming_price_base': add_to_unfixed_data()
+        elif column == 'track_condition': add_to_unfixed_data()
+        elif column == 'purse': add_to_unfixed_data()
+        elif column in ['allowed_colts_geldings', 'allowed_mares', 'allowed_fillies', ]:
+            add_to_unfixed_data()
+        elif column == 'statebred_race': add_to_unfixed_data()
+        elif column == 'field_size': add_to_unfixed_data()
+        elif column in ['allowed_age_two', 'allowed_age_three', 'allowed_age_four', 'allowed_age_five',
+                        'allowed_age_older']:
+            add_to_unfixed_data()
+        elif column == 'breed': add_to_unfixed_data()
+        elif column == 'race_conditions_1_not_won_limit': add_to_unfixed_data()
+        elif column == 'race_conditions_1_time_limit': add_to_unfixed_data()
 
         else:
             print('Other type of discrepancy')
+            self.unfixed_data['other'].append(self.current_race_id)
             print(f'Data mismatch: {column}. New data: {new_data}. Consolidated data: {existing_data}')
             print('')
 

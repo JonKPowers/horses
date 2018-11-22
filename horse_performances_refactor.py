@@ -122,9 +122,9 @@ class PPRaceProcessor(RaceProcessor):
                                                         row_data.tolist(),
                                                         self.get_current_race_id(as_sql=True, include_horse=self.include_horse))
 
-        with open(f'unfixed_data_{self.table} {datetime.datetime.now().strftime("%Y-%m-%d %H:%M")}.txt', 'w') as file:
+        with open(f'logs/unfixed_data_{self.table} {datetime.datetime.now().strftime("%Y-%m-%d %H:%M")}.txt', 'w') as file:
             for key in self.unfixed_data.keys():
-                file.write(f'/n**********{key}:\t')
+                file.write(f'\n**********\n{key}:\t')
                 for item in self.unfixed_data[key]:
                     file.write(f'{item}, ')
                 file.write('\n')
@@ -142,13 +142,9 @@ class PPRaceProcessor(RaceProcessor):
             # discrepancies that we can code a solution to.
             pass
 
-        def print_mismatch():
-            print(f'\nData mismatch: {column}. New data: {new_data}. Consolidated data: {existing_data}')
-            # input("")
-
-        def fix_race_type():
-            print(f'Data mismatch: {column}. New data: {new_data}. Consolidated data: {existing_data}')
-            input("")
+        def print_mismatch(pause=False):
+            print(f'\nData mismatch{self.current_race_id}: {column}. New data: {new_data}. Consolidated data: {existing_data}')
+            if pause: input("Press enter to continue")
 
         def get_precision(num):
             max_digits = 14
@@ -204,6 +200,20 @@ class PPRaceProcessor(RaceProcessor):
                 self.unfixed_data[column].append(self.current_race_id)
             # todo Maybe add special handling if one of the values is zero and they aren't within 1 of each other
 
+        def fix_jockey_name():
+            # Most of these issues involve the name being truncated or abbreviated. This method will prefer
+            # the jockey name that is longest, on the premise that it will contain the most information.
+            # todo Maybe add in some checks to make sure that the strings are reasonably similar
+
+            # Rudimentary check to see if the jockey name starts with the same first letter... not that robust
+            if existing_data[0] != new_data[0]: return
+            elif len(existing_data) >= len(new_data):
+                print(f'Keeping longest name: {existing_data}. New data: {new_data}. Existing data: {existing_data}')
+            elif len(new_data) > len(existing_data):
+                print(f'Keeping longest name: {new_data}. New data: {new_data}. Existing data: {existing_data}')
+                self.consolidated_db.update_race_values([column], [new_data], self.get_current_race_id(as_sql=True))
+
+
         try:
             # Run the appropriate discrepancy resolver depending on the column involved.
             if column == 'distance':
@@ -238,9 +248,12 @@ class PPRaceProcessor(RaceProcessor):
                             'meds_bute', 'equip_screens', 'meds_lasix']:
                 self.unfixed_data[column].append(self.current_race_id)
 
-            elif column in ['jockey', 'trainer', 'jockey_id', 'trainer_id']:
+            elif column in ['jockey', 'trainer']:
+                print_mismatch()
+                fix_jockey_name()
+            elif column in ['jockey_id', 'trainer_id']:
+                print_mismatch()
                 self.unfixed_data[column].append(self.current_race_id)
-
             ##########
             # Lead or beaten fields
             ##########

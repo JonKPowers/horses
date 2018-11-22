@@ -16,8 +16,8 @@ CONSOLIDATED_TABLE_STRUCTURE = {
     'temp_rail_distance':       ('INT',             'temp_rail_distance',   'temp_rail_dist',   None,           None),
     'about_distance_flag':      ('TINYINT',         'about_distance_flag',  'about_distance',   None,           None,),
 
-    'standard_weight':          ('SMALLINT',        None,                   None,               'standard_weight',          None),
-    'three_year_old_weight':    ('SMALLINT',        None,                   None,               'three_year_old_weight',    None),
+    'standard_weight':          ('SMALLINT',        'standard_weight',      None,               'standard_weight',          None),
+    'three_year_old_weight':    ('SMALLINT',        'three_year_old_weight',None,               'three_year_old_weight',    None),
 
     'surface':                  ('VARCHAR(255)',    'surface',              'surface_new',      'surface',      'surface',),
     # 'sealed_track'
