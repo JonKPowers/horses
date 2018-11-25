@@ -168,10 +168,10 @@ def parse_age_sex_restrictions(restriction_column):
     return new_column_dict
 
 
-def add_features (table_data, extension):
+def add_features (table_data, extension, verbose=True):
     extension = str(extension)
     if extension == '1':
-        print('Adding features to .1 file ...')
+        if verbose: print('Adding features to .1 file ...')
         # Parse and flatten age/sex restriction codes
         for key, value in parse_age_sex_restrictions(table_data['age_sex_restrictions']).items():
             table_data[key] = value
@@ -209,7 +209,7 @@ def add_features (table_data, extension):
 
 
     if extension == '2':
-        print('Adding features to .2 file ...')
+        if verbose: print('Adding features to .2 file ...')
 
         # ************************************************
         # Flatten medication codes into individual columns
@@ -301,16 +301,77 @@ def add_features (table_data, extension):
             table_data[f'lead_or_beaten_lengths_{call}'] = column_data
 
     if extension == '3':
-        print('Adding features to .3 file ...')
+        if verbose: print('Adding features to .3 file ...')
     if extension == '4':
-        print('Adding features to .4 file ...')
+        if verbose: print('Adding features to .4 file ...')
     if extension == '5':
-        print('Adding features to .5 file ...')
-    if extension == '6':
-        print('Adding features to .6 file ...')
-    if extension == 'DRF':
-        print('Adding features to .DRF file ...')
+        if verbose: print('Adding features to .5 file ...')
+        where_bred = []
+        foreign_bred = list(table_data['foreignbred_code'])
+        state_bred = list(table_data['statebred_code'])
+        foreign_bred_null = list(table_data['foreignbred_code'].isnull())
 
+        for i in range(len(foreign_bred)):
+            if foreign_bred_null[i]:
+                where_bred.append(state_bred[i])
+            else:
+                where_bred.append(foreign_bred[i])
+        table_data['where_bred'] = where_bred
+
+    if extension == '6':
+        if verbose: print('Adding features to .6 file ...')
+    if extension == 'DRF':
+        if verbose: print('Adding features to .DRF file ...')
+
+        # Extract whether there was a off turf distance change for the PP race, and add a column with a flag for that
+        for i in range(1, 11):
+            past_off_turf_dist_change = []
+            for j in range(len(table_data)):
+                if table_data[f'past_start_code_{i}'][j] == 'x':
+                    past_off_turf_dist_change.append(1)
+                else:
+                    past_off_turf_dist_change.append(0)
+            table_data[f'past_{i}_off_turf_dist_change'] = past_off_turf_dist_change
+
+        # Extract whether the horse used a nasal string for the PP race; add a column with a flag for that info
+        # Extract whether there was a off turf distance change for the PP race, and add a column with a flag for that
+        for i in range(1, 11):
+            past_nasal_strip = []
+            for j in range(len(table_data)):
+                if table_data[f'past_start_code_{i}'][j] == 's':
+                    past_nasal_strip.append(1)
+                else:
+                    past_nasal_strip.append(0)
+            table_data[f'past_{i}_nasal_strip'] = past_nasal_strip
+
+
+        for i in range(1, 11):
+            past_bullet_flag = []
+            for j in range(len(table_data)):
+                if table_data[f'workout_time_{i}'][j] < 0:
+                    past_bullet_flag.append(1)
+                else:
+                    past_bullet_flag.append(0)
+            table_data[f'workout_time_{i}_bullet'] = past_bullet_flag
+
+        for i in range(1, 11):
+            table_data[f'workout_time_{i}'] = table_data[f'workout_time_{i}'].abs()
+
+        for i in range(1, 11):
+            past_about_distance = []
+            for j in range(len(table_data)):
+                if table_data[f'past_distance_{i}'][j] < 0:
+                    past_about_distance.append(1)
+                else:
+                    past_about_distance.append(0)
+            table_data[f'past_distance_{i}_about_flag'] = past_about_distance
+        for i in range(1, 11):
+            table_data[f'past_distance_{i}'] = table_data[f'past_distance_{i}'].abs()
+        for i in range(1, 11):
+            table_data[f'workout_distance_{i}'] = table_data[f'workout_distance_{i}'].abs()
+        table_data['distance'] = table_data['distance'].abs()
+
+        if verbose: print('Flattening medication columns')
         # Flatten medication column (this is a data_column_{} entry)
         for i in range(1, 11):
             medication_col = table_data.columns.get_loc(f'past_medication_{i}')
@@ -332,7 +393,7 @@ def add_features (table_data, extension):
         # Combine lead/beaten lengths columns into single column,
         # with a positive value for the leader and a negative
         # value for all trailing horses
-
+        if verbose: print('Combining lead/beaten lengths columns into a single column')
         calls = ['start', 'first_call', 'second_call', 'stretch_call', 'finish']
         for call in calls:
             for j in range(1, 11):
@@ -382,7 +443,7 @@ def add_features (table_data, extension):
             'weight_allowance_3_condition': [],
             'cond_left_on_string': [],
         }
-
+        if verbose: print('running parse_conditions')
         for i in range(len(table_data)):
             condition_string = ''
             for j in range(1, 7):
@@ -408,7 +469,7 @@ def add_features (table_data, extension):
 
         #********************
         # Parse race condition string for race restrictions and add new columns to dataframe
-
+        if verbose: print('Parsing race conditions')
         # Initialize instance of parsing class
         parser = ClassParser()
         condition_columns = ['race_conditions_1', 'race_conditions_2', 'race_conditions_3',

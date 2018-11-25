@@ -1,144 +1,236 @@
-import pymysql.cursors
-import re
 import logging
+import MySQLdb
+import re
+
+logging.basicConfig(filename='db_functions.log', filemode='w', level=logging.DEBUG)
+
 
 class DbHandler:
-    def __init__(self, db='horses_test', username='codelou', password='ABCabc123!', initialize_db=False):
+
+    def __init__(self, db, username='codelou', password='ABCabc123!', initialize_db=False, verbose=False):
         self.db = db
         self.user = username
         self.password = password
         self.connection = None
-        if initialize_db == True:
-            self.connect_db()
-            self.initialize_db()
+        self.verbose = verbose
+        self.cursor = None
 
-    def connect_db(self):
-        if not self.connection:
-            self.connection = pymysql.connect(
-                host='localhost',
-                user=self.user,
-                password=self.password
-            )
+        if initialize_db: self.initialize_db()
 
-    def close_db(self):
+    def connect(self):
+        if not self.connection: self.connection = MySQLdb.connect(host='localhost',
+                                                                  user=self.user,
+                                                                  password=self.password,
+                                                                  autocommit=False)
+
+    def close(self):
         if self.connection:
             self.connection.close()
 
-    def query_db(self, sql_query):
+    def set_up_cursor(self):
         cursor = self.connection.cursor()
-        self.__use_db(cursor)
+        cursor.execute(f'USE {self.db}')
+        self.connection.commit()
+        return cursor
+
+
+    def query_db(self, sql_query, return_col_names=False):
+        """Sends a prepared SQL query and returns the results.
+
+        Args:
+            sql_query (str): A string containing a prepared SQL query to be executed.
+            return_col_names (bool): Boolean indicating whether or not to provide the db's field names as part of the return value.
+
+        Returns:
+            list: The query results as a list if return_col_names == False; otherwise a tuple with  results and column names lists
+
+        """
+        cursor = self.set_up_cursor()
+        print('Sending SQL query')
+        if self.verbose: print(sql_query)
+
         cursor.execute(sql_query)
+        print('Processing response')
+
         results = list(cursor)
         results_cols = [item[0] for item in cursor.description]
-        return results, results_cols
+
+        return (results, results_cols) if return_col_names else results
+
+    def generate_query(self, table_name, fields, where='', other='', print_query=False):
+        sql = f'SELECT {", ".join(fields)}'
+        sql += f' FROM {table_name}'
+        if where: sql += f' WHERE {where}'
+        if other: sql += f' {other}'
+        if print_query: print(sql)
+        return sql
+
+    def generate_update_query(self, table, field_list, value_list, where='', other='', print_query=False):
+        sql = f'UPDATE {table} SET {self.concatenate_field_value_pairs(field_list, value_list)} '
+        if where: sql += f'WHERE {where}'
+        if other: sql += f'{other}'
+        if print_query: print(sql)
+        return sql
 
     def update_db(self, sql_query):
-        cursor = self.connection.cursor()
-        self.__use_db(cursor)
-        print('Sending SQL update query')
-        print(sql_query)
-        cursor.execute(sql_query)
+        if not self.cursor: self.set_up_cursor()
+
+        sql_query = self.fix_nulls(sql_query)
+        if self.verbose: print(f'Update SQL: {sql_query}')
+
+        self.cursor.execute(sql_query)
         self.connection.commit()
-        print('Update query sent; change committed')
-        return None
+
+    def concatenate_field_value_pairs(self, field_list, value_list, separator=', '):
+        value_list = [self.escape_and_clean(item) for item in value_list]
+        pairs = [f'{field} = \'{value}\'' for field, value in zip(field_list, value_list)]
+        return separator.join(pairs)
+
+    def add_new_entry(self, table_name, sql_cols, values, commit=True):
+        clean_values = [f'"{self.escape_and_clean(item)}"' for item in values]
+
+        sql = f'INSERT INTO {table_name} '
+        sql += f'({", ".join(sql_cols)}) '
+        sql += f'VALUES ({", ".join(clean_values)})'
+        sql = re.sub(r'"(NULL|nan|None)"', "NULL", sql)     # NULL should be sent in SQL w/o quote marks
+                                                            # nan and None should be stored as NULL
+        if self.verbose: print(sql)
+
+        try:
+            self.cursor.execute(sql)
+            if commit:
+                self.connection.commit()
+        except MySQLdb.ProgrammingError as e:
+            logging.info(f'Error adding entry: \n\t{e}\n\t{sql}')
+        except  MySQLdb.IntegrityError as e:
+            logging.debug(f'Duplicate entry:\n\t{e}\n\t{sql}')
+
+    def escape_and_clean(self, item):
+        escaped_item = re.sub(r"(['\\])", r'\\\1', str(item))   # Escape textual backslashes and tick marks
+        cleaned_item = re.sub(u"\uFFFD", "", escaped_item)      # Fix oddball <?> character
+        return cleaned_item.strip()                             # Strip off any leading or trailing whitespace
+
+    def fix_nulls(self, sql_string):
+        """ Replaces any NULL/nan/None entry in string with unquoted NULL for use in SQL query."""
+        return re.sub(r'[\'"](NULL|nan|None)[\'"]', "NULL", sql_string)  # Correct NULL entry for insertion into db
 
     def initialize_db(self):
         """Checks to see if db exists. If not, creates it."""
+        if not self.connection: self.connect()
         cursor = self.connection.cursor()
         sql = f'SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = "{self.db}"'
+        if self.verbose: print(sql)
         db_exists = cursor.execute(sql)
         if db_exists:
             print(f'Database {self.db} already exists--skipping create step')
         elif db_exists == 0:
-            self.__create_db(cursor)
+            self._create_db(self.connection, cursor)
             print(f'Created new database {self.db}')
         else:
             print(f'There was a problem checking whether {self.db} exists--unexpected db_exists value.')
 
+    def add_to_table(self, table_name, table_data, sql_col_names, source_file):
+        cursor = self.connection.cursor()
+        self._use_db(self.connection, cursor)
+        self._insert_records(self.connection, cursor, table_name, table_data, sql_col_names, source_file)
+
+    def delete_from_table(self, table_name, where_fields, where_values):
+        if len(where_fields) < 1 or len(where_values) < 1:
+            print('Deletion of entire table not allowed.')
+            return
+        elif len(where_fields) != len(where_values):
+            print('Lengths of fields and values for deletion do not match')
+            return
+        else:
+            where_clause = self.concatenate_field_value_pairs(where_fields, where_values, separator=" and ")
+            sql = f'DELETE FROM {table_name} WHERE {where_clause};'
+
+        if self.verbose: print(sql)
+        self._send_query_and_commit(sql)
+
     def initialize_table(self, table_name, dtypes, unique_key, foreign_key):
         """Checks to see if a table exists. If not, creates it."""
         cursor = self.connection.cursor()
-        self.__use_db(cursor)
+        self._use_db(self.connection, cursor)
         sql = 'SELECT count(*) FROM information_schema.TABLES '
-        sql += f'WHERE (TABLE_SCHEMA = "{self.db}") AND (TABLE_NAME = "{table_name}")'
+        sql += f"WHERE (TABLE_SCHEMA = '{self.db}') AND (TABLE_NAME = '{table_name}')"
+        if self.verbose: print(sql)
         cursor.execute(sql)
         table_exists = [item for item in cursor][0][0]
         if table_exists:
-            logging.info("Table {} already exists--skipping creation step.".format(table_name))
+            logging.info(f'Table {table_name} already exists--skipping creation step.')
         elif table_exists == 0:
-            self.__create_table(cursor, table_name, dtypes, unique_key, foreign_key)
+            self._create_table(self.connection, cursor, table_name, dtypes, unique_key, foreign_key)
         else:
-            print("There was a problem checking whether {} exists".format(table_name), end="")
-            print("--unexpected table_exists value.")
-        # TO DO
-        # Check whether table looks like it has the right number of columns and column names
+            print(f'There was a problem checking whether {table_name} exists--unexpected table_exists value.')
 
-    def add_to_table(self, table_name, table_data, sql_col_names, file_name):
-        cursor = self.connection.cursor()
-        self.__use_db(cursor)
-        self.__insert_records(cursor, table_name, table_data, sql_col_names, file_name)
+    def _create_db(self, db, cursor):
+        cursor.execute(f'CREATE DATABASE {self.db}')
+        db.commit()
 
-    def __create_db(self, cursor):
-        sql = 'CREATE DATABASE {}'.format(self.db)
-        cursor.execute(sql)
-        self.connection.commit()
+    def _use_db(self, db, cursor):
+        cursor.execute(f'USE {self.db}')
+        db.commit()
 
-    def __use_db(self, cursor):
-        sql = 'USE {}'.format(self.db)
-        cursor.execute(sql)
-        self.connection.commit()
-
-    def __create_table(self, cursor, table_name, dtypes, unique_key, foreign_key):
-        logging.info('Creating table {}'.format(table_name))
-        sql = "CREATE TABLE {} (".format(table_name)
-        sql += "id INT NOT NULL AUTO_INCREMENT, "
+    def _create_table(self, db, cursor, table_name, dtypes, unique_key, foreign_key):
+        logging.info(f'Creating table {table_name}')
+        sql = f'CREATE TABLE {table_name} ('
+        sql += 'id INT NOT NULL AUTO_INCREMENT, '
         sql += "source_file VARCHAR(255), "
         for column_name, column_dtype in dtypes.items():
-            sql += "{} {}, ".format(column_name, column_dtype)
-        sql += "PRIMARY KEY (id)"
+            sql += f'{column_name} {column_dtype}, '
+        sql += 'PRIMARY KEY (id)'
         if unique_key:
-            sql += ", UNIQUE ("
+            sql += ', UNIQUE ('
             for key in unique_key:
                 sql += key + ', '
             sql = sql[:-2]  # Chop off last ', '
             sql += ")"
         if foreign_key:
             for constraint in foreign_key:
-                sql += ", FOREIGN KEY("
-                sql += constraint[0]
-                sql += ") REFERENCES "
-                sql += constraint[1]
+                sql += f', FOREIGN KEY({constraint[0]}) REFERENCES {constraint[1]} '
         sql += ')'          # ... and balance parentheses before sending.
-        logging.info('Creating table {}:\n\t{}'.format(table_name, sql))
+        logging.info(f'Creating table {table_name}:\n\t{sql}')
         try:
             cursor.execute(sql)
-        except pymysql.err.ProgrammingError:
-            print('Error creating table {}'.format(table_name))
-            logging.info('Error creating table{}:\n\t{}'.format(table_name, sql))
-        self.connection.commit()
+        except MySQLdb.ProgrammingError as e:
+            print(f'Error creating table {table_name}:\n\t{sql}\n\t{e}')
+            logging.info(f'Error creating table{table_name}:\n\t{sql}')
+        db.commit()
 
-    def __insert_records(self, cursor, table_name, table_data, sql_col_names, file_name):
+    def _insert_records(self, db, cursor, table_name, table_data, sql_col_names, source_file, print_sql=False):
         for i in range(len(table_data)):
-            values_string = file_name + "', '"
+            values_string = source_file + "', '"
             for item in table_data[i:i+1].values[0]:
-                escaped_item = re.sub(r"(['\\])", r'\\\1', str(item))   # Escape textual backslashes and tick marks
-                cleaned_item = re.sub(u"\uFFFD", "", escaped_item)      # Fix oddball <?> character
-                values_string += cleaned_item.strip() + "', '"          # Strip of leading and trailing whitespace
+                values_string += self.escape_and_clean(item) + "', '"   # Strip off any leading or trailing whitespace
             values_string = values_string[:-4]                          # Chop off extra "', '"
-            sql = "INSERT INTO {} ({}) VALUES ('{}')".format(table_name, "source_file, " + ", ".join(sql_col_names),
-                                                             values_string)
+            sql = f"INSERT INTO {table_name} ({'source_file, ' + ', '.join(sql_col_names)}) VALUES ('{values_string}')"
             sql = re.sub(r"'(NULL|nan|None)'", "NULL", sql)             # NULL should be sent in SQL w/o quote marks
                                                                         # nan and None should be stored as NULL
-            # print('{} of {}: {}'.format(i+1,len(table_data), sql))
-            logging.debug('{} of {}: {}'.format(i+1, len(table_data), sql))
+            if self.verbose: print(sql)
+
             try:
                 cursor.execute(sql)
-            except (pymysql.err.ProgrammingError, pymysql.err.IntegrityError) as e:
+            except (MySQLdb.ProgrammingError, MySQLdb.IntegrityError) as e:
                 if not re.search(r'Duplicate entry', repr(e)):
-                    logging.info('Error adding entry: \n\t{}'.format(e))
-                    logging.info('\t{} of {}: {}'.format(i+1, len(table_data), sql))
+                    logging.info(f'Error adding entry: \n\t{e}')
+                    logging.info(f'\t{i+1} of {len(table_data)}: {sql}')
+        db.commit()
 
+    def _send_query_and_commit(self, query):
+        cursor = self.connection.cursor()
+        cursor.execute(query)
         self.connection.commit()
 
-        # -----------------TO DO-----------------------------------
-        # Have it return something if the operation raises an error and move the file into a problem file folder.
+    def __enter__(self):
+        self.connection = MySQLdb.connect(
+            host='localhost',
+            user=self.user,
+            password=self.password)
+
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        if self.connection:
+            self.connection.close()
+

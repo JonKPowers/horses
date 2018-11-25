@@ -127,6 +127,7 @@ race_info_table = {
         'race_num': 'race',
         'distance': 'distance',
         'about_distance_flag': 'past_distance_{}_about_flag',
+        'off_turf_dist_change': 'past_{}_off_turf_dist_change',
         'surface': 'surface',
         'all_weather_surface': 'allweather_surface',
         'rail_distance': 'cond_rail_distance',
@@ -373,6 +374,7 @@ horses_pp_table = {
         'jockey': 'past_jockey_{}',
 
         'special_chute': 'past_special_chute_{}',
+        'nasal_strip': 'past_{}_nasal_strip',
         'blinkers': 'past_equipment_{}',
         'medication': 'past_medication_{}',
         'medication_lasix': 'past_medication_{}_lasix',

@@ -1,8 +1,8 @@
 
-def tidy_it_up(table_data, extension):
+def tidy_it_up(table_data, extension, verbose=True):
     extension = str(extension)
     if extension == '1':
-        print('Tidying .1 file ...')
+        if verbose: ('Tidying .1 file ...')
 
         # *********************************************
         # Flag fixes
@@ -33,7 +33,7 @@ def tidy_it_up(table_data, extension):
         table_data.fillna('NULL', inplace=True)
 
     if extension == '2':
-        print('Tidying .2 file ...')
+        if verbose: print('Tidying .2 file ...')
 
         table_data['nonbetting_flag'].replace('Y', 1, inplace=True)
         table_data['nonbetting_flag'].fillna(0, inplace=True)
@@ -56,61 +56,23 @@ def tidy_it_up(table_data, extension):
         table_data.fillna('NULL', inplace=True)
 
     if extension == '3':
-        print('Tidying .3 file (ITM payoffs) ...')
+        if verbose: print('Tidying .3 file (ITM payoffs) ...')
         table_data.fillna('NULL', inplace=True)
 
     if extension == '4':
-        print('Tidying .4 file (exotic payoffs) ...')
+        if verbose: print('Tidying .4 file (exotic payoffs) ...')
         table_data.fillna('NULL', inplace=True)
 
     if extension == '5':
-        print('Tidying .5 file (breeding info)...')
-        where_bred = []
-        foreign_bred = list(table_data['foreignbred_code'])
-        state_bred = list(table_data['statebred_code'])
-        foreign_bred_null = list(table_data['foreignbred_code'].isnull())
-
-        for i in range(len(foreign_bred)):
-            if foreign_bred_null[i]:
-                where_bred.append(state_bred[i])
-            else:
-                where_bred.append(foreign_bred[i])
-        table_data['where_bred'] = where_bred
-
+        if verbose: print('Tidying .5 file (breeding info)...')
         table_data.fillna('NULL', inplace=True)
 
     if extension == '6':
-        print('Tidying .6 file (footnotes) ...')
+        if verbose: print('Tidying .6 file (footnotes) ...')
         table_data.fillna('NULL', inplace=True)
 
     if extension == 'DRF':
-        print('Tidying .DRF file (past performances) ...')
-
-        for i in range(1, 11):
-            past_bullet_flag = []
-            for j in range(len(table_data)):
-                if table_data[f'workout_time_{i}'][j] < 0:
-                    past_bullet_flag.append(1)
-                else:
-                    past_bullet_flag.append(0)
-            table_data[f'workout_time_{i}_bullet'] = past_bullet_flag
-
-        for i in range(1, 11):
-            table_data[f'workout_time_{i}'] = table_data[f'workout_time_{i}'].abs()
-
-        for i in range(1, 11):
-            past_about_distance = []
-            for j in range(len(table_data)):
-                if table_data[f'past_distance_{i}'][j] < 0:
-                    past_about_distance.append(1)
-                else:
-                    past_about_distance.append(0)
-            table_data[f'past_distance_{i}_about_flag'] = past_about_distance
-        for i in range(1, 11):
-            table_data[f'past_distance_{i}'] = table_data[f'past_distance_{i}'].abs()
-        for i in range(1, 11):
-            table_data[f'workout_distance_{i}'] = table_data[f'workout_distance_{i}'].abs()
-        table_data['distance'] = table_data['distance'].abs()
+        if verbose: print('Tidying .DRF file (past performances) ...')
 
         # *********************************************
         # Field with [value]/NaN flags
@@ -132,7 +94,6 @@ def tidy_it_up(table_data, extension):
 
         # Change a n/a claiming_price value to 0 to match race_results handling.
         table_data['claiming_price'].fillna(0, inplace=True)
-
 
         for i in range(1, 11):
             table_data[f'past_special_chute_{i}'].replace('c', 1, inplace=True)
@@ -214,13 +175,36 @@ def tidy_it_up(table_data, extension):
         for i in range(1, 11):
             table_data[f'past_call_pos_finish_{i}'].replace(r'[A-Za-z?*]+', 'NULL', regex=True, inplace=True)
 
+        # Extract whether there was a off turf distance change for the PP race, and add a column with a flag for that
+        for i in range(1, 11):
+            past_off_turf_dist_change = []
+            for j in range(len(table_data)):
+                if table_data[f'past_start_code_{i}'][j] == 'x':
+                    past_off_turf_dist_change.append(1)
+                else:
+                    past_off_turf_dist_change.append(0)
+            table_data[f'past_{i}_off_turf_dist_change'] = past_off_turf_dist_change
+
+        # Extract whether the horse used a nasal string for the PP race; add a column with a flag for that info
+        # Extract whether there was a off turf distance change for the PP race, and add a column with a flag for that
+        for i in range(1, 11):
+            past_nasal_strip = []
+            for j in range(len(table_data)):
+                if table_data[f'past_start_code_{i}'][j] == 's':
+                    past_nasal_strip.append(1)
+                else:
+                    past_nasal_strip.append(0)
+            table_data[f'past_{i}_nasal_strip'] = past_nasal_strip
+
+        for i in range(1, 11):
+            table_data[f'past_start_code_{i}'].replace(r'[A-Za-z?*]+', 'NULL', regex=True, inplace=True)
+
         # *********************************************
         # Character fields to make null
 
         # **********************************************
         # FIELD DTYPES TO FIX
         #   'claimed_trainer_middle' from FLOAT to VARCHAR(255)
-
 
         # **********************************************
         # Fill the rest with 'NULL'

@@ -2941,6 +2941,17 @@ file_dtypes = {
         'past_distance_9_about_flag': 'INT',
         'past_distance_10_about_flag': 'INT',
 
+        'past_1_off_turf_dist_change': 'TINYINT',
+        'past_2_off_turf_dist_change': 'TINYINT',
+        'past_3_off_turf_dist_change': 'TINYINT',
+        'past_4_off_turf_dist_change': 'TINYINT',
+        'past_5_off_turf_dist_change': 'TINYINT',
+        'past_6_off_turf_dist_change': 'TINYINT',
+        'past_7_off_turf_dist_change': 'TINYINT',
+        'past_8_off_turf_dist_change': 'TINYINT',
+        'past_9_off_turf_dist_change': 'TINYINT',
+        'past_10_off_turf_dist_change': 'TINYINT',
+
         'past_surface_1': 'VARCHAR(255)',
         'past_surface_2': 'VARCHAR(255)',
         'past_surface_3': 'VARCHAR(255)',
@@ -2963,6 +2974,17 @@ file_dtypes = {
         'past_special_chute_8': 'INT',
         'past_special_chute_9': 'INT',
         'past_special_chute_10': 'INT',
+
+        'past_1_nasal_strip': 'TINYINT',
+        'past_2_nasal_strip': 'TINYINT',
+        'past_3_nasal_strip': 'TINYINT',
+        'past_4_nasal_strip': 'TINYINT',
+        'past_5_nasal_strip': 'TINYINT',
+        'past_6_nasal_strip': 'TINYINT',
+        'past_7_nasal_strip': 'TINYINT',
+        'past_8_nasal_strip': 'TINYINT',
+        'past_9_nasal_strip': 'TINYINT',
+        'past_10_nasal_strip': 'TINYINT',
 
         ## Number of entrants
         'past_entrants_1': 'INT',

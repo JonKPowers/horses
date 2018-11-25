@@ -3,6 +3,7 @@ import db_structure_results as tables1
 from csv_definitions import file_dtypes
 
 import logging
+import pandas as pd
 
 tables = [
     tables1.race_general_results_table,
@@ -29,30 +30,33 @@ tables = [
 
 class TableHandler:
     def process_data(self, df, db_handler, file_name=''):
-        logging.debug('Adding data to {} in {}'.format(self.table_name, db_handler.db))
-        if self.multi_entry_table:
-            for i in range(1, 11):
-                col_names = [item.format(i) for item in self.df_col_names]
-                table_data = df[col_names]
 
-                # Pull out columns for past workouts/races that have no data
-                drop_cols = []
-                try:            #This would fail for tables that don't have 2 not_null restrictions
-                    check_col_0 = table_data.columns.get_loc(self.not_null[0].format(i))
-                    check_col_1 = table_data.columns.get_loc(self.not_null[1].format(i))
-                    drop_cols = [j for j in range(len(table_data)) if
-                                 table_data.iloc[j, check_col_0] == 'NULL' and
-                                 table_data.iloc[j, check_col_1] == 'NULL']
-                except IndexError:
-                    pass
+        # Set up cursor for the db to use.
+        db_handler.cursor = db_handler.set_up_cursor()
 
-                table_data.drop(drop_cols, inplace=True)
+        # Trim the dataframe down to the columns relevant to this table type
+        drop_cols = [col for col in df.columns if col not in self.df_col_names]
+        trimmed_df = df.drop(drop_cols, axis=1)
 
-                # Send dataframe to be added to the database
-                db_handler.add_to_table(self.table_name, table_data, self.sql_col_names, file_name)
-        else:
-            table_data = df[self.df_col_names]
-            db_handler.add_to_table(self.table_name, table_data, self.sql_col_names, file_name)
+        # Loop through each row of the trimmed df and add the info to the table.
+        for _, row_data in trimmed_df.iterrows():
+            if not self.multi_entry_table:
+                values = row_data[self.df_col_names].values
+                sql_col_names = self.sql_col_names
+                db_handler.add_new_entry(self.table_name, sql_col_names, values, commit=False)
+            else:
+                # For multi-entry tables, create each "subrow" and check if any of the not_null columns are null.
+                # If they're not there, skip to the next "subrow"; otherwise proceed as normal and add entry to db.
+                for i in range(1, 11):
+                    subrow_data = row_data[[column.format(i) for column in self.df_col_names]]
+                    if len(self.not_null) != 0:
+                        for col in self.not_null:
+                            if pd.isnull(subrow_data[col.format(i)]): continue
+                    values = subrow_data.values
+                    sql_col_names = self.sql_col_names
+                    db_handler.add_new_entry(self.table_name, sql_col_names, values, commit=False)
+        db_handler.cursor = None
+        db_handler.connection.commit()
 
     def __create_dtype_info(self):
         """This takes in a dict with information about how a table should be constructed
@@ -73,8 +77,8 @@ class TableHandler:
         self.not_null = structure_dict['not_null']
         self.extension = structure_dict['extension']
         self.table_structure = structure_dict['db_fields']
-        self.sql_col_names = [sql_col for sql_col, df_col in self.table_structure.items()]
-        self.df_col_names = [df_col for sql_col, df_col in self.table_structure.items()]
+        self.sql_col_names = [sql_col for sql_col, _ in self.table_structure.items()]
+        self.df_col_names = [df_col for _, df_col in self.table_structure.items()]
         self.multi_entry_table = any(item for item in self.df_col_names if '{}' in item)
         self.dtypes = self.__create_dtype_info()
         db.initialize_table(self.table_name, self.dtypes, self.unique_key, self.foreign_key)
