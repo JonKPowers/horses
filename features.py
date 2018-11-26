@@ -149,6 +149,8 @@ def parse_age_sex_restrictions(restriction_column):
 
     for i in range(len(restriction_column)):
         age_sex_string = restriction_column[i]
+        if (isinstance(age_sex_string, np.float) and np.isnan(age_sex_string)):
+            age_sex_string = 'NULL'
         age_code = age_sex_string[:2]
         sex_code = age_sex_string[2:]
         try:
@@ -219,7 +221,10 @@ def add_features (table_data, extension, verbose=True):
         bute = [0 for _ in range(len(table_data))]
         lasix = [0 for _ in range(len(table_data))]
         for i in range(len(table_data)):
-            code = table_data.iloc[i, medication_col].upper()
+            try:
+                code = table_data.iloc[i, medication_col].upper()
+            except AttributeError:
+                code = ''
             if 'A' in code:
                 bleeder_meds[i] = 1
             if 'B' in code or 'C' in code:
@@ -271,7 +276,7 @@ def add_features (table_data, extension, verbose=True):
 
         for i in range(len(table_data)):
             code = table_data.iloc[i, equipment_col]
-            if code == 'NULL':
+            if code == 'NULL' or (isinstance(code, np.float) and np.isnan(code)):
                 continue
             for letter in code:
                 equipment_dict[equipment_list[letter]][i] = 1
@@ -323,28 +328,6 @@ def add_features (table_data, extension, verbose=True):
     if extension == 'DRF':
         if verbose: print('Adding features to .DRF file ...')
 
-        # Extract whether there was a off turf distance change for the PP race, and add a column with a flag for that
-        for i in range(1, 11):
-            past_off_turf_dist_change = []
-            for j in range(len(table_data)):
-                if table_data[f'past_start_code_{i}'][j] == 'x':
-                    past_off_turf_dist_change.append(1)
-                else:
-                    past_off_turf_dist_change.append(0)
-            table_data[f'past_{i}_off_turf_dist_change'] = past_off_turf_dist_change
-
-        # Extract whether the horse used a nasal string for the PP race; add a column with a flag for that info
-        # Extract whether there was a off turf distance change for the PP race, and add a column with a flag for that
-        for i in range(1, 11):
-            past_nasal_strip = []
-            for j in range(len(table_data)):
-                if table_data[f'past_start_code_{i}'][j] == 's':
-                    past_nasal_strip.append(1)
-                else:
-                    past_nasal_strip.append(0)
-            table_data[f'past_{i}_nasal_strip'] = past_nasal_strip
-
-
         for i in range(1, 11):
             past_bullet_flag = []
             for j in range(len(table_data)):
@@ -370,6 +353,28 @@ def add_features (table_data, extension, verbose=True):
         for i in range(1, 11):
             table_data[f'workout_distance_{i}'] = table_data[f'workout_distance_{i}'].abs()
         table_data['distance'] = table_data['distance'].abs()
+
+
+        # Extract whether there was a off turf distance change for the PP race, and add a column with a flag for that
+        for i in range(1, 11):
+            past_off_turf_dist_change = []
+            for j in range(len(table_data)):
+                if table_data[f'past_start_code_{i}'][j] == 'x':
+                    past_off_turf_dist_change.append(1)
+                else:
+                    past_off_turf_dist_change.append(0)
+            table_data[f'past_{i}_off_turf_dist_change'] = past_off_turf_dist_change
+
+        # Extract whether the horse used a nasal string for the PP race; add a column with a flag for that info
+        # Extract whether there was a off turf distance change for the PP race, and add a column with a flag for that
+        for i in range(1, 11):
+            past_nasal_strip = []
+            for j in range(len(table_data)):
+                if table_data[f'past_start_code_{i}'][j] == 's':
+                    past_nasal_strip.append(1)
+                else:
+                    past_nasal_strip.append(0)
+            table_data[f'past_{i}_nasal_strip'] = past_nasal_strip
 
         if verbose: print('Flattening medication columns')
         # Flatten medication column (this is a data_column_{} entry)

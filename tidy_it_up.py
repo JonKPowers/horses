@@ -1,5 +1,5 @@
 
-def tidy_it_up(table_data, extension, verbose=True):
+def tidy_it_up(table_data, extension, verbose=False):
     extension = str(extension)
     if extension == '1':
         if verbose: ('Tidying .1 file ...')
@@ -72,7 +72,33 @@ def tidy_it_up(table_data, extension, verbose=True):
         table_data.fillna('NULL', inplace=True)
 
     if extension == 'DRF':
-        if verbose: print('Tidying .DRF file (past performances) ...')
+        print('Tidying .DRF file (past performances) ...')
+
+        for i in range(1, 11):
+            past_bullet_flag = []
+            for j in range(len(table_data)):
+                if table_data[f'workout_time_{i}'][j] < 0:
+                    past_bullet_flag.append(1)
+                else:
+                    past_bullet_flag.append(0)
+            table_data[f'workout_time_{i}_bullet'] = past_bullet_flag
+
+        for i in range(1, 11):
+            table_data[f'workout_time_{i}'] = table_data[f'workout_time_{i}'].abs()
+
+        for i in range(1, 11):
+            past_about_distance = []
+            for j in range(len(table_data)):
+                if table_data[f'past_distance_{i}'][j] < 0:
+                    past_about_distance.append(1)
+                else:
+                    past_about_distance.append(0)
+            table_data[f'past_distance_{i}_about_flag'] = past_about_distance
+        for i in range(1, 11):
+            table_data[f'past_distance_{i}'] = table_data[f'past_distance_{i}'].abs()
+        for i in range(1, 11):
+            table_data[f'workout_distance_{i}'] = table_data[f'workout_distance_{i}'].abs()
+        table_data['distance'] = table_data['distance'].abs()
 
         # *********************************************
         # Field with [value]/NaN flags

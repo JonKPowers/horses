@@ -102,11 +102,12 @@ def main(file_to_process='', path='data', verbose=False, move_files=True):
     db.close()
 
 
-def process_csv_file(file, add_features=True):
+def process_csv_file(file, tidy_file=True, add_features=False):
     extension = re.search(r'(?<=\.).+$', str(file))[0]
     #   Read the data in and run it through the cleaner
     table_data = pd.read_csv(file, header=None, names=name_files[str(extension)])
-    table_data = tidy.tidy_it_up(table_data, extension)
+    if tidy_file:
+        table_data = tidy.tidy_it_up(table_data, extension)
     if add_features:
         table_data = features.add_features(table_data, extension)
     #   Strip out unused columns

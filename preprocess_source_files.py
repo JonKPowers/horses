@@ -1,3 +1,14 @@
+import pathlib
+import os
+import re
+
+import pandas as pd
+from progress.bar import Bar
+
+from csv_definitions import file_structure as name_files
+import features
+
+
 class TidyFile:
     replacement_dict_1_file = {
         'about_dist_flag': ['A', 1],
@@ -36,27 +47,27 @@ class TidyFile:
         'equipment_change': [9, 'NULL'],
         'allweather_surface': ['A', 1],
         'bris_run_style': ['NA', None],
-        'past_special_chute_{i}': ['c', 1],
-        'past_bar_shoe_{i}': ['r', 1],
-        'past_start_code_{i}': ['X', 1],
-        'past_sealed_track_indicator_{i}': ['s', 1],
-        'past_all_weather_flag_{i}': ['A', 1],
-        'past_equipment_{i}': ['b', 1],
-        'past_entry_{i}': ['e', 1],
-        'past_claimed_code_{i}': ['c', 1],
-        'past_claimed_code_{i}': ['v', 1],
-        'past_statebred_flag_{i}': ['s', 1],
-        'past_restricted_or_qualified_{i}': ['R', 1],
+        'past_special_chute_{}': ['c', 1],
+        'past_bar_shoe_{}': ['r', 1],
+        'past_start_code_{}': ['X', 1],
+        'past_sealed_track_indicator_{}': ['s', 1],
+        'past_all_weather_flag_{}': ['A', 1],
+        'past_equipment_{}': ['b', 1],
+        'past_entry_{}': ['e', 1],
+        'past_claimed_code_{}': ['c', 1],
+        'past_claimed_code_{}': ['v', 1],
+        'past_statebred_flag_{}': ['s', 1],
+        'past_restricted_or_qualified_{}': ['R', 1],
     }
 
     replacement_dict_DRF_file_regex = {
-        'past_call_pos_start_{i}': [r'[A-Za-z?*]+', 'NULL'],
-        'past_call_pos_first_{i}': [r'[A-Za-z?*]+', 'NULL'],
-        'past_call_pos_second_{i}': [r'[A-Za-z?*]+', 'NULL'],
-        'past_call_pos_stretch_{i}': [r'[A-Za-z?*]+', 'NULL'],
-        'past_call_pos_finish_{i}': [r'[A-Za-z?*]+', 'NULL'],
-        # 'past_start_code_{i}': [r'[A-Za-z?*]+', 'NULL'],      # This will break the off_turf dis change feature to NULL this out
-        'past_company_line_{i}': [r' ', 'X'],
+        'past_call_pos_start_{}': [r'[A-Za-z?*]+', 'NULL'],
+        'past_call_pos_first_{}': [r'[A-Za-z?*]+', 'NULL'],
+        'past_call_pos_second_{}': [r'[A-Za-z?*]+', 'NULL'],
+        'past_call_pos_stretch_{}': [r'[A-Za-z?*]+', 'NULL'],
+        'past_call_pos_finish_{}': [r'[A-Za-z?*]+', 'NULL'],
+        # 'past_start_code_{}': [r'[A-Za-z?*]+', 'NULL'],      # This will break the off_turf dis change feature to NULL this out
+        'past_company_line_{}': [r' ', 'X'],
 
     }
 
@@ -89,17 +100,17 @@ class TidyFile:
         'statebread_flag': 0,
         'allweather_surface': 0,
         'claiming_price': 0,
-        'past_special_chute_{i}': 0,
-        'past_bar_shoe_{i}': 0,
-        'past_start_code_{i}': 0,
-        'past_sealed_track_indicator_{i}': 0,
-        'past_all_weather_flag_{i}': 0,
-        'past_weight_allowance_{i}': 0,
-        'past_equipment_{i}': 0,
-        'past_entry_{i}': 0,
-        'past_claimed_code_{i}': 0,
-        'past_statebred_flag_{i}': 0,
-        'past_restricted_or_qualified_{i}': 0
+        'past_special_chute_{}': 0,
+        'past_bar_shoe_{}': 0,
+        'past_start_code_{}': 0,
+        'past_sealed_track_indicator_{}': 0,
+        'past_all_weather_flag_{}': 0,
+        'past_weight_allowance_{}': 0,
+        'past_equipment_{}': 0,
+        'past_entry_{}': 0,
+        'past_claimed_code_{}': 0,
+        'past_statebred_flag_{}': 0,
+        'past_restricted_or_qualified_{}': 0
 
     }
 
@@ -107,6 +118,8 @@ class TidyFile:
         self.verbose = verbose
 
     def replace_items(self, df, replacement_dict):
+        if not replacement_dict:
+            return
         for column, params in replacement_dict.items():
             if '{' in column:
                 for i in range(1, 11):
@@ -123,10 +136,12 @@ class TidyFile:
                 df[column].replace(params[0], params[1], inplace=True, regex=True)
 
     def fill_blanks(self, df, fill_dict):
-        for column, fill in fill_dict.items:
+        if not fill_dict:
+            return
+        for column, fill in fill_dict.items():
             if '{' in column:
                 for i in range(1, 11):
-                    df[column.format(i)].fillena(fill, inplace=True)
+                    df[column.format(i)].fillna(fill, inplace=True)
             else:
                 df[column].fillna(fill, inplace=True)
 
@@ -171,5 +186,33 @@ class TidyFile:
                 if df.iloc[i, all_weather_field] == 1:
                     df.iloc[i, surface_field] = 'A'
 
-        df.fillna('NULL', inplace=True)
+
         return df
+
+def main(path='data/raw_files', file_to_process=None):
+    valid_extensions = ['1', '2', '3', '4', '5', '6', 'DRF']
+    preprocessor = TidyFile()
+
+    if file_to_process:
+        file_paths = [pathlib.Path(path, file_to_process)]
+    else:
+        file_paths = [pathlib.Path(path, file) for file in os.listdir(path)]
+        file_paths = [file for file in file_paths if file.is_file()]
+
+    bar = Bar(f'Processing files:', max=len(file_paths), suffix='%(percent).3f%% - %(index)d/%(max)d - %(eta)s secs.')
+
+    for file in file_paths:
+        bar.next()
+        file_already_processed = (file.parent.parent / 'preprocessed_files' / (file.stem + '_processed' + file.suffix)).exists()
+        if file_already_processed: continue
+        extension = re.search(r'(?<=\.).+$', str(file))[0]
+        table_data = pd.read_csv(file, header=None, names=name_files[str(extension)])
+        table_data = preprocessor.clean_table(table_data, extension, verbose=False)
+        table_data = features.add_features(table_data, extension, verbose=False)
+        table_data.fillna('NULL', inplace=True)
+        output_file = file.stem + '_processed' + file.suffix
+        table_data.to_csv('data/preprocessed_files/' + output_file, header=True, index=False)
+    bar.finish()
+
+if __name__ == '__main__':
+    main()
