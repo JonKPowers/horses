@@ -1,6 +1,8 @@
 import pathlib
 import os
 import re
+import logging
+from collections import namedtuple
 
 import pandas as pd
 from progress.bar import Bar
@@ -8,28 +10,42 @@ from progress.bar import Bar
 from csv_definitions import file_structure as name_files
 import features
 
+logging.basicConfig(filename='preprocess_source_files.log', filemode='w', level=logging.INFO)
 
 class TidyFile:
-    replacement_dict_1_file = {
-        'about_dist_flag': ['A', 1],
-        'all_weather_flag': ['A', 1],
-        'state_bred_flag': ['S', 1],
-        'chute_start_flag': ['C', 1],
-        'chute_start_flag': ['N', 1],
-        'off_turf_flag': ['O', 1],
-        'off_turf_dist_change': ['Y', 1],
-        'off_turf_dist_change': ['N', 0],
-        'race_grade': [0, 'NULL']
+
+    Replacement = namedtuple('Replacement', ['field', 'base_value', 'replacement_value'])
+
+    columns_to_delete = {
+        '1': [_ for _ in name_files['1'] if 'reserved' in _],
+        '2': [_ for _ in name_files['2'] if 'reserved' in _],
+        '3': [_ for _ in name_files['3'] if 'reserved' in _],
+        '4': [_ for _ in name_files['4'] if 'reserved' in _],
+        '5': [_ for _ in name_files['5'] if 'reserved' in _],
+        '6': [_ for _ in name_files['6'] if 'reserved' in _],
+        'DRF': [_ for _ in name_files['DRF'] if 'reserved' in _]
     }
 
-    replacement_dict_2_file = {
-        'nonbetting_flag': ['Y', 1],
-        'disqualified_flag': ['Y', 1],
-        'corrected_weight': ['Y', 1],
-        'claimed_flag': ['Y', 1],
-        'claimed_flag': ['N', 0],
-        'dead_heat_flag': ['DH', 1],
-    }
+    replacement_dict_1_file = [
+        Replacement('about_dist_flag', 'A', 1),
+        Replacement('all_weather_flag', 'A', 1),
+        Replacement('state_bred_flag', 'S', 1),
+        Replacement('chute_start_flag', 'C', 1),
+        Replacement('chute_start_flag', 'N', 1),
+        Replacement('off_turf_flag', 'O', 1),
+        Replacement('off_turf_dist_change', 'Y', 1),
+        Replacement('off_turf_dist_change', 'N', 0),
+        Replacement('race_grade', 0, 'NULL'),
+    ]
+
+    replacement_dict_2_file = [
+        Replacement('nonbetting_flag', 'Y', 1),
+        Replacement('disqualified_flag', 'Y', 1),
+        Replacement('corrected_weight', 'Y', 1),
+        Replacement('claimed_flag', 'Y', 1),
+        Replacement('claimed_flag', 'N', 0),
+        Replacement('dead_heat_flag', 'DH', 1),
+    ]
 
     replacement_dict_3_file = {}
 
@@ -39,37 +55,36 @@ class TidyFile:
 
     replacement_dict_6_file = {}
 
-    replacement_dict_DRF_file = {
-        'statebread_flag': ['s', 1],
-        'today_nasal_strip_chg': [9, 'NULL'],
-        'todays_meds_new': [9, 'NULL'],
-        'todays_meds_old': [9, 'NULL'],
-        'equipment_change': [9, 'NULL'],
-        'allweather_surface': ['A', 1],
-        'bris_run_style': ['NA', None],
-        'past_special_chute_{}': ['c', 1],
-        'past_bar_shoe_{}': ['r', 1],
-        'past_start_code_{}': ['X', 1],
-        'past_sealed_track_indicator_{}': ['s', 1],
-        'past_all_weather_flag_{}': ['A', 1],
-        'past_equipment_{}': ['b', 1],
-        'past_entry_{}': ['e', 1],
-        'past_claimed_code_{}': ['c', 1],
-        'past_claimed_code_{}': ['v', 1],
-        'past_statebred_flag_{}': ['s', 1],
-        'past_restricted_or_qualified_{}': ['R', 1],
-    }
+    replacement_dict_DRF_file = [
+        Replacement('statebread_flag', 's', 1),
+        Replacement('today_nasal_strip_chg', 9, 'NULL'),
+        Replacement('todays_meds_new', 9, 'NULL'),
+        Replacement('todays_meds_old', 9, 'NULL'),
+        Replacement('equipment_change', 9, 'NULL'),
+        Replacement('allweather_surface', 'A', 1),
+        Replacement('bris_run_style', 'NA', None),
+        Replacement('past_special_chute_{}', 'c', 1),
+        Replacement('past_bar_shoe_{}', 'r', 1),
+        Replacement('past_start_code_{}', 'X', 1),
+        Replacement('past_sealed_track_indicator_{}', 's', 1),
+        Replacement('past_all_weather_flag_{}', 'A', 1),
+        Replacement('past_equipment_{}', 'b', 1),
+        Replacement('past_entry_{}', 'e', 1),
+        Replacement('past_claimed_code_{}', 'c', 1),
+        Replacement('past_claimed_code_{}', 'v', 1),
+        Replacement('past_statebred_flag_{}', 's', 1),
+        Replacement('past_restricted_or_qualified_{}', 'R', 1),
+    ]
 
-    replacement_dict_DRF_file_regex = {
-        'past_call_pos_start_{}': [r'[A-Za-z?*]+', 'NULL'],
-        'past_call_pos_first_{}': [r'[A-Za-z?*]+', 'NULL'],
-        'past_call_pos_second_{}': [r'[A-Za-z?*]+', 'NULL'],
-        'past_call_pos_stretch_{}': [r'[A-Za-z?*]+', 'NULL'],
-        'past_call_pos_finish_{}': [r'[A-Za-z?*]+', 'NULL'],
-        # 'past_start_code_{}': [r'[A-Za-z?*]+', 'NULL'],      # This will break the off_turf dis change feature to NULL this out
-        'past_company_line_{}': [r' ', 'X'],
-
-    }
+    replacement_dict_DRF_file_regex = [
+        Replacement('past_call_pos_start_{}', r'[A-Za-z?*]+', 'NULL'),
+        Replacement('past_call_pos_first_{}', r'[A-Za-z?*]+', 'NULL'),
+        Replacement('past_call_pos_second_{}', r'[A-Za-z?*]+', 'NULL'),
+        Replacement('past_call_pos_stretch_{}', r'[A-Za-z?*]+', 'NULL'),
+        Replacement('past_call_pos_finish_{}', r'[A-Za-z?*]+', 'NULL'),
+        # Replacement('past_start_code_{}', r'[A-Za-z?*]+', 'NULL'),      # This will break the off_turf dis change feature to NULL this out
+        Replacement('past_company_line_{}', r' ', 'X'),
+        ]
 
     fill_dict_1_file = {
         'about_dist_flag': 0,
@@ -120,20 +135,20 @@ class TidyFile:
     def replace_items(self, df, replacement_dict):
         if not replacement_dict:
             return
-        for column, params in replacement_dict.items():
+        for column, base_value, replacement_value in replacement_dict:
             if '{' in column:
                 for i in range(1, 11):
-                    df[column.format(i)].replace(params[0], params[1], inplace=True)
+                    df[column.format(i)].replace(base_value, replacement_value, inplace=True)
             else:
-                df[column].replace(params[0], params[1], inplace=True)
+                df[column].replace(base_value, replacement_value, inplace=True)
 
     def replace_items_regex(self, df, replacement_dict):
-        for column, params in replacement_dict.items():
+        for column, base_value, replacement_value in replacement_dict:
             if '{' in column:
                 for i in range(1, 11):
-                    df[column.format(i)].replace(params[0], params[1], inplace=True, regex=True)
+                    df[column.format(i)].replace(base_value, replacement_value, inplace=True, regex=True)
             else:
-                df[column].replace(params[0], params[1], inplace=True, regex=True)
+                df[column].replace(base_value, replacement_value, inplace=True, regex=True)
 
     def fill_blanks(self, df, fill_dict):
         if not fill_dict:
@@ -189,6 +204,11 @@ class TidyFile:
 
         return df
 
+    def remove_reserved_columns(self, df, extension):
+        for column in self.columns_to_delete[str(extension)]:
+            del df[column]
+        return column
+
 def main(path='data/raw_files', file_to_process=None):
     valid_extensions = ['1', '2', '3', '4', '5', '6', 'DRF']
     preprocessor = TidyFile()
@@ -203,12 +223,20 @@ def main(path='data/raw_files', file_to_process=None):
 
     for file in file_paths:
         bar.next()
+        logging.info(f'Processing {file.name}')
+
+        # Only process the file if it's a valid file type
+        if file.suffix[1:] not in valid_extensions:
+            logging.info(f'File {file.name} not a valid file type--skipping')
+            continue
+
         file_already_processed = (file.parent.parent / 'preprocessed_files' / (file.stem + '_processed' + file.suffix)).exists()
         if file_already_processed: continue
         extension = re.search(r'(?<=\.).+$', str(file))[0]
         table_data = pd.read_csv(file, header=None, names=name_files[str(extension)])
         table_data = preprocessor.clean_table(table_data, extension, verbose=False)
         table_data = features.add_features(table_data, extension, verbose=False)
+
         table_data.fillna('NULL', inplace=True)
         output_file = file.stem + '_processed' + file.suffix
         table_data.to_csv('data/preprocessed_files/' + output_file, header=True, index=False)
