@@ -1,8 +1,6 @@
-import tidy_it_up as tidy
 import db_functions_refactor as db_functions
 from csv_definitions import file_structure as name_files
 import table_functions
-import features
 from progress.bar import Bar
 
 import os
@@ -36,7 +34,7 @@ table_handlers = {
 }
 
 
-def main(file_to_process='', path='data/preprocessed_files', verbose=False, reset_processed_list=False):
+def main(file_to_process='', path='data/preprocessed_files', verbose=False, reset_processed_list=True):
 
     # Make the list of files to process
     if file_to_process:
@@ -100,6 +98,7 @@ def main(file_to_process='', path='data/preprocessed_files', verbose=False, rese
     db.connection.commit()
     db.close()
 
+
 if __name__ == '__main__':
     reset_list = sys.argv[1:]
-    main(reset_processed_list=reset_list)
+    main()
