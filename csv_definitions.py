@@ -301,7 +301,7 @@ file_structure = {
         '1st_call_lead',        ##      63      NUMERIC                         5.2     For leader only
         '2d_call_lead',         ##      64      NUMERIC                         5.2     For leader only
         '3d_call_lead',         ##      65      NUMERIC                         5.2     For leader only
-        'stretch_call_lead',         ##      66      NUMERIC                         5.2     For leader only
+        'stretch_call_lead',    ##      66      NUMERIC                         5.2     For leader only
         'finish_lead',          ##      67      NUMERIC                         5.2     For leader only
 
         'start_beaten',         ##      68      NUMERIC                         5.2     leader- 0

@@ -75,7 +75,7 @@ def tidy_it_up(table_data, extension, verbose=False):
         print('Tidying .DRF file (past performances) ...')
 
         for i in range(1, 11):
-            past_bullet_flag = []
+            past_bullet_flag = list()
             for j in range(len(table_data)):
                 if table_data[f'workout_time_{i}'][j] < 0:
                     past_bullet_flag.append(1)
@@ -87,7 +87,7 @@ def tidy_it_up(table_data, extension, verbose=False):
             table_data[f'workout_time_{i}'] = table_data[f'workout_time_{i}'].abs()
 
         for i in range(1, 11):
-            past_about_distance = []
+            past_about_distance = list()
             for j in range(len(table_data)):
                 if table_data[f'past_distance_{i}'][j] < 0:
                     past_about_distance.append(1)
@@ -203,7 +203,7 @@ def tidy_it_up(table_data, extension, verbose=False):
 
         # Extract whether there was a off turf distance change for the PP race, and add a column with a flag for that
         for i in range(1, 11):
-            past_off_turf_dist_change = []
+            past_off_turf_dist_change = list()
             for j in range(len(table_data)):
                 if table_data[f'past_start_code_{i}'][j] == 'x':
                     past_off_turf_dist_change.append(1)
@@ -214,7 +214,7 @@ def tidy_it_up(table_data, extension, verbose=False):
         # Extract whether the horse used a nasal string for the PP race; add a column with a flag for that info
         # Extract whether there was a off turf distance change for the PP race, and add a column with a flag for that
         for i in range(1, 11):
-            past_nasal_strip = []
+            past_nasal_strip = list()
             for j in range(len(table_data)):
                 if table_data[f'past_start_code_{i}'][j] == 's':
                     past_nasal_strip.append(1)

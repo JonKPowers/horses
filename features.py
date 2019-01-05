@@ -289,13 +289,13 @@ def add_features (table_data, extension, verbose=True):
         # value for all trailing horses
         calls = ['start', '1st_call', '2d_call', '3d_call', 'stretch_call', 'finish']
         for call in calls:
-            column_data = []
+            column_data = list()
             lead_column = table_data.columns.get_loc(f'{call}_lead')
             beaten_column = table_data.columns.get_loc(f'{call}_beaten')
             for i in range(len(table_data)):
-                if table_data.iloc[i, lead_column] != 'NULL':
+                if not np.isnan(table_data.iloc[i, lead_column]):
                     column_data.append(table_data.iloc[i, lead_column])
-                elif table_data.iloc[i, beaten_column] == 'NULL':
+                elif np.isnan(table_data.iloc[i, beaten_column]):
                     column_data.append('NULL')
                 elif table_data.iloc[i, beaten_column] == 0:
                     column_data.append('NULL')
@@ -311,7 +311,7 @@ def add_features (table_data, extension, verbose=True):
         if verbose: print('Adding features to .4 file ...')
     if extension == '5':
         if verbose: print('Adding features to .5 file ...')
-        where_bred = []
+        where_bred = list()
         foreign_bred = list(table_data['foreignbred_code'])
         state_bred = list(table_data['statebred_code'])
         foreign_bred_null = list(table_data['foreignbred_code'].isnull())
@@ -329,7 +329,7 @@ def add_features (table_data, extension, verbose=True):
         if verbose: print('Adding features to .DRF file ...')
 
         for i in range(1, 11):
-            past_bullet_flag = []
+            past_bullet_flag = list()
             for j in range(len(table_data)):
                 if table_data[f'workout_time_{i}'][j] < 0:
                     past_bullet_flag.append(1)
@@ -341,7 +341,7 @@ def add_features (table_data, extension, verbose=True):
             table_data[f'workout_time_{i}'] = table_data[f'workout_time_{i}'].abs()
 
         for i in range(1, 11):
-            past_about_distance = []
+            past_about_distance = list()
             for j in range(len(table_data)):
                 if table_data[f'past_distance_{i}'][j] < 0:
                     past_about_distance.append(1)
@@ -357,7 +357,7 @@ def add_features (table_data, extension, verbose=True):
 
         # Extract whether there was a off turf distance change for the PP race, and add a column with a flag for that
         for i in range(1, 11):
-            past_off_turf_dist_change = []
+            past_off_turf_dist_change = list()
             for j in range(len(table_data)):
                 if table_data[f'past_start_code_{i}'][j] == 'x':
                     past_off_turf_dist_change.append(1)
@@ -368,7 +368,7 @@ def add_features (table_data, extension, verbose=True):
         # Extract whether the horse used a nasal string for the PP race; add a column with a flag for that info
         # Extract whether there was a off turf distance change for the PP race, and add a column with a flag for that
         for i in range(1, 11):
-            past_nasal_strip = []
+            past_nasal_strip = list()
             for j in range(len(table_data)):
                 if table_data[f'past_start_code_{i}'][j] == 's':
                     past_nasal_strip.append(1)
@@ -402,7 +402,7 @@ def add_features (table_data, extension, verbose=True):
         calls = ['start', 'first_call', 'second_call', 'stretch_call', 'finish']
         for call in calls:
             for j in range(1, 11):
-                column_data = []
+                column_data = list()
                 lead_beaten_col = table_data.columns.get_loc(f'past_lead_margin_{call}_{j}')
                 beaten_only_col = table_data.columns.get_loc(f'past_beaten_lengths_{call}_{j}')
 
@@ -434,19 +434,19 @@ def add_features (table_data, extension, verbose=True):
         # (5) remaining unparsed portion of conditions string (for diagnostic purposes)
         #       - cond_left_on_string
         condition_fields = {
-            'cond_race_class': [],
-            'standard_weight': [],
-            'three_yo_weight': [],
-            'cond_rail_distance': [],
-            'weight_allowance_0_amt': [],
-            'weight_allowance_0_condition': [],
-            'weight_allowance_1_amt': [],
-            'weight_allowance_1_condition': [],
-            'weight_allowance_2_amt': [],
-            'weight_allowance_2_condition': [],
-            'weight_allowance_3_amt': [],
-            'weight_allowance_3_condition': [],
-            'cond_left_on_string': [],
+            'cond_race_class': list(),
+            'standard_weight': list(),
+            'three_yo_weight': list(),
+            'cond_rail_distance': list(),
+            'weight_allowance_0_amt': list(),
+            'weight_allowance_0_condition': list(),
+            'weight_allowance_1_amt': list(),
+            'weight_allowance_1_condition': list(),
+            'weight_allowance_2_amt': list(),
+            'weight_allowance_2_condition': list(),
+            'weight_allowance_3_amt': list(),
+            'weight_allowance_3_condition': list(),
+            'cond_left_on_string': list(),
         }
         if verbose: print('running parse_conditions')
         for i in range(len(table_data)):
@@ -481,7 +481,7 @@ def add_features (table_data, extension, verbose=True):
                              'race_conditions_4', 'race_conditions_5', 'race_conditions_6']
 
         # Create list of full race conditions text for processing
-        condition_list = []
+        condition_list = list()
         for i in range(len(table_data)):
             condition_text = ''
             for j in range(len(condition_columns)):
@@ -490,7 +490,7 @@ def add_features (table_data, extension, verbose=True):
             condition_list.append(condition_text)
 
         # Create a list of race dates for use by the conditions parser in computing time limits
-        date_list = []
+        date_list = list()
         for date in table_data['date']:
             date_list.append(datetime.strptime(str(date), '%Y%m%d'))
 
