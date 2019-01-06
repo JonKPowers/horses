@@ -81,7 +81,7 @@ def main(file_to_process='', path='data/preprocessed_files', verbose=False, rese
         if verbose: print(f'Processing {file}')
 
         # Read in the preprocessed df and calculate the extension
-        table_data = pd.read_csv(str(file), na_values=['-NaN', '-nan', 'N/A', 'NA', 'NaN', 'n/a', 'nan'])
+        table_data = pd.read_pickle(str(file))
         extension = re.search(r'(?<=\.).+$', str(file))[0]
 
         # For each file, run it through the handlers for its file type

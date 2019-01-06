@@ -239,7 +239,7 @@ def main(path='data/raw_files', file_to_process=None):
 
         table_data.fillna('NULL', inplace=True)
         output_file = file.stem + '_processed' + file.suffix
-        table_data.to_csv('data/preprocessed_files/' + output_file, header=True, index=False)
+        table_data.to_pickle('data/preprocessed_files/' + output_file)
     bar.finish()
 
 if __name__ == '__main__':

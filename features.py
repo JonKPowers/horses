@@ -5,6 +5,14 @@ import re
 from datetime import datetime
 from dateutil import relativedelta
 
+
+def is_blank(value):
+    if value is None or value == 'NULL' or (isinstance(value, np.float) and np.isnan(value)):
+        return True
+    else:
+        return False
+
+
 def parse_conditions(condition_string):
     race_info = {
         'cond_race_class': 'NULL',
@@ -190,9 +198,9 @@ def add_features (table_data, extension, verbose=True):
         condition_list = []
         for i in range(len(table_data)):
             condition_text = ''
-            for j in range(len(condition_columns)):
-                if table_data[condition_columns[j]][i] != 'NULL':
-                    condition_text += str(table_data[condition_columns[j]][i])
+            for column in condition_columns:
+                if not is_blank(table_data[column][i]):
+                    condition_text += str(table_data[column][i])
             condition_list.append(condition_text)
 
         # Create a list of race dates for use by the conditions_parser in computing time limits
@@ -276,7 +284,7 @@ def add_features (table_data, extension, verbose=True):
 
         for i in range(len(table_data)):
             code = table_data.iloc[i, equipment_col]
-            if code == 'NULL' or (isinstance(code, np.float) and np.isnan(code)):
+            if is_blank(code):
                 continue
             for letter in code:
                 equipment_dict[equipment_list[letter]][i] = 1
@@ -407,7 +415,7 @@ def add_features (table_data, extension, verbose=True):
                 beaten_only_col = table_data.columns.get_loc(f'past_beaten_lengths_{call}_{j}')
 
                 for i in range(len(table_data)):
-                    if table_data.iloc[i, beaten_only_col] != 'NULL':
+                    if not np.isnan(table_data.iloc[i, beaten_only_col]):
                         column_data.append(table_data.iloc[i, beaten_only_col] * -1)
                     else:
                         column_data.append(table_data.iloc[i, lead_beaten_col])
@@ -450,10 +458,13 @@ def add_features (table_data, extension, verbose=True):
         }
         if verbose: print('running parse_conditions')
         for i in range(len(table_data)):
+            race_conditions = ['race_conditions_1', 'race_conditions_2', 'race_conditions_3',
+                               'race_conditions_4', 'race_conditions_5', 'race_conditions_6', ]
             condition_string = ''
-            for j in range(1, 7):
-                if table_data[f'race_conditions_{j}'][i] != 'NULL':
-                    condition_string += str(table_data[f'race_conditions_{j}'][i])
+            for condition in race_conditions:
+                race_condition_data = table_data[condition][i]
+                if not is_blank(race_condition_data):
+                    condition_string += str(race_condition_data)
                 # print(condition_string)
             parsed_data = parse_conditions(condition_string)
             for key in condition_fields.keys():
@@ -484,9 +495,9 @@ def add_features (table_data, extension, verbose=True):
         condition_list = list()
         for i in range(len(table_data)):
             condition_text = ''
-            for j in range(len(condition_columns)):
-                if table_data[condition_columns[j]][i] != 'NULL':
-                    condition_text += str(table_data[condition_columns[j]][i])
+            for column in condition_columns:
+                if not is_blank(table_data[column][i]):
+                    condition_text += str(table_data[column][i])
             condition_list.append(condition_text)
 
         # Create a list of race dates for use by the conditions parser in computing time limits
