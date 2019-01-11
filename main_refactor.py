@@ -91,7 +91,7 @@ def main(file_to_process='', path='data/preprocessed_files', verbose=False, rese
 
         temp_processed_file_list.append(file.name)
 
-    processed_file_list = processed_file_list.append(temp_processed_file_list)
+    processed_file_list = processed_file_list.append(pd.Series(temp_processed_file_list))
     processed_file_list.to_csv('processed_file_list.dat', index=False)
 
     bar.finish()

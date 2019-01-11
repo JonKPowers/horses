@@ -47,7 +47,8 @@ class TableHandler:
         def empty_not_null_fields():
             if len(self.not_null) != 0:
                 for col in self.not_null:
-                    if pd.isnull(subrow_data[col.format(i)]):
+                    field_value = subrow_data[col.format(i)]
+                    if pd.isnull(field_value) or field_value == 'NULL':
                         return True
             return False
 
