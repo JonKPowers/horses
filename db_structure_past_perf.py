@@ -1,8 +1,8 @@
 horses_info_table = {
     'table_name': 'horses_info',
-    'extension' : 'DRF',
+    'extension': 'DRF',
 
-    'db_fields' : {
+    'db_fields': {
         'horse_name': 'horse_name',
         'birth_year': 'birth_year',
         'foaling_month': 'foaling_month',

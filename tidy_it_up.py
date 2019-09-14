@@ -51,6 +51,8 @@ def tidy_it_up(table_data, extension, verbose=False):
         table_data['dead_heat_flag'].replace('DH', 1, inplace=True)
         table_data['dead_heat_flag'].fillna(0, inplace=True)
 
+        table_data['post_position'].replace(99, 0, inplace=True)
+
         # **********************************************
         # Fill the rest with 'NULL'
         table_data.fillna('NULL', inplace=True)
@@ -100,8 +102,9 @@ def tidy_it_up(table_data, extension, verbose=False):
             table_data[f'workout_distance_{i}'] = table_data[f'workout_distance_{i}'].abs()
         table_data['distance'] = table_data['distance'].abs()
 
-        # *********************************************
-        # Field with [value]/NaN flags
+        for i in range(1, 11):
+            table_data[f'past_post_{i}'].replace(99, 0, inplace=True)
+        table_data['post_position'].replace(99, 0, inplace=True)
 
         table_data['apprentice_wgt_alw'].fillna(0, inplace=True)
 

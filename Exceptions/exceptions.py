@@ -1,0 +1,2 @@
+class HorseNotFoundException(Exception):
+    pass
