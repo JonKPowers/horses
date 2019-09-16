@@ -6,6 +6,7 @@ from DBHandler.DBHandler import DBHandler
 from BaseObjects.horse_db_mappings import bio_fields
 
 from constants.db_info import bio_table
+from constants.db_info import horse_race_tables
 
 from Exceptions.exceptions import HorseNotFoundException
 
@@ -37,14 +38,19 @@ class Horse:
         self.dam: str = None
 
         # Race History Info
-        self.races: RaceIDList = None
+        self.races: RaceIDList = list()
         self.performances: PerformanceDict = dict()
         self.weights: Dict[RaceID, int] = dict()
         self.jockeys: Dict[RaceID, JockeyID] = dict()
         self.trainers: Dict[RaceID, TrainerID] = dict()
         self.owners: Dict[RaceID, OwnerID] = dict()
 
+        # Populate Horse attributes
+        # self._get_bio()
+
     def get_bio(self):
+
+        # Pull info from db and set attributes
         query = self.db.generate_query(self.db_bio_table, self.db_mappings_bio.keys(),
                                        where=f'horse_name = "{self.horse_name}"')
         results, columns = self.db.query_db(query, return_col_names=True)
@@ -55,8 +61,28 @@ class Horse:
             print(f'Horse not found: {self.horse_name}')
             raise HorseNotFoundException
 
+        # Use birthday data to set birthday; assume born 1st day of month
+        self.birthday = date(self._fix_birth_year(), self.birth_month, 1)
+
     def _get_races(self):
-        pass
+        queries = list()
+        for table in horse_race_tables:
+            queries.append(self.db.generate_query(table, horse_race_tables[table],
+                                                  where=f'horse_name="{self.horse_name}"'))
+        races = self.db.query_db(" UNION ".join(queries))
+
+        # Generate list of RaceIDs and sort them in chronological order
+        for race in races:
+            self.races.append(RaceID(race[0], race[1], race[2]))
+        self.races.sort(key=lambda x: x.date)
 
     def _get_race_performance(self, ):
         pass
+
+    def _fix_birth_year(self) -> int:
+        if self.birth_year > 1000:
+            return self.birth_year
+        if self.birth_year >= 80:
+            return self.birth_year + 1900
+        else:
+            return self.birth_year + 2000
