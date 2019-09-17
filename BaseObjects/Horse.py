@@ -8,15 +8,15 @@ from BaseObjects.horse_db_mappings import bio_fields
 from constants.db_info import bio_table
 from constants.db_info import horse_race_tables
 
-from Exceptions.exceptions import HorseNotFoundException
+from Exceptions.exceptions import HorseNotFoundException, RaceNotFoundException, PerformanceNotFoundException
 
-from typing import Dict
+from typing import Dict, List
 
 from datetime import date
 
 
 class Horse:
-    def __init__(self, horse_name: str, db_handler: DBHandler):
+    def __init__(self, horse_name: str, db_handler: DBHandler, initalize_data=True):
         self.races: RaceIDList = []
         self.race_performances = []
 
@@ -40,13 +40,15 @@ class Horse:
         # Race History Info
         self.races: RaceIDList = list()
         self.performances: PerformanceDict = dict()
+        self.performance_not_found_list: List[PerformanceNotFoundException] = list()
         self.weights: Dict[RaceID, int] = dict()
         self.jockeys: Dict[RaceID, JockeyID] = dict()
         self.trainers: Dict[RaceID, TrainerID] = dict()
         self.owners: Dict[RaceID, OwnerID] = dict()
 
         # Populate Horse attributes
-        # self._get_bio()
+        # if initialize_data"
+        #   self._get_bio()
 
     def get_bio(self):
 
@@ -72,12 +74,15 @@ class Horse:
         races = self.db.query_db(" UNION ".join(queries))
 
         # Generate list of RaceIDs and sort them in chronological order
-        for race in races:
-            self.races.append(RaceID(race[0], race[1], race[2]))
+        self.races = [RaceID(race[0], race[1], race[2]) for race in races]
         self.races.sort(key=lambda x: x.date)
 
-    def _get_race_performance(self, ):
+    def _get_race_performances(self):
         pass
+
+    def _generate_where_for_race(self, race_id: RaceID):
+        return f'date="{race_id.date}" AND track="{race_id.track}" ' \
+               f'AND race_num="{race_id.race_num}" AND horse_name="{self.horse_name}"'
 
     def _fix_birth_year(self) -> int:
         if self.birth_year > 1000:

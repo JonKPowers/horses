@@ -1,5 +1,4 @@
 import unittest
-from unittest import TestCase
 from unittest.mock import Mock
 
 from BaseObjects.Horse import Horse
@@ -8,6 +7,7 @@ from BaseObjects.RaceID import RaceID
 from Exceptions.exceptions import HorseNotFoundException
 
 from datetime import date
+
 
 class TestHorseBio(unittest.TestCase):
     def setUp(self) -> None:
@@ -165,6 +165,28 @@ class TestHorseRaces(unittest.TestCase):
 
         self.assertTrue(isinstance(self.horse.races, list), 'horse.races is not a list but should be')
         self.assertTrue(len(self.horse.races) == 0, 'horse.races is not an empty list for first-timer horse')
+
+    def test_performances_list_populated(self):
+        races = [(date(2016, 6, 19), 'AP', 6), (date(2016, 8, 4), 'AP', 8),
+                 (date(2016, 8, 28), 'AP', 7), (date(2016, 10, 14), 'HAW', 9),
+                 (date(2016, 11, 11), 'HAW', 3), (date(2016, 11, 26), 'HAW', 5),
+                 (date(2016, 12, 22), 'HAW', 2), (date(2016, 12, 29), 'HAW', 1),
+                 (date(2017, 3, 17), 'HAW', 4), (date(2018, 4, 13), 'HAW', 4),
+                 (date(2018, 4, 28), 'HAW', 1), (date(2018, 5, 18), 'AP', 1),
+                 (date(2018, 6, 8), 'AP', 1), (date(2018, 6, 29), 'AP', 2),
+                 (date(2018, 7, 20), 'AP', 2), (date(2018, 8, 10), 'AP', 7),
+                 (date(2018, 9, 6), 'AP', 1), (date(2018, 9, 21), 'AP', 4),
+                 (date(2018, 10, 20), 'HAW', 8)]
+
+        self.horse.races = [RaceID(race[0], race[1], race[2]) for race in races]
+        self.horse._get_race_performances()
+
+        races_accounted_for = len(self.horse.performances) + len(self.horse.performance_not_found_list)
+
+        self.assertTrue(races_accounted_for != 0, 'Performances are not populating')
+        self.assertEqual(len(self.horse.performances) + len(self.horse.performance_not_found_list),
+                         len(self.horse.races), 'Some performances are being lost')
+
 
 if __name__ == '__main__':
     unittest.main()
