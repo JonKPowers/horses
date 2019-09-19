@@ -13,3 +13,32 @@ bio_fields = {
     'sire': 'sire',
     'dam': 'dam',
 }
+
+horse_performance_distances = [
+    0,
+    330,
+    440,
+    660,
+    880,
+    990,
+    1100,
+    1210,
+    1320,
+    1430,
+    1540,
+    1610,
+    1650,
+    1760,
+    1830,
+    1870,
+    1980,
+]
+# Format:
+# {name of db field: distance of item}
+
+horse_performance_fields = {
+    'position': {f'position_{distance}': distance for distance in horse_performance_distances},
+    'lead_or_beaten': {f'lead_or_beaten_{distance}': distance for distance in horse_performance_distances},
+}
+
+

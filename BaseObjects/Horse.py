@@ -1,12 +1,14 @@
 from BaseObjects.race_types import RaceIDList, PerformanceDict
 from BaseObjects.RaceID import RaceID
 from BaseObjects.PeopleInfo import JockeyID, TrainerID, OwnerID
+from BaseObjects.HorsePerformance import HorsePerformance
 
 from DBHandler.DBHandler import DBHandler
-from BaseObjects.horse_db_mappings import bio_fields
+from BaseObjects.horse_db_mappings import bio_fields, horse_performance_fields
 
-from constants.db_info import bio_table
-from constants.db_info import horse_race_tables
+from constants.db_info import bio_db, horse_races_db, horse_performance_db
+from constants.db_info import bio_table, horse_races_tables, horse_performance_table
+from constants.db_info import horse_performance_attribute_map as attribute_map
 
 from Exceptions.exceptions import HorseNotFoundException, RaceNotFoundException, PerformanceNotFoundException
 
@@ -55,6 +57,7 @@ class Horse:
         # Pull info from db and set attributes
         query = self.db.generate_query(self.db_bio_table, self.db_mappings_bio.keys(),
                                        where=f'horse_name = "{self.horse_name}"')
+        self.db.set_db(bio_db)
         results, columns = self.db.query_db(query, return_col_names=True)
         try:
             for value, column in zip(results[0], columns):
@@ -68,9 +71,10 @@ class Horse:
 
     def _get_races(self):
         queries = list()
-        for table in horse_race_tables:
-            queries.append(self.db.generate_query(table, horse_race_tables[table],
+        for table in horse_races_tables:
+            queries.append(self.db.generate_query(table, horse_races_tables[table],
                                                   where=f'horse_name="{self.horse_name}"'))
+        self.db.set_db(horse_races_db)
         races = self.db.query_db(" UNION ".join(queries))
 
         # Generate list of RaceIDs and sort them in chronological order
@@ -78,7 +82,28 @@ class Horse:
         self.races.sort(key=lambda x: x.date)
 
     def _get_race_performances(self):
-        pass
+        # Generate list of db fields
+        db_fields = list()
+        for topic in horse_performance_fields:
+            db_fields.extend(horse_performance_fields[topic].keys())
+
+        self.db.set_db(horse_performance_db)
+
+
+    def _get_race_performance(self, race_id: RaceID, fields: list) -> HorsePerformance:
+        sql = self.db.generate_query(horse_performance_table, fields, where=self._generate_where_for_race(race_id))
+        results, columns = self.db.query_db(sql, return_col_names=True)
+
+        horse_performance = HorsePerformance(race_id)
+        for value, column in zip(results[0], columns):
+            key = attribute_map[column][0]
+            distance = attribute_map[column][1]
+            if key == 'position':
+                horse_performance.position[distance] = value
+            elif key == 'lead_or_beaten':
+                horse_performance.lead_or_beaten[distance] = value
+            else: raise Exception   #todo better error handling
+        return horse_performance
 
     def _generate_where_for_race(self, race_id: RaceID):
         return f'date="{race_id.date}" AND track="{race_id.track}" ' \

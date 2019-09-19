@@ -3,6 +3,7 @@ from unittest.mock import Mock
 
 from BaseObjects.Horse import Horse
 from BaseObjects.RaceID import RaceID
+from BaseObjects.HorsePerformance import HorsePerformance
 
 from Exceptions.exceptions import HorseNotFoundException
 
@@ -187,6 +188,25 @@ class TestHorseRaces(unittest.TestCase):
         self.assertEqual(len(self.horse.performances) + len(self.horse.performance_not_found_list),
                          len(self.horse.races), 'Some performances are being lost')
 
+    def test_get_race_performance_returns_horse_performance_object(self):
+
+        self.db_handler.generate_query.return_value = "This is an SQL query"
+        self.db_handler.query_db.return_value = ([(3, None, 1, None, 3, None, None, None, 3, None, None, None, 8,
+                                                   None, None, 6, None, None, None, 0.13, None, -0.6, None, None,
+                                                   None, -1.1, None, None, None, -2.0, None, None, -6.75, None)],
+                                                 ['position_0', 'position_330', 'position_440', 'position_660',
+                                                  'position_880', 'position_990', 'position_1100', 'position_1210',
+                                                  'position_1320', 'position_1430', 'position_1540', 'position_1610',
+                                                  'position_1650', 'position_1760', 'position_1830', 'position_1870',
+                                                  'position_1980', 'lead_or_beaten_0', 'lead_or_beaten_330',
+                                                  'lead_or_beaten_440', 'lead_or_beaten_660', 'lead_or_beaten_880',
+                                                  'lead_or_beaten_990', 'lead_or_beaten_1100', 'lead_or_beaten_1210',
+                                                  'lead_or_beaten_1320', 'lead_or_beaten_1430', 'lead_or_beaten_1540',
+                                                  'lead_or_beaten_1610', 'lead_or_beaten_1650', 'lead_or_beaten_1760',
+                                                  'lead_or_beaten_1830', 'lead_or_beaten_1870', 'lead_or_beaten_1980'])
+
+        horse_performance = self.horse._get_race_performance(RaceID(date(2019, 1, 1,), 'CD', 1), ['some fields'])
+        self.assertTrue(isinstance(horse_performance, HorsePerformance))
 
 if __name__ == '__main__':
     unittest.main()
