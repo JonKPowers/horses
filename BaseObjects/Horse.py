@@ -1,5 +1,6 @@
 from BaseObjects.race_types import RaceIDList, PerformanceDict
 from BaseObjects.RaceID import RaceID
+from BaseObjects.HorseID import HorseID
 from BaseObjects.PeopleInfo import JockeyID, TrainerID, OwnerID
 from BaseObjects.HorsePerformance import HorsePerformance
 
@@ -87,12 +88,22 @@ class Horse:
         for topic in horse_performance_fields:
             db_fields.extend(horse_performance_fields[topic].keys())
 
+        # Make sure we're using the consolidated performances db
         self.db.set_db(horse_performance_db)
+
+        for race in self.races:
+            self._get_race_performance(race, db_fields)
+
 
 
     def _get_race_performance(self, race_id: RaceID, fields: list) -> HorsePerformance:
+        # Get performance data from db
         sql = self.db.generate_query(horse_performance_table, fields, where=self._generate_where_for_race(race_id))
         results, columns = self.db.query_db(sql, return_col_names=True)
+
+        # Raise PerformanceNotFoundException if no race data in db--these are tracked in self.performance_not_found_list
+        if len(results) == 0:
+            raise PerformanceNotFoundException(race_id, HorseID(self.horse_name))
 
         horse_performance = HorsePerformance(race_id)
         for value, column in zip(results[0], columns):

@@ -5,7 +5,7 @@ from BaseObjects.Horse import Horse
 from BaseObjects.RaceID import RaceID
 from BaseObjects.HorsePerformance import HorsePerformance
 
-from Exceptions.exceptions import HorseNotFoundException
+from Exceptions.exceptions import HorseNotFoundException, PerformanceNotFoundException
 
 from datetime import date
 
@@ -191,22 +191,84 @@ class TestHorseRaces(unittest.TestCase):
     def test_get_race_performance_returns_horse_performance_object(self):
 
         self.db_handler.generate_query.return_value = "This is an SQL query"
-        self.db_handler.query_db.return_value = ([(3, None, 1, None, 3, None, None, None, 3, None, None, None, 8,
-                                                   None, None, 6, None, None, None, 0.13, None, -0.6, None, None,
-                                                   None, -1.1, None, None, None, -2.0, None, None, -6.75, None)],
+        self.db_handler.query_db.return_value = ([(1, 2, 3, 4,
+                                                   5, 6, 7, 8,
+                                                   9, 10, 11, 12,
+                                                   13, 14, 15, 16,
+                                                   17,
+                                                   -6.1, -5.2, -4.3, # start lead_or_beaten
+                                                   -3.4, -2.5, -1.6,
+                                                   -0.7, 1.8, 2.9,
+                                                   3.0, 4.1, 5.2,
+                                                   6.3, 7.4, 8.5,
+                                                   9.6, 10.7)],
                                                  ['position_0', 'position_330', 'position_440', 'position_660',
                                                   'position_880', 'position_990', 'position_1100', 'position_1210',
                                                   'position_1320', 'position_1430', 'position_1540', 'position_1610',
                                                   'position_1650', 'position_1760', 'position_1830', 'position_1870',
-                                                  'position_1980', 'lead_or_beaten_0', 'lead_or_beaten_330',
-                                                  'lead_or_beaten_440', 'lead_or_beaten_660', 'lead_or_beaten_880',
-                                                  'lead_or_beaten_990', 'lead_or_beaten_1100', 'lead_or_beaten_1210',
-                                                  'lead_or_beaten_1320', 'lead_or_beaten_1430', 'lead_or_beaten_1540',
-                                                  'lead_or_beaten_1610', 'lead_or_beaten_1650', 'lead_or_beaten_1760',
-                                                  'lead_or_beaten_1830', 'lead_or_beaten_1870', 'lead_or_beaten_1980'])
+                                                  'position_1980',
+                                                  'lead_or_beaten_0', 'lead_or_beaten_330', 'lead_or_beaten_440',
+                                                  'lead_or_beaten_660', 'lead_or_beaten_880', 'lead_or_beaten_990',
+                                                  'lead_or_beaten_1100', 'lead_or_beaten_1210', 'lead_or_beaten_1320',
+                                                  'lead_or_beaten_1430', 'lead_or_beaten_1540', 'lead_or_beaten_1610',
+                                                  'lead_or_beaten_1650', 'lead_or_beaten_1760', 'lead_or_beaten_1830',
+                                                  'lead_or_beaten_1870', 'lead_or_beaten_1980'])
 
         horse_performance = self.horse._get_race_performance(RaceID(date(2019, 1, 1,), 'CD', 1), ['some fields'])
         self.assertTrue(isinstance(horse_performance, HorsePerformance))
 
+        self.assertTrue(horse_performance.position[0] == 1, 'Position attribute not set correctly')
+        self.assertTrue(horse_performance.position[330] == 2, 'Position attribute not set correctly')
+        self.assertTrue(horse_performance.position[440] == 3, 'Position attribute not set correctly')
+        self.assertTrue(horse_performance.position[660] == 4, 'Position attribute not set correctly')
+        self.assertTrue(horse_performance.position[880] == 5, 'Position attribute not set correctly')
+        self.assertTrue(horse_performance.position[990] == 6, 'Position attribute not set correctly')
+        self.assertTrue(horse_performance.position[1100] == 7, 'Position attribute not set correctly')
+        self.assertTrue(horse_performance.position[1210] == 8, 'Position attribute not set correctly')
+        self.assertTrue(horse_performance.position[1320] == 9, 'Position attribute not set correctly')
+        self.assertTrue(horse_performance.position[1430] == 10, 'Position attribute not set correctly')
+        self.assertTrue(horse_performance.position[1540] == 11, 'Position attribute not set correctly')
+        self.assertTrue(horse_performance.position[1610] == 12, 'Position attribute not set correctly')
+        self.assertTrue(horse_performance.position[1650] == 13, 'Position attribute not set correctly')
+        self.assertTrue(horse_performance.position[1760] == 14, 'Position attribute not set correctly')
+        self.assertTrue(horse_performance.position[1830] == 15, 'Position attribute not set correctly')
+        self.assertTrue(horse_performance.position[1870] == 16, 'Position attribute not set correctly')
+        self.assertTrue(horse_performance.position[1980] == 17, 'Position attribute not set correctly')
+
+        self.assertTrue(horse_performance.lead_or_beaten[0] == -6.1, 'Lead_or_beaten attribute not set correctly')
+        self.assertTrue(horse_performance.lead_or_beaten[330] == -5.2, 'Lead_or_beaten attribute not set correctly')
+        self.assertTrue(horse_performance.lead_or_beaten[440] == -4.3, 'Lead_or_beaten attribute not set correctly')
+        self.assertTrue(horse_performance.lead_or_beaten[660] == -3.4, 'Lead_or_beaten attribute not set correctly')
+        self.assertTrue(horse_performance.lead_or_beaten[880] == -2.5, 'Lead_or_beaten attribute not set correctly')
+        self.assertTrue(horse_performance.lead_or_beaten[990] == -1.6, 'Lead_or_beaten attribute not set correctly')
+        self.assertTrue(horse_performance.lead_or_beaten[1100] == -0.7, 'Lead_or_beaten attribute not set correctly')
+        self.assertTrue(horse_performance.lead_or_beaten[1210] == 1.8, 'Lead_or_beaten attribute not set correctly')
+        self.assertTrue(horse_performance.lead_or_beaten[1320] == 2.9, 'Lead_or_beaten attribute not set correctly')
+        self.assertTrue(horse_performance.lead_or_beaten[1430] == 3.0, 'Lead_or_beaten attribute not set correctly')
+        self.assertTrue(horse_performance.lead_or_beaten[1540] == 4.1, 'Lead_or_beaten attribute not set correctly')
+        self.assertTrue(horse_performance.lead_or_beaten[1610] == 5.2, 'Lead_or_beaten attribute not set correctly')
+        self.assertTrue(horse_performance.lead_or_beaten[1650] == 6.3, 'Lead_or_beaten attribute not set correctly')
+        self.assertTrue(horse_performance.lead_or_beaten[1760] == 7.4, 'Lead_or_beaten attribute not set correctly')
+        self.assertTrue(horse_performance.lead_or_beaten[1830] == 8.5, 'Lead_or_beaten attribute not set correctly')
+        self.assertTrue(horse_performance.lead_or_beaten[1870] == 9.6, 'Lead_or_beaten attribute not set correctly')
+        self.assertTrue(horse_performance.lead_or_beaten[1980] == 10.7, 'Lead_or_beaten attribute not set correctly')
+
+    def test_get_race_performance_raises_exception_if_performance_not_found(self):
+        self.db_handler.generate_query.return_value = "This is an SQL query"
+        self.db_handler.query_db.return_value = ([],
+                                                 ['position_0', 'position_330', 'position_440', 'position_660',
+                                                  'position_880', 'position_990', 'position_1100', 'position_1210',
+                                                  'position_1320', 'position_1430', 'position_1540', 'position_1610',
+                                                  'position_1650', 'position_1760', 'position_1830', 'position_1870',
+                                                  'position_1980',
+                                                  'lead_or_beaten_0', 'lead_or_beaten_330', 'lead_or_beaten_440',
+                                                  'lead_or_beaten_660', 'lead_or_beaten_880', 'lead_or_beaten_990',
+                                                  'lead_or_beaten_1100', 'lead_or_beaten_1210', 'lead_or_beaten_1320',
+                                                  'lead_or_beaten_1430', 'lead_or_beaten_1540', 'lead_or_beaten_1610',
+                                                  'lead_or_beaten_1650', 'lead_or_beaten_1760', 'lead_or_beaten_1830',
+                                                  'lead_or_beaten_1870', 'lead_or_beaten_1980'])
+
+        with self.assertRaises(PerformanceNotFoundException) as exception_catcher:
+            horse_performance = self.horse._get_race_performance(RaceID(date(2019, 1, 1, ), 'CD', 1), ['some fields'])
 if __name__ == '__main__':
     unittest.main()

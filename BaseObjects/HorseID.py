@@ -1,6 +1,6 @@
 class HorseID:
 
-    def __init__(self, name: str, id: int):
+    def __init__(self, name: str, id: int = None):
         self._name = name
         self._id = id
 
