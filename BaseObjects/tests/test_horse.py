@@ -4,10 +4,14 @@ from unittest.mock import Mock
 from BaseObjects.Horse import Horse
 from BaseObjects.RaceID import RaceID
 from BaseObjects.HorsePerformance import HorsePerformance
+from BaseObjects.PeopleInfo import JockeyID, TrainerID
 
 from Exceptions.exceptions import HorseNotFoundException, PerformanceNotFoundException
 
+from typing import List
+
 from datetime import date
+from random import random, choice
 
 
 class TestHorseBio(unittest.TestCase):
@@ -95,7 +99,7 @@ class TestHorseBio(unittest.TestCase):
         self.db_handler.query_db.return_value = return_values
         self.horse.get_bio()
 
-        self. assertTrue(self.horse.birthday.year >= 1800)
+        self.assertTrue(self.horse.birthday.year >= 1800)
         self.assertTrue(self.horse.birthday.year <= 2000)
 
     def test_four_digit_birth_years_not_changed(self):
@@ -114,7 +118,7 @@ class TestHorseBio(unittest.TestCase):
         self.assertTrue(self.horse.birthday.year == 2005)
 
 
-class TestHorseRaces(unittest.TestCase):
+class TestHorseRaceInfo(unittest.TestCase):
     def setUp(self) -> None:
         """
         All tests here are done on a blank Horse object. A mock DBHandler is used to
@@ -124,14 +128,51 @@ class TestHorseRaces(unittest.TestCase):
         """
         self.db_handler: Mock = Mock()
         self.horse: Horse = Horse(horse_name='Drip Brew', db_handler=self.db_handler)
+        self.fields = ['position_0', 'position_330', 'position_440', 'position_660',
+                     'position_880', 'position_990', 'position_1100', 'position_1210',
+                     'position_1320', 'position_1430', 'position_1540', 'position_1610',
+                     'position_1650', 'position_1760', 'position_1830', 'position_1870',
+                     'position_1980',
+                     'lead_or_beaten_0', 'lead_or_beaten_330', 'lead_or_beaten_440',
+                     'lead_or_beaten_660', 'lead_or_beaten_880', 'lead_or_beaten_990',
+                     'lead_or_beaten_1100', 'lead_or_beaten_1210', 'lead_or_beaten_1320',
+                     'lead_or_beaten_1430', 'lead_or_beaten_1540', 'lead_or_beaten_1610',
+                     'lead_or_beaten_1650', 'lead_or_beaten_1760', 'lead_or_beaten_1830',
+                     'lead_or_beaten_1870', 'lead_or_beaten_1980']
+
+    def get_fake_performance(self, performance_not_found_frequency: float = 0.0) -> tuple:
+        if performance_not_found_frequency > 0.0 and random() <= performance_not_found_frequency:
+            return ([], self.fields)
+
+        return ([(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17,
+                  # start lead_or_beaten
+                  -6.1, -5.2, -4.3, -3.4, -2.5, -1.6, -0.7, 1.8, 2.9,
+                  3.0, 4.1, 5.2, 6.3, 7.4, 8.5, 9.6, 10.7)], self.fields)
+
+    def get_fake_races(self, num_races: int = 1) -> List[RaceID]:
+        races = list()
+        for i in range(num_races):
+            races.append(RaceID(date(2019, 9, 1), 'CD', i+1))
+        return races
+
+    def get_fake_weight(self) -> int:
+        """Generates fake horse weight in the range of 116-126"""
+        return [(int((random() * 10) + 116),)]
+
+    def get_fake_jockey(self):
+        """Returns fake jockey info, randomly selected from the list below"""
+        jockeys = [['DIEGO I V', 102309], ['VALDEZ - JIMINEZ ERNESTO', 144056], ['ARELLANO IVAN', 130638],
+                   ['RISENHOOVER SASHA', 140163], ['CABRERA DAVID', 150833], ['RAMOS A B', 98853],
+                   ['STILLION BROOKE', 157166], ['DIEGO I V', 102309], ['PIVARAL GERBER', 156600],
+                   ['DIEGO I V', 102309], ['GONDRON T D', 738], ['CABRERA DAVID', 150833],
+                   ['WADE LYNDIE', 126441], ['PARKER D L', 1432], ['ARELLANO IVAN', 130638],
+                   ['NAUPAC CASSANDRA', 156139], ['PEREZ FRANCISCO ESCALERA', 149905], ['SINGH R R', 2772],
+                   ['MCNEIL BRYAN', 111515], ['URIETA VICTOR MANUEL JR', 157033]]
+
+        return choice(jockeys)
 
     def test_race_list_populated(self):
-        """
-        Make sure that Horse.races is filled with RaceID objects from db data.
-
-        Returns:
-
-        """
+        """ Make sure that Horse.races is filled with RaceID objects from db data. """
         races = [(date(2016, 6, 19), 'AP', 6), (date(2016, 8, 4), 'AP', 8),
                  (date(2016, 8, 28), 'AP', 7), (date(2016, 10, 14), 'HAW', 9),
                  (date(2016, 11, 11), 'HAW', 3), (date(2016, 11, 26), 'HAW', 5),
@@ -168,90 +209,65 @@ class TestHorseRaces(unittest.TestCase):
         self.assertTrue(len(self.horse.races) == 0, 'horse.races is not an empty list for first-timer horse')
 
     def test_performances_list_populated(self):
-        races = [(date(2016, 6, 19), 'AP', 6), (date(2016, 8, 4), 'AP', 8),
-                 (date(2016, 8, 28), 'AP', 7), (date(2016, 10, 14), 'HAW', 9),
-                 (date(2016, 11, 11), 'HAW', 3), (date(2016, 11, 26), 'HAW', 5),
-                 (date(2016, 12, 22), 'HAW', 2), (date(2016, 12, 29), 'HAW', 1),
-                 (date(2017, 3, 17), 'HAW', 4), (date(2018, 4, 13), 'HAW', 4),
-                 (date(2018, 4, 28), 'HAW', 1), (date(2018, 5, 18), 'AP', 1),
-                 (date(2018, 6, 8), 'AP', 1), (date(2018, 6, 29), 'AP', 2),
-                 (date(2018, 7, 20), 'AP', 2), (date(2018, 8, 10), 'AP', 7),
-                 (date(2018, 9, 6), 'AP', 1), (date(2018, 9, 21), 'AP', 4),
-                 (date(2018, 10, 20), 'HAW', 8)]
+        # Set up races in Horse object
+        self.horse.races = self.get_fake_races(num_races=10)
 
-        self.horse.races = [RaceID(race[0], race[1], race[2]) for race in races]
+        # Set up db_handler responses:
+        self.db_handler.generate_query.return_value = 'This is an SQL query'
+        self.db_handler.query_db.return_value = self.get_fake_performance(performance_not_found_frequency=0.3)
         self.horse._get_race_performances()
 
         races_accounted_for = len(self.horse.performances) + len(self.horse.performance_not_found_list)
 
-        self.assertTrue(races_accounted_for != 0, 'Performances are not populating')
+        self.assertTrue(races_accounted_for != 0,
+                        f'Performances are not populating: looked for{len(self.horse.races)}, found {races_accounted_for}')
         self.assertEqual(len(self.horse.performances) + len(self.horse.performance_not_found_list),
                          len(self.horse.races), 'Some performances are being lost')
 
     def test_get_race_performance_returns_horse_performance_object(self):
-
+        position_not_set: str = 'Position attribute not set correctly'
+        lead_beaten_not_set: str = 'lead_or_beaten_not_set'
         self.db_handler.generate_query.return_value = "This is an SQL query"
-        self.db_handler.query_db.return_value = ([(1, 2, 3, 4,
-                                                   5, 6, 7, 8,
-                                                   9, 10, 11, 12,
-                                                   13, 14, 15, 16,
-                                                   17,
-                                                   -6.1, -5.2, -4.3, # start lead_or_beaten
-                                                   -3.4, -2.5, -1.6,
-                                                   -0.7, 1.8, 2.9,
-                                                   3.0, 4.1, 5.2,
-                                                   6.3, 7.4, 8.5,
-                                                   9.6, 10.7)],
-                                                 ['position_0', 'position_330', 'position_440', 'position_660',
-                                                  'position_880', 'position_990', 'position_1100', 'position_1210',
-                                                  'position_1320', 'position_1430', 'position_1540', 'position_1610',
-                                                  'position_1650', 'position_1760', 'position_1830', 'position_1870',
-                                                  'position_1980',
-                                                  'lead_or_beaten_0', 'lead_or_beaten_330', 'lead_or_beaten_440',
-                                                  'lead_or_beaten_660', 'lead_or_beaten_880', 'lead_or_beaten_990',
-                                                  'lead_or_beaten_1100', 'lead_or_beaten_1210', 'lead_or_beaten_1320',
-                                                  'lead_or_beaten_1430', 'lead_or_beaten_1540', 'lead_or_beaten_1610',
-                                                  'lead_or_beaten_1650', 'lead_or_beaten_1760', 'lead_or_beaten_1830',
-                                                  'lead_or_beaten_1870', 'lead_or_beaten_1980'])
+        self.db_handler.query_db.return_value = self.get_fake_performance()
 
-        horse_performance = self.horse._get_race_performance(RaceID(date(2019, 1, 1,), 'CD', 1), ['some fields'])
+        horse_performance = self.horse._get_race_performance(RaceID(date(2019, 1, 1, ), 'CD', 1), ['some fields'])
         self.assertTrue(isinstance(horse_performance, HorsePerformance))
 
-        self.assertTrue(horse_performance.position[0] == 1, 'Position attribute not set correctly')
-        self.assertTrue(horse_performance.position[330] == 2, 'Position attribute not set correctly')
-        self.assertTrue(horse_performance.position[440] == 3, 'Position attribute not set correctly')
-        self.assertTrue(horse_performance.position[660] == 4, 'Position attribute not set correctly')
-        self.assertTrue(horse_performance.position[880] == 5, 'Position attribute not set correctly')
-        self.assertTrue(horse_performance.position[990] == 6, 'Position attribute not set correctly')
-        self.assertTrue(horse_performance.position[1100] == 7, 'Position attribute not set correctly')
-        self.assertTrue(horse_performance.position[1210] == 8, 'Position attribute not set correctly')
-        self.assertTrue(horse_performance.position[1320] == 9, 'Position attribute not set correctly')
-        self.assertTrue(horse_performance.position[1430] == 10, 'Position attribute not set correctly')
-        self.assertTrue(horse_performance.position[1540] == 11, 'Position attribute not set correctly')
-        self.assertTrue(horse_performance.position[1610] == 12, 'Position attribute not set correctly')
-        self.assertTrue(horse_performance.position[1650] == 13, 'Position attribute not set correctly')
-        self.assertTrue(horse_performance.position[1760] == 14, 'Position attribute not set correctly')
-        self.assertTrue(horse_performance.position[1830] == 15, 'Position attribute not set correctly')
-        self.assertTrue(horse_performance.position[1870] == 16, 'Position attribute not set correctly')
-        self.assertTrue(horse_performance.position[1980] == 17, 'Position attribute not set correctly')
+        self.assertTrue(horse_performance.position[0] == 1, position_not_set)
+        self.assertTrue(horse_performance.position[330] == 2, position_not_set)
+        self.assertTrue(horse_performance.position[440] == 3, position_not_set)
+        self.assertTrue(horse_performance.position[660] == 4, position_not_set)
+        self.assertTrue(horse_performance.position[880] == 5, position_not_set)
+        self.assertTrue(horse_performance.position[990] == 6, position_not_set)
+        self.assertTrue(horse_performance.position[1100] == 7, position_not_set)
+        self.assertTrue(horse_performance.position[1210] == 8, position_not_set)
+        self.assertTrue(horse_performance.position[1320] == 9, position_not_set)
+        self.assertTrue(horse_performance.position[1430] == 10, position_not_set)
+        self.assertTrue(horse_performance.position[1540] == 11, position_not_set)
+        self.assertTrue(horse_performance.position[1610] == 12, position_not_set)
+        self.assertTrue(horse_performance.position[1650] == 13, position_not_set)
+        self.assertTrue(horse_performance.position[1760] == 14, position_not_set)
+        self.assertTrue(horse_performance.position[1830] == 15, position_not_set)
+        self.assertTrue(horse_performance.position[1870] == 16, position_not_set)
+        self.assertTrue(horse_performance.position[1980] == 17, position_not_set)
 
-        self.assertTrue(horse_performance.lead_or_beaten[0] == -6.1, 'Lead_or_beaten attribute not set correctly')
-        self.assertTrue(horse_performance.lead_or_beaten[330] == -5.2, 'Lead_or_beaten attribute not set correctly')
-        self.assertTrue(horse_performance.lead_or_beaten[440] == -4.3, 'Lead_or_beaten attribute not set correctly')
-        self.assertTrue(horse_performance.lead_or_beaten[660] == -3.4, 'Lead_or_beaten attribute not set correctly')
-        self.assertTrue(horse_performance.lead_or_beaten[880] == -2.5, 'Lead_or_beaten attribute not set correctly')
-        self.assertTrue(horse_performance.lead_or_beaten[990] == -1.6, 'Lead_or_beaten attribute not set correctly')
-        self.assertTrue(horse_performance.lead_or_beaten[1100] == -0.7, 'Lead_or_beaten attribute not set correctly')
-        self.assertTrue(horse_performance.lead_or_beaten[1210] == 1.8, 'Lead_or_beaten attribute not set correctly')
-        self.assertTrue(horse_performance.lead_or_beaten[1320] == 2.9, 'Lead_or_beaten attribute not set correctly')
-        self.assertTrue(horse_performance.lead_or_beaten[1430] == 3.0, 'Lead_or_beaten attribute not set correctly')
-        self.assertTrue(horse_performance.lead_or_beaten[1540] == 4.1, 'Lead_or_beaten attribute not set correctly')
-        self.assertTrue(horse_performance.lead_or_beaten[1610] == 5.2, 'Lead_or_beaten attribute not set correctly')
-        self.assertTrue(horse_performance.lead_or_beaten[1650] == 6.3, 'Lead_or_beaten attribute not set correctly')
-        self.assertTrue(horse_performance.lead_or_beaten[1760] == 7.4, 'Lead_or_beaten attribute not set correctly')
-        self.assertTrue(horse_performance.lead_or_beaten[1830] == 8.5, 'Lead_or_beaten attribute not set correctly')
-        self.assertTrue(horse_performance.lead_or_beaten[1870] == 9.6, 'Lead_or_beaten attribute not set correctly')
-        self.assertTrue(horse_performance.lead_or_beaten[1980] == 10.7, 'Lead_or_beaten attribute not set correctly')
+        self.assertTrue(horse_performance.lead_or_beaten[0] == -6.1, lead_beaten_not_set)
+        self.assertTrue(horse_performance.lead_or_beaten[330] == -5.2, lead_beaten_not_set)
+        self.assertTrue(horse_performance.lead_or_beaten[440] == -4.3, lead_beaten_not_set)
+        self.assertTrue(horse_performance.lead_or_beaten[660] == -3.4, lead_beaten_not_set)
+        self.assertTrue(horse_performance.lead_or_beaten[880] == -2.5, lead_beaten_not_set)
+        self.assertTrue(horse_performance.lead_or_beaten[990] == -1.6, lead_beaten_not_set)
+        self.assertTrue(horse_performance.lead_or_beaten[1100] == -0.7, lead_beaten_not_set)
+        self.assertTrue(horse_performance.lead_or_beaten[1210] == 1.8, lead_beaten_not_set)
+        self.assertTrue(horse_performance.lead_or_beaten[1320] == 2.9, lead_beaten_not_set)
+        self.assertTrue(horse_performance.lead_or_beaten[1430] == 3.0, lead_beaten_not_set)
+        self.assertTrue(horse_performance.lead_or_beaten[1540] == 4.1, lead_beaten_not_set)
+        self.assertTrue(horse_performance.lead_or_beaten[1610] == 5.2, lead_beaten_not_set)
+        self.assertTrue(horse_performance.lead_or_beaten[1650] == 6.3, lead_beaten_not_set)
+        self.assertTrue(horse_performance.lead_or_beaten[1760] == 7.4, lead_beaten_not_set)
+        self.assertTrue(horse_performance.lead_or_beaten[1830] == 8.5, lead_beaten_not_set)
+        self.assertTrue(horse_performance.lead_or_beaten[1870] == 9.6, lead_beaten_not_set)
+        self.assertTrue(horse_performance.lead_or_beaten[1980] == 10.7, lead_beaten_not_set)
 
     def test_get_race_performance_raises_exception_if_performance_not_found(self):
         self.db_handler.generate_query.return_value = "This is an SQL query"
@@ -270,5 +286,51 @@ class TestHorseRaces(unittest.TestCase):
 
         with self.assertRaises(PerformanceNotFoundException) as exception_catcher:
             horse_performance = self.horse._get_race_performance(RaceID(date(2019, 1, 1, ), 'CD', 1), ['some fields'])
+
+    def test_gets_weights(self):
+        # Set up db_handler responses
+        self.horse.races = self.get_fake_races(num_races=10)
+        self.db_handler.generate_query.return_value = 'This is a SQL query'
+        self.db_handler.query_db.return_value = self.get_fake_weight()
+
+        # Run method being tested
+        self.horse._get_weights()
+
+        # See if it worked
+        self.assertTrue(len(self.horse.races) != 0, 'Horse.races not populated for test_gets_weights')
+        self.assertEqual(len(self.horse.weights), len(self.horse.races), 'Weights not being populated correctly')
+        for race in self.horse.weights:
+            self.assertTrue(isinstance(self.horse.weights[race], int), 'Weight is not stored as an int')
+
+    def test_gets_jockeys(self):
+        # Set up db_handler responses
+        self.db_handler.generate_query.return_value = 'This is an SQL query'
+        self.db_handler.query_db.return_value = [self.get_fake_jockey()]
+        self.horse.races = self.get_fake_races(num_races=10)
+
+        # Run the method being tested
+        self.horse._get_jockeys()
+
+        # See if it works
+        self.assertTrue(len(self.horse.races) != 0, 'Races not populated for test_gets_jockeys')
+        self.assertEqual(len(self.horse.jockeys), len(self.horse.races), 'Horse.jockeys not being populated')
+        for race in self.horse.jockeys:
+            self.assertTrue(isinstance(self.horse.jockeys[race], JockeyID), 'Horse.jockeys has non-JockeyID content')
+
+    def test_gets_trainers(self):
+        # Set up db_handler responses
+        self.horse.races = self.get_fake_races(num_races=10)
+        self.db_handler.generate_query = 'This is an SQL query'
+
+        # Run the method being tested
+        self.horse._get_trainers()
+
+        # See if it works
+        self.assertTrue(len(self.horse.races) != 0, 'Races not populating for test_gets_trainers')
+        self.assertEqual(len(self.horse.trainers), len(self.horse.races), 'Horse.trainers not populating')
+        for race in self.horse.trainers:
+            self.assertTrue(isinstance(self.horse.trainer[race], TrainerID), 'Horse.trainers has non-TrainerID content')
+
+
 if __name__ == '__main__':
     unittest.main()

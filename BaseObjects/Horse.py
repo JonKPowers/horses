@@ -20,8 +20,6 @@ from datetime import date
 
 class Horse:
     def __init__(self, horse_name: str, db_handler: DBHandler, initalize_data=True):
-        self.races: RaceIDList = []
-        self.race_performances = []
 
         # Uses a passed-in DBHandler to fetch data
         self.db = db_handler
@@ -92,9 +90,10 @@ class Horse:
         self.db.set_db(horse_performance_db)
 
         for race in self.races:
-            self._get_race_performance(race, db_fields)
-
-
+            try:
+                self.performances[race] = self._get_race_performance(race, db_fields)
+            except PerformanceNotFoundException as e:
+                self.performance_not_found_list.append(e)
 
     def _get_race_performance(self, race_id: RaceID, fields: list) -> HorsePerformance:
         # Get performance data from db
@@ -115,6 +114,27 @@ class Horse:
                 horse_performance.lead_or_beaten[distance] = value
             else: raise Exception   #todo better error handling
         return horse_performance
+
+    def _get_weights(self):
+        self.db.set_db(horse_performance_db)
+
+        for race in self.races:
+            sql = self.db.generate_query(horse_performance_table, ['weight'], where=self._generate_where_for_race(race))
+            weight = self.db.query_db(sql)[0][0]
+            self.weights[race] = weight
+
+    def _get_jockeys(self):
+        self.db.set_db(horse_performance_db)
+
+        for race in self.races:
+            sql = self.db.generate_query(horse_performance_table, ['jockey', 'jockey_id'],
+                                         where=self._generate_where_for_race(race))
+            jockey_info = self.db.query_db(sql)[0]
+
+            self.jockeys[race] = JockeyID(jockey_info[0], jockey_info[1])
+
+    def _get_trainers(self):
+        pass
 
     def _generate_where_for_race(self, race_id: RaceID):
         return f'date="{race_id.date}" AND track="{race_id.track}" ' \
