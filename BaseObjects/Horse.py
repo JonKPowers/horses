@@ -45,6 +45,7 @@ class Horse:
         self.weights: Dict[RaceID, int] = dict()
         self.jockeys: Dict[RaceID, JockeyID] = dict()
         self.trainers: Dict[RaceID, TrainerID] = dict()
+        # todo _get_owners still needs to be implemented
         self.owners: Dict[RaceID, OwnerID] = dict()
 
         # Populate Horse attributes
@@ -134,7 +135,13 @@ class Horse:
             self.jockeys[race] = JockeyID(jockey_info[0], jockey_info[1])
 
     def _get_trainers(self):
-        pass
+        self.db.set_db(horse_performance_db)
+
+        for race in self.races:
+            sql = self.db.generate_query(horse_performance_table, ['trainer', 'trainerID'],
+                                         where=self._generate_where_for_race(race))
+            trainer_info = self.db.query_db(sql)
+            self.trainers[race] = TrainerID(trainer_info[0], trainer_info[1])
 
     def _generate_where_for_race(self, race_id: RaceID):
         return f'date="{race_id.date}" AND track="{race_id.track}" ' \

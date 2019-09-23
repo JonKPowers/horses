@@ -1,17 +1,17 @@
 class JockeyID:
 
-    def __init__(self, name: str, id:int):
+    def __init__(self, name: str, _id: int):
         self.name: str = name
-        self.id: int = id
+        self.id: int = _id
 
 class TrainerID:
 
-    def __init__(self):
-        self.name: str = None
-        self.id: int = None
+    def __init__(self, name: str, _id: int):
+        self.name: str = name
+        self.id: int = _id
 
 class OwnerID:
 
-    def __init__(self):
-        self.name: str = None
-        self.id: int = None
+    def __init__(self, name: str, _id: int = None):
+        self.name: str = name
+        self.id: int = _id

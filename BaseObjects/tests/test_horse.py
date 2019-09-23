@@ -171,6 +171,19 @@ class TestHorseRaceInfo(unittest.TestCase):
 
         return choice(jockeys)
 
+    def get_fake_trainer(self):
+        """Returns fake trainer info, randomly selected from the list below"""
+        trainers = [['TORREZ JERENESTO', 33116], ['AFLEUR RENEE', 226868], ['ASMUSSEN STEVEN M', 5621],
+                    ['DAVIDSON M BRENT', 11716], ['PISH DANNY', 45129], ['STROOPE LARRY', 30431],
+                    ['WILLIS MINDY', 5395], ['SHORT THOMAS', 20152], ['DAVIDSON M BRENT', 11716],
+                    ['HATCHER NATHAN D', 16018], ['GONZALEZ ISAI V', 242887], ['COURTEMANCHE CANDY R', 235231],
+                    ['WHITELAW MICHAEL R', 16003], ['CHACALTANA DOMINGO', 257551], ['BRYANT GEORGE', 12416],
+                    ['HATCHER NATHAN D', '16018'], ['NOLEN KENNETH', 7783], ['BARTON AMANDA', 255349],
+                    ['OFFOLTER JOE S', 25395], ['SALISBURY JOYCE', 232128], ['GRIMALDO JOSE', 208946],
+                    ['MCANALLY JOE', 260833], ['JACKS KAREN E', 280419], ['LOVE ALAN', 2437]]
+
+        return choice(trainers)
+
     def test_race_list_populated(self):
         """ Make sure that Horse.races is filled with RaceID objects from db data. """
         races = [(date(2016, 6, 19), 'AP', 6), (date(2016, 8, 4), 'AP', 8),
@@ -320,16 +333,17 @@ class TestHorseRaceInfo(unittest.TestCase):
     def test_gets_trainers(self):
         # Set up db_handler responses
         self.horse.races = self.get_fake_races(num_races=10)
-        self.db_handler.generate_query = 'This is an SQL query'
+        self.db_handler.generate_query.return_value = 'This is an SQL query'
+        self.db_handler.query_db.return_value = self.get_fake_trainer()
 
         # Run the method being tested
         self.horse._get_trainers()
 
         # See if it works
         self.assertTrue(len(self.horse.races) != 0, 'Races not populating for test_gets_trainers')
-        self.assertEqual(len(self.horse.trainers), len(self.horse.races), 'Horse.trainers not populating')
+        self.assertTrue(len(self.horse.trainers) == len(self.horse.races), 'Horse.trainers not populating correctly')
         for race in self.horse.trainers:
-            self.assertTrue(isinstance(self.horse.trainer[race], TrainerID), 'Horse.trainers has non-TrainerID content')
+            self.assertTrue(isinstance(self.horse.trainers[race], TrainerID), 'Horse.trainers has non-TrainerID content')
 
 
 if __name__ == '__main__':
