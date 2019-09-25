@@ -45,3 +45,5 @@ horse_performance_attribute_map = {
     'lead_or_beaten_1870': ['lead_or_beaten', 1870],
     'lead_or_beaten_1980': ['lead_or_beaten', 1980],
 }
+
+consolidated_races_db = 'horses_consolidated_races'

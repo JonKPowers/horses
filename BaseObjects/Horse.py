@@ -11,7 +11,7 @@ from constants.db_info import bio_db, horse_races_db, horse_performance_db
 from constants.db_info import bio_table, horse_races_tables, horse_performance_table
 from constants.db_info import horse_performance_attribute_map as attribute_map
 
-from Exceptions.exceptions import HorseNotFoundException, RaceNotFoundException, PerformanceNotFoundException
+from Exceptions.exceptions import HorseNotFoundException, PerformanceNotFoundException
 
 from typing import Dict, List
 
