@@ -47,3 +47,4 @@ horse_performance_attribute_map = {
 }
 
 consolidated_races_db = 'horses_consolidated_races'
+consolidated_races_table = 'horses_consolidated_races'

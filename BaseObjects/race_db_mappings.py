@@ -9,7 +9,7 @@ consolidated_races_attribute_map = {
     'weather': 'weather',
     'surface': 'surface',
     'track_condition': 'surface_condition',
-    'surface_change': 'off_turf',
+    'off_turf': 'surface change',
     'field_size': 'num_horses',
 }
 

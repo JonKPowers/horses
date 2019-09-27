@@ -9,14 +9,21 @@ from Exceptions.exceptions import RaceNotFoundException
 from typing import List, Dict
 from DBHandler.DBHandler import DBHandler
 
+from constants.db_info import consolidated_races_db, consolidated_races_table
+
 from BaseObjects.race_db_mappings import consolidated_races_attribute_map
 
 from datetime import date
 from datetime import datetime
 
+
 class Race:
     def __init__(self, race_id: RaceID, db_handler: DBHandler):
         self.db = db_handler
+
+        # Mappings between db fields and Race attributes
+        self.consolidated_races_mappings = consolidated_races_attribute_map
+        self.consolidated_races_table = consolidated_races_table
 
         self.race_id = race_id
         self.track: str = race_id.track
@@ -29,6 +36,7 @@ class Race:
 
         self.distance: int = None
         self.planned_distance: int = None
+        self.distance_change: int = None
         self.run_up_distance: int = None
         self.rail_distance: int = None
 
@@ -56,6 +64,23 @@ class Race:
         # Payout information
         self.payouts: Payouts = None
 
-    def _generate_where_for_race(self, race_id: RaceID):
-        return f'date="{race_id.date}" AND track="{race_id.track}" ' \
-               f'AND race_num="{race_id.race_num}"'
+    def _get_consolidated_races_data(self):
+        self.db.set_db(consolidated_races_db)
+
+        fields = list(consolidated_races_attribute_map.keys())
+        sql = self.db.generate_query(self.consolidated_races_table, fields,
+                                     where=self._generate_where_for_race())
+        results, columns = self.db.query_db(sql)
+
+        try:
+            for result, column in zip(results[0], columns):
+                setattr(self, self.consolidated_races_mappings[column], result)
+        except IndexError as e:
+            print(f'Race not found: {self.race_id}')
+            raise RaceNotFoundException
+
+    def _generate_race_datetime(self, time: int) -> datetime:
+        pass
+
+    def _generate_where_for_race(self):
+        return f'date="{self.race_date}" AND track="{self.track}" AND race_num="{self.race_num}"'
