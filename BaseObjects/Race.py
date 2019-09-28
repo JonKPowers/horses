@@ -15,6 +15,7 @@ from BaseObjects.race_db_mappings import consolidated_races_attribute_map
 
 from datetime import date
 from datetime import datetime
+import re
 
 
 class Race:
@@ -79,8 +80,33 @@ class Race:
             print(f'Race not found: {self.race_id}')
             raise RaceNotFoundException
 
-    def _generate_race_datetime(self, time: int) -> datetime:
-        pass
+    def _generate_race_datetime(self, time_str: str) -> datetime:
+        """Takes in string in format 4:15/(3:15)/2:15/1:15 and generates datetime from time in parentheses
+
+            Times are stored in local time with respect to the race location.
+
+            When the post time is higher than 8, there's ambiguity as to whether that's 8PM or 8AM. To resolve this,
+            we look at the Pacific post time (post_time_pacific in the race_info table). A race starting at 8PM or
+            later Eastern time will have a Pacific time post-time of 1700 or later. Thus, for times with an hour of
+            8, we pull the Pacific post time for the race to determine whether it is a morning race or afternoon race.
+        """
+        time: re.match = re.search(r'\((\d{,2}):(\d{,2})\)', time_str)
+        hour: int = int(time.group(1))
+        minute: int = int(time.group(2))
+
+        # For morning/afternoon races, convert to 24-hour time
+        # For potential night races, check pacific time to confirm whether morning or night (e.g., 8:30 or 9:00)
+        # Note: any race that happens to be in 24-hour time should be left alone
+        if hour < 8:
+            hour += 12
+        elif hour < 12 and self._get_race_time_pacific() >= 1700:
+            hour += 12
+
+        return datetime(self.race_date.year, self.race_date.month, self.race_date.day, hour, minute)
+
+    def _get_race_time_pacific(self) -> int:
+        sql = self.db.generate_query('race_info', ['post_time_pacific'], where=self._generate_where_for_race())
+        return int(self.db.query_db(sql)[0][0])
 
     def _generate_where_for_race(self):
         return f'date="{self.race_date}" AND track="{self.track}" AND race_num="{self.race_num}"'
