@@ -13,6 +13,3 @@ consolidated_races_attribute_map = {
     'field_size': 'num_horses',
 }
 
-race_info_attribute_map = {
-    'all_weather_surface': 'all_weather_surface',
-}

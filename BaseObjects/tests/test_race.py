@@ -5,6 +5,7 @@ from DBHandler.DBHandler import DBHandler
 
 from BaseObjects.RaceID import RaceID
 from BaseObjects.Race import Race
+from BaseObjects.HorseID import HorseID
 
 from constants.db_info import consolidated_races_db
 
@@ -72,8 +73,7 @@ class TestRaceInit(unittest.TestCase):
                  ('(12:56)/11:56/10:56/9:56', 956, time(12, 56))]
 
         # Set up Race
-        race_id = RaceID(date(self.year, self.month, self.day), self.track, self.race_num)
-        race = Race(race_id, self.db_handler)
+        race = Race(self.race_id, self.db_handler)
         race_date = date(self.year, self.month, self.day)
 
         for time_str, pacific_time, correct_time in pairs:
@@ -81,11 +81,52 @@ class TestRaceInit(unittest.TestCase):
             mock_pacific_time.return_value = pacific_time
 
             correct_datetime: datetime = datetime.combine(race_date, correct_time)
-            self.assertEqual(self.race._generate_race_datetime(time_str), correct_datetime,
+            self.assertEqual(race._generate_race_datetime(time_str), correct_datetime,
                              f'Night race time not converted correctly: {correct_datetime}')
 
     def test_sets_distance_change_attribute(self):
-        self.fail('Finish the test--distance change')
+        race = Race(self.race_id, self.db_handler)
+        plan_v_actual_sets = [(1560, 1560, 0), (1560, 1610, 50), (1560, 1320, -240)]
+
+        for planned, actual, distance_change in plan_v_actual_sets:
+            race.planned_distance = planned
+            race.distance = actual
+
+            race._set_distance_change()
+
+            self.assertEqual(race.distance_change, distance_change, 'Race.distance_change not set correctly')
+
+    def test_gets_horses_in_race(self):
+        """Checks that horses from DB are pulled and placed into Race.horses_in_race. Doesn't check that all horses
+        are accounted for. Doesn't check for no results.
+        """
+        races = [
+            [("Emery's Visualizer", '11010448'), ('Gotta B Quick', '13011522'), ('Louie Move', '13008915'),
+             ('Maslow', '12018527'), ('Nineties Nieto', '12018033'), ('O Sole Mio', '13001233'),
+             ('Perfect Summer', '13020069'), ('Pure Bingo', '13003414'), ('Sands of Time', '13024400'),
+             ('U S S Hawk', '12022887')],
+            [('Kenzie Carolina', '9000648'), ('Lasting Rose', '10009231'), ("Maggie's Special", '7044751'),
+             ('Seventyprcentcocoa', '8035306'), ("Smokin' Grey", '9006008'), ('Whiskey Miner', '9006184')],
+            [('Blue Chip Prospect', '15003296'), ('Candymankando', '15005700'), ('Disruptor', '14004085'),
+             ('Enasoit', '14009674'), ('Hidalgo', '13007539'), ('Majestic Dunhill', '15014431'), ('McErin', '15004611'),
+             ("New York's Finest", '14001917'), ('Psychoanalyze', '15021630'), ('Snake Oil Charlie', '12025664'),
+             ('Spirit Special', '14002244'), ('Versed', '13013186'), ('Vital', '15018113')],
+            [('Boxwood', '16014866'), ('Comic Kitten', '16001537'), ('Fun Paddy', '16022433'),
+             ('Hard Legacy', '16000160'), ('Irish Willow', '16020681'), ("Julia's Ready", '16006089'),
+             ('Lancelots Lady', '16005088'), ('No Mo Temper', '16011079'), ('Silent Surprise', '16000453'),
+             ('Speedy Solution', '16001377'), ('Support', '16003308'), ("The Beauty's Tale", '16014057'),
+             ('Unapologetic Me', '16005275')]
+        ]
+
+        for race in races:
+            self.db_handler.generate_query.return_value = 'This is a SQL query string'
+            self.db_handler.query_db.return_value = race
+
+            self.race._get_horses_in_race()
+
+            for horse in race:
+                horse_id = HorseID(*horse)
+                self.assertTrue(horse_id in self.race.horses_in_race)
 
 if __name__ == '__main__':
     unittest.main()

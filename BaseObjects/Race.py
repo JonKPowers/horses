@@ -44,15 +44,14 @@ class Race:
         self.temp: float = None
         self.weather: str = None
         self.surface: str = None
-        self.all_weather_surface: bool = None
         self.surface_condition: str = None
         self.surface_change: bool = None
 
         # Information about horses in race:
-        # horse_in_race dict has format {post_position: HorseID}
-        self.horses_in_race: Dict[int, HorseID] = dict()
+        self.horses_in_race: List[HorseID] = list()
         self.horses_scratched: List[HorseID] = list()
         self.num_horses = None
+        self.post_positions: Dict[int, HorseID] = dict()
 
         # Information about race times:
         self.splits: TimeSplits = None
@@ -103,6 +102,12 @@ class Race:
             hour += 12
 
         return datetime(self.race_date.year, self.race_date.month, self.race_date.day, hour, minute)
+
+    def _set_distance_change(self):
+        self.distance_change = self.distance - self.planned_distance
+
+    def _get_horses_in_race(self):
+        pass
 
     def _get_race_time_pacific(self) -> int:
         sql = self.db.generate_query('race_info', ['post_time_pacific'], where=self._generate_where_for_race())
