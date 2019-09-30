@@ -126,7 +126,13 @@ class TestRaceInit(unittest.TestCase):
 
             for horse in race:
                 horse_id = HorseID(*horse)
-                self.assertTrue(horse_id in self.race.horses_in_race)
+                self.assertTrue(horse_id in self.race.horses_in_race, f'Not populating horses in race (Horse {horse_id})')
 
+        # Test that scratched horses are added to scratched list
+        self.fail('Test that scractched horses are added to scratch list')
+
+        # Test that post positions are populated
+        self.fail('Test that post positions are populated')
+        
 if __name__ == '__main__':
     unittest.main()

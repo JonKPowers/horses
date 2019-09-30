@@ -9,7 +9,8 @@ from Exceptions.exceptions import RaceNotFoundException
 from typing import List, Dict
 from DBHandler.DBHandler import DBHandler
 
-from constants.db_info import consolidated_races_db, consolidated_races_table
+from constants.db_info import consolidated_races_db, consolidated_races_table, consolidated_performances_table
+
 
 from BaseObjects.race_db_mappings import consolidated_races_attribute_map
 
@@ -107,7 +108,13 @@ class Race:
         self.distance_change = self.distance - self.planned_distance
 
     def _get_horses_in_race(self):
-        pass
+        sql = self.db.generate_query('horses_consolidated_performances',
+                                     ['horse_name', 'horse_id', 'post_position'],
+                                     where=self._generate_where_for_race())
+        self.db.set_db(consolidated_races_db)
+        horses = self.db.query_db(sql)
+        for horse in horses:
+            self.horses_in_race.append(HorseID(*horse))
 
     def _get_race_time_pacific(self) -> int:
         sql = self.db.generate_query('race_info', ['post_time_pacific'], where=self._generate_where_for_race())
