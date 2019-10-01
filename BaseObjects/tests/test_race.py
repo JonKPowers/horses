@@ -101,21 +101,23 @@ class TestRaceInit(unittest.TestCase):
         are accounted for. Doesn't check for no results.
         """
         races = [
-            [("Emery's Visualizer", '11010448'), ('Gotta B Quick', '13011522'), ('Louie Move', '13008915'),
-             ('Maslow', '12018527'), ('Nineties Nieto', '12018033'), ('O Sole Mio', '13001233'),
-             ('Perfect Summer', '13020069'), ('Pure Bingo', '13003414'), ('Sands of Time', '13024400'),
-             ('U S S Hawk', '12022887')],
-            [('Kenzie Carolina', '9000648'), ('Lasting Rose', '10009231'), ("Maggie's Special", '7044751'),
-             ('Seventyprcentcocoa', '8035306'), ("Smokin' Grey", '9006008'), ('Whiskey Miner', '9006184')],
-            [('Blue Chip Prospect', '15003296'), ('Candymankando', '15005700'), ('Disruptor', '14004085'),
-             ('Enasoit', '14009674'), ('Hidalgo', '13007539'), ('Majestic Dunhill', '15014431'), ('McErin', '15004611'),
-             ("New York's Finest", '14001917'), ('Psychoanalyze', '15021630'), ('Snake Oil Charlie', '12025664'),
-             ('Spirit Special', '14002244'), ('Versed', '13013186'), ('Vital', '15018113')],
-            [('Boxwood', '16014866'), ('Comic Kitten', '16001537'), ('Fun Paddy', '16022433'),
-             ('Hard Legacy', '16000160'), ('Irish Willow', '16020681'), ("Julia's Ready", '16006089'),
-             ('Lancelots Lady', '16005088'), ('No Mo Temper', '16011079'), ('Silent Surprise', '16000453'),
-             ('Speedy Solution', '16001377'), ('Support', '16003308'), ("The Beauty's Tale", '16014057'),
-             ('Unapologetic Me', '16005275')]
+            [("Emery's Visualizer", '11010448', 1), ('Gotta B Quick', '13011522', 99), ('Louie Move', '13008915', 4),
+             ('Maslow', '12018527', 7), ('Nineties Nieto', '12018033', 99), ('O Sole Mio', '13001233', 99),
+             ('Perfect Summer', '13020069', 6), ('Pure Bingo', '13003414', 8), ('Sands of Time', '13024400', 3),
+             ('U S S Hawk', '12022887', 5)],
+            [('Kenzie Carolina', '9000648', 4), ('Lasting Rose', '10009231', 99), ("Maggie's Special", '7044751', 5),
+             ('Seventyprcentcocoa', '8035306', 3), ("Smokin' Grey", '9006008', 2), ('Whiskey Miner', '9006184', 1)],
+            [('Blue Chip Prospect', '15003296', 1), ('Candymankando', '15005700', 6), ('Disruptor', '14004085', 99),
+             ('Enasoit', '14009674', 99), ('Hidalgo', '13007539', 2), ('Majestic Dunhill', '15014431', 5),
+             ('McErin', '15004611', 7),
+             ("New York's Finest", '14001917', 8), ('Psychoanalyze', '15021630', 4),
+             ('Snake Oil Charlie', '12025664', 10), ('Spirit Special', '14002244', 99), ('Versed', '13013186', 3),
+             ('Vital', '15018113', 9)],
+            [('Boxwood', '16014866', None), ('Comic Kitten', '16001537', 1), ('Fun Paddy', '16022433', 2),
+             ('Hard Legacy', '16000160', 3), ('Irish Willow', '16020681', 4), ("Julia's Ready", '16006089', 5),
+             ('Lancelots Lady', '16005088', None), ('No Mo Temper', '16011079', 7), ('Silent Surprise', '16000453', 8),
+             ('Speedy Solution', '16001377', 9), ('Support', '16003308', 10), ("The Beauty's Tale", '16014057', 11),
+             ('Unapologetic Me', '16005275', 12)]
         ]
 
         for race in races:
@@ -125,14 +127,28 @@ class TestRaceInit(unittest.TestCase):
             self.race._get_horses_in_race()
 
             for horse in race:
-                horse_id = HorseID(*horse)
+                horse_id = HorseID(horse[0], horse[1])
+                post_position = horse[2]
+
+                # Make sure horse is populating in Race.horses_in_race
                 self.assertTrue(horse_id in self.race.horses_in_race, f'Not populating horses in race (Horse {horse_id})')
 
-        # Test that scratched horses are added to scratched list
-        self.fail('Test that scractched horses are added to scratch list')
+                # Make sure that each Horse's post position is populating or it is assigned to Race.horses_scratched
+                # or it's assigned to Race.post_position_missing if we don't have any info for it.
+                if horse[2] == 99:
+                    self.assertTrue(horse_id in self.race.horses_scratched,
+                                    f'Scratched horse ({horse_id}) not put into Race.horses_scratched')
+                elif horse[2] is None:
+                    self.assertTrue(horse_id in self.race.post_position_missing,
+                                    f'Horse ({horse_id}) with missing post position not assigned to post position 0')
+                else:
+                    if post_position not in self.race.post_positions:
+                        self.fail(f'No post position in Race.post_positions--should have been populated for {horse_id}')
+                    self.assertTrue(self.race.post_positions[post_position] == horse_id,
+                                    f'Horse ({horse_id}) not assigned correct post position.')
 
-        # Test that post positions are populated
-        self.fail('Test that post positions are populated')
-        
+    def test_gets_time_splits(self):
+        self.fail('Write test to get time splits from db')
+
 if __name__ == '__main__':
     unittest.main()

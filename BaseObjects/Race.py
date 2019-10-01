@@ -53,6 +53,7 @@ class Race:
         self.horses_scratched: List[HorseID] = list()
         self.num_horses = None
         self.post_positions: Dict[int, HorseID] = dict()
+        self.post_position_missing: List[HorseID] = list()
 
         # Information about race times:
         self.splits: TimeSplits = None
@@ -107,14 +108,28 @@ class Race:
     def _set_distance_change(self):
         self.distance_change = self.distance - self.planned_distance
 
-    def _get_horses_in_race(self):
+    def _get_horses_in_race(self) -> None:
+        """Populates Race.horses_in_race, Race.horses_scratched, and Race.post_positions from db data"""
+
+        # Get data from db
         sql = self.db.generate_query('horses_consolidated_performances',
                                      ['horse_name', 'horse_id', 'post_position'],
                                      where=self._generate_where_for_race())
         self.db.set_db(consolidated_races_db)
         horses = self.db.query_db(sql)
+
         for horse in horses:
-            self.horses_in_race.append(HorseID(*horse))
+            horse_id = HorseID(horse[0], horse[1])
+            # Populate Race.horses_in_race
+            self.horses_in_race.append(horse_id)
+
+            # Populate post positions. Send to scratches if 99, and send to post_position_missing if no info
+            if horse[2] == 99:
+                self.horses_scratched.append(horse_id)
+            elif horse[2] is None:
+                self.post_position_missing.append(horse_id)
+            else:
+                self.post_positions[horse[2]] = horse_id
 
     def _get_race_time_pacific(self) -> int:
         sql = self.db.generate_query('race_info', ['post_time_pacific'], where=self._generate_where_for_race())
