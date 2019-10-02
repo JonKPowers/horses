@@ -12,7 +12,7 @@ from DBHandler.DBHandler import DBHandler
 from constants.db_info import consolidated_races_db, consolidated_races_table, consolidated_performances_table
 
 
-from BaseObjects.race_db_mappings import consolidated_races_attribute_map
+from BaseObjects.race_db_mappings import consolidated_races_attribute_map, time_split_mappings
 
 from datetime import date
 from datetime import datetime
@@ -130,6 +130,18 @@ class Race:
                 self.post_position_missing.append(horse_id)
             else:
                 self.post_positions[horse[2]] = horse_id
+
+    def _get_time_splits(self) -> TimeSplits:
+        self.db.set_db(consolidated_races_db)
+        sql = self.db.generate_query(consolidated_races_db, time_split_mappings.keys(),
+                                     where=self._generate_where_for_race())
+        times, columns = self.db.query_db(sql, return_col_names=True)
+
+        splits = TimeSplits(self.race_id)
+        for time, column in zip(times[0], columns):
+            splits.time[time_split_mappings[column]] = time
+
+        return splits
 
     def _get_race_time_pacific(self) -> int:
         sql = self.db.generate_query('race_info', ['post_time_pacific'], where=self._generate_where_for_race())

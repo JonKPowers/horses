@@ -148,7 +148,36 @@ class TestRaceInit(unittest.TestCase):
                                     f'Horse ({horse_id}) not assigned correct post position.')
 
     def test_gets_time_splits(self):
-        self.fail('Write test to get time splits from db')
+        # Set up testing data
+        time_splits = [
+            [(22.27, None, 45.78, None, 58.75, None, 71.83, None, None, None, None, None, None, None, None, None, None,
+              None, None)],
+            [(24.36, None, 48.61, None, None, None, 73.71, None, None, None, 100.23, 102.78, None, None, None, None,
+              None, None, None)],
+            # 3520 yard race
+            [(None, None, 51.11, None, None, None, None, None, None, None, 103.08, None, None, None, 128.82, None,
+              153.73, 178.11, 202.2)],
+        ]
+        columns = ['time_440', 'time_660', 'time_880', 'time_990', 'time_1100', 'time_1210', 'time_1320', 'time_1430',
+                   'time_1540', 'time_1650', 'time_1760', 'time_1800', 'time_1830', 'time_1870', 'time_1980',
+                   'time_2310', 'time_2640', 'time_3080', 'time_3520']
+        distances = [440, 660, 880, 990, 1100, 1210, 1320, 1430, 1540, 1650, 1760, 1800, 1830, 1870, 1980, 2310, 2640,
+                     3080, 3520]
+
+        for times in time_splits:
+            self.db_handler.generate_query.return_value = 'This is a SQL query string'
+            self.db_handler.query_db.return_value = (times, columns)
+
+            result: TimeSplits = self.race._get_time_splits()
+
+            for _time, distance in zip(times[0], distances):
+                self.assertTrue(result.time[distance] == _time,
+                                f'Incorrect time ({result.time[distance]} instead of {_time}) '
+                                f'for distance ({distance}) for race {result.race_id}')
+
+    def test_get_win_place_show_info(self):
+        self.fail('Write the win/place/show test')
+
 
 if __name__ == '__main__':
     unittest.main()
