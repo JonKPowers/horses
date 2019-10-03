@@ -175,8 +175,34 @@ class TestRaceInit(unittest.TestCase):
                                 f'Incorrect time ({result.time[distance]} instead of {_time}) '
                                 f'for distance ({distance}) for race {result.race_id}')
 
-    def test_get_win_place_show_info(self):
-        self.fail('Write the win/place/show test')
+    def test_get_win_place_show_info_basic(self):
+        # Set up data
+        self.db_handler.query_db.return_value = [('Dark Artist', '15001360', 1), ('Lisa Limon', '15000251', 4),
+                                                 ('So Hi Society (IRE)', 'F0044820', 3),
+                                                 ('Stormologist', '15007318', 5), ('Too Charming', '15001119', 2)]
+
+
+
+        # Run the SUT
+        self.race._get_placed_horses()
+
+        # Check the output
+        self.assertTrue(self.race.win == HorseID('Dark Artist', '15001360'))
+        self.assertTrue(self.race.place == HorseID('Too Charming', '15001119'))
+        self.assertTrue(self.race.show == HorseID('So Hi Society (IRE)', 'F0044820'))
+        self.assertTrue(self.race_fourth_place == HorseID('Lisa Limon', '15000251'))
+        self.assertTrue(self.race_fifth_place == HorseID('Stormologist', '15007318'))
+
+    def test_get_win_place_show_info_duplicates(self):
+        # Set up date with duplicate values for one of the placed horses (two entries from different sources)
+        self.db_handler.query_db.return_value = [('Dark Artist', '15001360', 1), ('Lisa Limon', '15000251', 4),
+                                                ('SO HI SOCIETY', None, 3), ('So Hi Society (IRE)', 'F0044820', 3),
+                                                ('Stormologist', '15007318', 5), ('Too Charming', '15001119', 2)]
+
+        # Run the SUT
+
+        # Check the output
+        self.fail('Finish the test')
 
 
 if __name__ == '__main__':

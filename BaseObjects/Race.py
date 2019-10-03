@@ -62,6 +62,8 @@ class Race:
         self.win: HorseID = None
         self.place: HorseID = None
         self.show: HorseID = None
+        self.fourth_place: HorseID = None
+        self.fifth_place: HorseID = None
 
         # Payout information
         self.payouts: Payouts = None
@@ -142,6 +144,21 @@ class Race:
             splits.time[time_split_mappings[column]] = time
 
         return splits
+
+    def _get_placed_horses(self):
+        place_spots: Dict = {
+            1: 'win',
+            2: 'place',
+            3: 'show',
+            4: 'fourth_place',
+            5: 'fifth_place',
+        }
+
+        # Set to use consolidated races db
+        self.db.set_db(consolidated_races_db)
+
+
+
 
     def _get_race_time_pacific(self) -> int:
         sql = self.db.generate_query('race_info', ['post_time_pacific'], where=self._generate_where_for_race())
