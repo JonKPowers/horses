@@ -4,7 +4,7 @@ from BaseObjects.RaceClass import RaceClass
 from BaseObjects.TimeSplits import TimeSplits
 from BaseObjects.Payouts import Payouts
 
-from Exceptions.exceptions import RaceNotFoundException
+from Exceptions.exceptions import RaceNotFoundException, DuplicateHorseException
 
 from typing import List, Dict
 from DBHandler.DBHandler import DBHandler
@@ -156,6 +156,20 @@ class Race:
 
         # Set to use consolidated races db
         self.db.set_db(consolidated_races_db)
+        sql = self.db.generate_query(consolidated_performances_table,
+                                     ['horse_name', 'horse_id', f'position_{self.distance}'],
+                                     where=self._generate_where_for_race(),
+                                     other=f'AND position_{self.distance} IN (1, 2, 3, 4, 5)')
+        horses = self.db.query_db(sql)
+
+        # Set win/place/show/4th/5th attributes based on horse's finish position
+        for horse in horses:
+            # Check if there's a horse already found for that finish position
+            if getattr(self, place_spots[horse[2]]) is not None:
+                raise DuplicateHorseException(getattr(self, place_spots[horse[2]]), HorseID(horse[0], horse[1]))
+            setattr(self, place_spots[horse[2]], HorseID(horse[0], horse[1]))
+
+
 
 
 

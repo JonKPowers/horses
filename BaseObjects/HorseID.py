@@ -5,8 +5,11 @@ class HorseID:
 
     def __init__(self, name: str, id: int = None):
         self._name = name
-        if id is not None:
+        try:
             self._id = int(id)
+        except (ValueError, TypeError) as e:
+            self._id = None
+            print(e, f'({name})')
 
     def get_name(self) -> str:
         return self._name
@@ -21,4 +24,7 @@ class HorseID:
         return hash((self._name, self._id))
 
     def __eq__(self, other: HorseID):
-        return (self._name == other._name) and (self._id == other._id)
+        if self._id is not None and other._id is not None:
+            return (self._name == other._name) and (self._id == other._id)
+
+        return self._name == other._name

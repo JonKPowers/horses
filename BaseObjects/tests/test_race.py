@@ -7,6 +7,8 @@ from BaseObjects.RaceID import RaceID
 from BaseObjects.Race import Race
 from BaseObjects.HorseID import HorseID
 
+from Exceptions.exceptions import DuplicateHorseException
+
 from constants.db_info import consolidated_races_db
 
 from datetime import date, datetime, time
@@ -177,6 +179,7 @@ class TestRaceInit(unittest.TestCase):
 
     def test_get_win_place_show_info_basic(self):
         # Set up data
+        self.db_handler.generate_query.return_value = 'This is a SQL query string'
         self.db_handler.query_db.return_value = [('Dark Artist', '15001360', 1), ('Lisa Limon', '15000251', 4),
                                                  ('So Hi Society (IRE)', 'F0044820', 3),
                                                  ('Stormologist', '15007318', 5), ('Too Charming', '15001119', 2)]
@@ -190,18 +193,31 @@ class TestRaceInit(unittest.TestCase):
         self.assertTrue(self.race.win == HorseID('Dark Artist', '15001360'))
         self.assertTrue(self.race.place == HorseID('Too Charming', '15001119'))
         self.assertTrue(self.race.show == HorseID('So Hi Society (IRE)', 'F0044820'))
-        self.assertTrue(self.race_fourth_place == HorseID('Lisa Limon', '15000251'))
-        self.assertTrue(self.race_fifth_place == HorseID('Stormologist', '15007318'))
+        self.assertTrue(self.race.fourth_place == HorseID('Lisa Limon', '15000251'))
+        self.assertTrue(self.race.fifth_place == HorseID('Stormologist', '15007318'))
 
     def test_get_win_place_show_info_duplicates(self):
+        self.db_handler.generate_query.return_value = 'This is a SQL query'
         # Set up date with duplicate values for one of the placed horses (two entries from different sources)
         self.db_handler.query_db.return_value = [('Dark Artist', '15001360', 1), ('Lisa Limon', '15000251', 4),
                                                 ('SO HI SOCIETY', None, 3), ('So Hi Society (IRE)', 'F0044820', 3),
                                                 ('Stormologist', '15007318', 5), ('Too Charming', '15001119', 2)]
 
-        # Run the SUT
+        # Run the SUT and expect an DuplicateHorseException to be thrown
+        with self.assertRaises(DuplicateHorseException):
+            self.race._get_placed_horses()
 
-        # Check the output
+    def test_get_win_place_show_info_missing_some(self):
+        # Set up data with no place horse in db
+        self.db_handler.generate_query.return_value = 'This is a SQL query string'
+        self.db_handler.query_db.return_value = [('Dark Artist', '15001360', 1), ('Lisa Limon', '15000251', 4),
+                                                 ('So Hi Society (IRE)', 'F0044820', 3),
+                                                 ('Stormologist', '15007318', 5)]
+
+        # Run the SUT
+        self.race._get_placed_horses()
+
+        # Check the output state
         self.fail('Finish the test')
 
 
