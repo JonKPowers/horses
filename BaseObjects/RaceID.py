@@ -8,6 +8,9 @@ class RaceID:
         self.race_num: int = race_num
         self.race_id: str = self._get_race_id()
 
+    def generate_sql_where(self):
+        return f'date="{self.date}" AND track="{self.track}" AND race_num="{self.race_num}"'
+
     def _get_race_id(self) -> str:
         return f'{self.date}{self.track}{self.race_num}'
 

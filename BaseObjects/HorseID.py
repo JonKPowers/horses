@@ -11,6 +11,10 @@ class HorseID:
             self._id = None
             print(e, f'({name})')
 
+    @classmethod
+    def unknown_horse(cls):
+        return cls('Unknown Horse', 0)
+
     def get_name(self) -> str:
         return self._name
 

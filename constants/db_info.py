@@ -49,3 +49,8 @@ horse_performance_attribute_map = {
 consolidated_races_db = 'horses_consolidated_races'
 consolidated_races_table = 'horses_consolidated_races'
 consolidated_performances_table = 'horses_consolidated_performances'
+
+payouts_db = 'horses test'
+payouts_wps_table = 'race_payoffs_itm'
+payouts_exotics_table = 'race_payoffs_exotic'
+

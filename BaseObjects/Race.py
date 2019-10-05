@@ -167,7 +167,15 @@ class Race:
             # Check if there's a horse already found for that finish position
             if getattr(self, place_spots[horse[2]]) is not None:
                 raise DuplicateHorseException(getattr(self, place_spots[horse[2]]), HorseID(horse[0], horse[1]))
+
             setattr(self, place_spots[horse[2]], HorseID(horse[0], horse[1]))
+
+        # After going through horses, check if any of win/place/etc. are empty
+        # If so, put generic unknown horse in there
+
+        for place in place_spots.keys():
+            if getattr(self, place_spots[place]) is None:
+                setattr(self, place_spots[place], HorseID.unknown_horse())
 
 
 

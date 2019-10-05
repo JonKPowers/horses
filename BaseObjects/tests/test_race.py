@@ -217,9 +217,8 @@ class TestRaceInit(unittest.TestCase):
         # Run the SUT
         self.race._get_placed_horses()
 
-        # Check the output state
-        self.fail('Finish the test')
-
+        # Check the output state. Race.place should have a Horse.unknown_horse() in it
+        self.assertEqual(self.race.place, HorseID.unknown_horse())
 
 if __name__ == '__main__':
     unittest.main()
