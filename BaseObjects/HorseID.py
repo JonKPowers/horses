@@ -9,7 +9,7 @@ class HorseID:
             self._id = int(id)
         except (ValueError, TypeError) as e:
             self._id = None
-            print(e, f'({name})')
+            # print(e, f'({name})')
 
     @classmethod
     def unknown_horse(cls):

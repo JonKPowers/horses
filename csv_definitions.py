@@ -2507,7 +2507,7 @@ file_dtypes = {
         'horse_name': 'VARCHAR(255)',
         'foreign_bred_code': 'VARCHAR(255)',
         'statebred_code': 'VARCHAR(255)',
-        'program_number': 'VARCHAR(255)',
+        'program_number': 'INT',
         'win_payout': 'FLOAT',
         'place_payout': 'FLOAT',
         'show_payout': 'FLOAT',
