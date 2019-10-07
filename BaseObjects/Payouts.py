@@ -1,7 +1,7 @@
-from typing import Dict
+from typing import Dict, List
 from DBHandler.DBHandler import DBHandler
 
-from constants.db_info import payouts_db, payouts_wps_table
+from constants.db_info import payouts_db, payouts_wps_table, payouts_exotics_table
 
 from BaseObjects.Race import RaceID
 from BaseObjects.HorseID import HorseID
@@ -20,6 +20,9 @@ class Payouts:
         self.place_payouts: Dict[HorseID, float] = dict()
         self.show_payouts: Dict[HorseID, float] = dict()
 
+        # Exotic bet info
+        self.exotics_allowed: List[str] = list()
+
     def _get_payout_info(self):
         self.db.set_db(payouts_db)
         sql = self.db.generate_query(payouts_wps_table, ['horse_name', 'program_num', 'payout_win',
@@ -33,6 +36,41 @@ class Payouts:
             self.win_payouts[horse_id] = horse[2] if horse[2] is not None else 0
             self.place_payouts[horse_id] = horse[3] if horse[3] is not None else 0
             self.show_payouts[horse_id] = horse[4] if horse[4] is not None else 0
+
+    def _get_exotic_payout_info(self):
+        self.db.set_db(payouts_db)
+        sql = self.db.generate_query(payouts_exotics_table, ['wager_type', 'bet_amt', 'payout_amt', 'number_correct',
+                                                             'winning_nums'])
+        exotic_payouts = self.db.query_db(sql)
+
+        for payout in exotic_payouts:
+            if payout[0] is not None:
+                self.exotics_allowed.append(payout[0])
+            else:
+                # Handling for unspecified exotics
+                pass
+
+    def _generate_exotic_dict(self, payout_info: List):
+        exotic_dict: dict = dict()
+        exotic_dict['wager_type'] = payout_info[0]
+        exotic_dict['bet_amt']: float = payout_info[1]
+        exotic_dict['payout_amt']: float = payout_info[2]
+        exotic_dict['number_correct']: int = payout_info[3]
+        exotic_dict['winning_nums']: list = self._get_winning_nums(payout_info[4])
+
+    def _get_winning_nums(self, num_string: str) -> List[int]:
+        # Case 1 (most common): numbers are separated only by hyphens
+        if '-' in num_string and '/' not in num_string:
+            return [int(item) for item in num_string.split('-')]
+        # Case 2: numbers are separated only by forward slashes:
+        elif '/' in num_string and '-' not in num_string:
+            return [int(item) for item in num_string.split('/')]
+        # Case 3: numbers are separated by both hyphens and forward slashes:
+        elif '-' in num_string and '/' in num_string:
+            assert(False, 'Finish the method')
+        # The rest:
+        else:
+            assert(False, 'Finish the method')
 
 
 

@@ -43,10 +43,31 @@ class TestPayouts(TestCase):
         self.assertTrue(sut.program_num_to_horse_id[4] == shower)
         self.assertTrue(sut.program_num_to_horse_id[5] == winner)
 
-    def sets_exotic_bets_allowed(self):
+    def test_sets_exotic_bets_allowed_basic(self):
+        # Set up initial state for system under test
+        payouts = [(None, 0.2, 399.54, '0', '10-2-3-7-9'), ('Daily Double', 2.0, 13.0, '0', '7-10'),
+                   ('Exacta', 2.0, 25.8, '0', '10-2'), ('Pick Four', 2.0, 300.0, '4', '7-9-7-10'),
+                   ('Pick Nine', 1.0, 997.5, '9', '2-1-4-6-5-7-9-7-10'),
+                   ('Pick Six', 2.0, 2855.4, '6', '6-5-7-9-7-10'), ('Pick Three', 2.0, 74.0, '3', '9-7-10'),
+                   ('Superfecta', 1.0, 421.8, '0', '10-2-3-7'), ('Trifecta', 2.0, 135.2, '0', '10-2-3')]
+        exotics = ['Daily Double', 'Exacta', 'Pick Nine', 'Pick Six', 'Pick Three', 'Superfecta', 'Trifecta']
+        self.db.generate_query.return_value = 'This is a SQL query'
+        self.db.query_db.return_value = payouts
+
+        race_id: RaceID = RaceID(date(2011, 1, 1), 'CD', 5)
+        sut: Payouts = Payouts(race_id, self.db)
+
+        # Run the SUT
+        sut._get_exotic_payout_info()
+
+        # Check the output state: each type of exotic wager should be in Payouts.exotics_allowed
+        # except that the None entry isn't to be added without additional processing
+        for exotic in exotics:
+            self.assertTrue(exotic in sut.exotics_allowed,
+                            f'Exotic wager type not added to Payouts.exotics_allowed: {exotic}')
+
+    def test_gets_winning_numbers_from_string(self):
         self.fail('Write the test')
-
-
 
 
 if __name__ == '__main__':
