@@ -58,7 +58,7 @@ class Payouts:
         exotic_dict['number_correct']: int = payout_info[3]
         exotic_dict['winning_nums']: list = self._get_winning_nums(payout_info[4])
 
-    def _get_winning_nums(self, num_string: str) -> List[int]:
+    def _get_winning_nums(self, num_string: str) -> List:
         # Case 1 (most common): numbers are separated only by hyphens
         if '-' in num_string and '/' not in num_string:
             return [int(item) for item in num_string.split('-')]
@@ -67,7 +67,8 @@ class Payouts:
             return [int(item) for item in num_string.split('/')]
         # Case 3: numbers are separated by both hyphens and forward slashes:
         elif '-' in num_string and '/' in num_string:
-            assert(False, 'Finish the method')
+            race_winners = num_string.split('-')
+            return [[int(item) for item in place.split('/')] for place in race_winners]
         # The rest:
         else:
             assert(False, 'Finish the method')

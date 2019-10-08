@@ -66,8 +66,28 @@ class TestPayouts(TestCase):
             self.assertTrue(exotic in sut.exotics_allowed,
                             f'Exotic wager type not added to Payouts.exotics_allowed: {exotic}')
 
-    def test_gets_winning_numbers_from_string(self):
-        self.fail('Write the test')
+    def test_gets_winning_numbers_from_string_with_consolations(self):
+        test_cases = [('5/7-4/5-2/3-9', [[5, 7], [4, 5], [2, 3], [9]]),
+                      ('6-5/7-4/5-2/3-9', [[6], [5, 7], [4, 5], [2, 3], [9]]),
+                      ('9-1-1/2/8-5/9-11-12/14', [[9], [1], [1, 2, 8], [5, 9], [11], [12, 14]]),
+                      ('1/2/8-5/9-11-12/14', [[1, 2, 8], [5, 9], [11], [12, 14]]),
+                      ('1-1/2/8-5/9-11-12/14', [[1], [1, 2, 8], [5, 9], [11], [12, 14]]),
+                      ('9-1-1/2/8-5/9-11-12/14', [[9], [1], [1, 2, 8], [5, 9], [11], [12, 14]]),
+                      ('7-3/6-7-3-2/10', [[7], [3, 6], [7], [3], [2, 10]]),
+                      ('7-3-2/10-2/6/9', [[7], [3], [2, 10], [2, 6, 9]]),
+                      ('7-3/11/13/14-3/10/13/14-10', [[7], [3, 11, 13, 14], [3, 10, 13, 14], [10]]),
+                      ('5-7-3/5-7', [[5], [7], [3, 5], [7]]),
+                      ('3-5-7-3/5-7', [[3], [5], [7], [3, 5], [7]]),
+                      ('1-5/7-4', [[1], [5, 7], [4]]),
+                      ('1-1-5/7-4', [[1], [1], [5, 7], [4]]),
+                      ('6-1-1/2', [[6], [1], [1, 2]]),
+                      ]
+
+        race_id: RaceID = RaceID(date(2011, 1, 1), 'CD', 5)
+        sut: Payouts = Payouts(race_id, self.db)
+
+        for winner_string, expected_output in test_cases:
+            self.assertEqual(sut._get_winning_nums(winner_string), expected_output)
 
 
 if __name__ == '__main__':
