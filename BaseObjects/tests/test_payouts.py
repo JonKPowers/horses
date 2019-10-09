@@ -65,6 +65,61 @@ class TestPayouts(TestCase):
         for exotic in exotics:
             self.assertTrue(exotic in sut.exotics_allowed,
                             f'Exotic wager type not added to Payouts.exotics_allowed: {exotic}')
+        self.assertTrue(None not in sut.exotics_allowed)
+
+    def test_sets_exotic_bet_dicts(self):
+        # Set up initial state for system under test
+        payouts = [('Daily Double', 2.0, 13.0, '0', '7-10'),
+                   ('Exacta', 2.0, 25.8, '0', '10-2'),
+                   ('Pick Four', 2.0, 300.0, '4', '7-9/8-7-10'),
+                   ('Superfecta', 1.0, 421.8, '0', '10-2-3-7'),
+                   ('Trifecta', 2.0, 135.2, '0', '10-2-3')
+                   ]
+        self.db.generate_query.return_value = 'This is a SQL query string'
+        self.db.query_db.return_value = payouts
+
+        race_id: RaceID = RaceID(date(2011, 1, 1), 'CD', 5)
+        sut: Payouts = Payouts(race_id, self.db)
+
+        # Run the SUT
+        sut._get_exotic_payout_info()
+
+        # Check the output state:
+        # Daily Double
+        self.assertTrue(sut.daily_double['wager_type'] == 'Daily Double')
+        self.assertTrue(sut.daily_double['bet_amt'] == 2.0)
+        self.assertTrue(sut.daily_double['payout_amt'] == 13.0)
+        self.assertTrue(sut.daily_double['number_correct'] == 0)
+        self.assertTrue(sut.daily_double['consolation_winners'] is False)
+        self.assertTrue(sut.daily_double['winning_nums'] == [7, 10])
+
+        self.assertTrue(sut.exacta['wager_type'] == 'Exacta')
+        self.assertTrue(sut.exacta['bet_amt'] == 2.0)
+        self.assertTrue(sut.exacta['payout_amt'] == 25.8)
+        self.assertTrue(sut.exacta['number_correct'] == 0)
+        self.assertTrue(sut.exacta['consolation_winners'] is False)
+        self.assertTrue(sut.exacta['winning_nums'] == [10, 2])
+
+        self.assertTrue(sut.pick_four['wager_type'] == 'Pick Four')
+        self.assertTrue(sut.pick_four['bet_amt'] == 2.0)
+        self.assertTrue(sut.pick_four['payout_amt'] == 300)
+        self.assertTrue(sut.pick_four['number_correct'] == 4)
+        self.assertTrue(sut.pick_four['consolation_winners'] is True)
+        self.assertTrue(sut.pick_four['winning_nums'] == [[7], [9, 8], [7], [10]])
+
+        self.assertTrue(sut.superfecta['wager_type'] == 'Superfecta')
+        self.assertTrue(sut.superfecta['bet_amt'] == 1.0)
+        self.assertTrue(sut.superfecta['payout_amt'] == 421.8)
+        self.assertTrue(sut.superfecta['number_correct'] == 0)
+        self.assertTrue(sut.superfecta['consolation_winners'] is False)
+        self.assertTrue(sut.superfecta['winning_nums'] == [10, 2, 3, 7])
+
+        self.assertTrue(sut.trifecta['wager_type'] == 'Trifecta')
+        self.assertTrue(sut.trifecta['bet_amt'] == 2.0)
+        self.assertTrue(sut.trifecta['payout_amt'] == 135.2)
+        self.assertTrue(sut.trifecta['number_correct'] == 0)
+        self.assertTrue(sut.trifecta['consolation_winners'] is False)
+        self.assertTrue(sut.trifecta['winning_nums'] == [10, 2, 3])
 
     def test_gets_winning_numbers_from_string_with_consolations(self):
         test_cases = [('5/7-4/5-2/3-9', [[5, 7], [4, 5], [2, 3], [9]]),
@@ -89,6 +144,8 @@ class TestPayouts(TestCase):
         for winner_string, expected_output in test_cases:
             self.assertEqual(sut._get_winning_nums(winner_string), expected_output)
 
+    def test_sets_exotic_payout_dicts(self):
+        self.fail('Write the test')
 
 if __name__ == '__main__':
     unittest.main()

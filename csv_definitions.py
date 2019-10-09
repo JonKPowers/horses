@@ -2521,7 +2521,7 @@ file_dtypes = {
         'wager_type': 'VARCHAR(255)',
         'bet_amount': 'FLOAT',
         'payout_amount': 'FLOAT',
-        'number_correct': 'VARCHAR(255)',
+        'number_correct': 'INT',
         'winning_numbers': 'VARCHAR(255)',
         'wager_pool': 'FLOAT',
         'carryover_amount': 'FLOAT'

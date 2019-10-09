@@ -23,6 +23,24 @@ class Payouts:
         # Exotic bet info
         self.exotics_allowed: List[str] = list()
 
+        # Exotic bet naming map
+        self.exotic_names: Dict[str, str] = {
+            'Exacta': 'exacta',
+            'Exactor': 'exacta',
+            'Trifecta': 'trifecta',
+            'Trifector': 'trifecta',
+            'Superfecta': 'superfecta',
+            'Daily Double': 'daily_double',
+            'Pick Three': 'pick_three',
+            'Pick Four': 'pick_four',
+            'Pick Five': 'pick_five',
+            'Pick Six': 'pick_six',
+            'Pick Seven': 'pick_seven',
+            'Pick Nine': 'pick_nine',
+            'Quinella': 'quinella',
+            'Super High Five': 'super_high_five',
+        }
+
     def _get_payout_info(self):
         self.db.set_db(payouts_db)
         sql = self.db.generate_query(payouts_wps_table, ['horse_name', 'program_num', 'payout_win',
@@ -43,20 +61,22 @@ class Payouts:
                                                              'winning_nums'])
         exotic_payouts = self.db.query_db(sql)
 
-        for payout in exotic_payouts:
-            if payout[0] is not None:
-                self.exotics_allowed.append(payout[0])
-            else:
-                # Handling for unspecified exotics
-                pass
+        for payout_info in exotic_payouts:
+            if payout_info[0] is not None:
+                self.exotics_allowed.append(payout_info[0])
+                setattr(self, self.exotic_names[payout_info[0]], self._generate_exotic_dict(payout_info))
+            else:  # Handling for unspecified exotics
+                assert(False, 'Finish the method')
 
     def _generate_exotic_dict(self, payout_info: List):
         exotic_dict: dict = dict()
         exotic_dict['wager_type'] = payout_info[0]
         exotic_dict['bet_amt']: float = payout_info[1]
         exotic_dict['payout_amt']: float = payout_info[2]
-        exotic_dict['number_correct']: int = payout_info[3]
+        exotic_dict['number_correct']: int = int(payout_info[3])
+        exotic_dict['consolation_winners'] = '-' in payout_info[4] and '/' in payout_info[4]
         exotic_dict['winning_nums']: list = self._get_winning_nums(payout_info[4])
+        return exotic_dict
 
     def _get_winning_nums(self, num_string: str) -> List:
         # Case 1 (most common): numbers are separated only by hyphens
@@ -69,7 +89,7 @@ class Payouts:
         elif '-' in num_string and '/' in num_string:
             race_winners = num_string.split('-')
             return [[int(item) for item in place.split('/')] for place in race_winners]
-        # The rest:
+        # The rest: need to figure it out
         else:
             assert(False, 'Finish the method')
 
