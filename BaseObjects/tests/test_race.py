@@ -24,15 +24,18 @@ class TestRaceInit(unittest.TestCase):
         self.track: str = 'HOU'
         self.race_num: int = 5
 
-        self.race_id = RaceID(date(self.year, self.month, self.day), self.track, self.race_num)
-        self.race = Race(self.race_id, self.db_handler)
-
     def test_sets_race_info_from_RaceID(self):
-        self.assertTrue(self.race.track == 'HOU')
-        self.assertTrue(self.race.race_num == 5)
-        self.assertEqual(date(2019, 1, 1), self.race.race_date)
+        race_id = RaceID(date(self.year, self.month, self.day), self.track, self.race_num)
+        race = Race(race_id, self.db_handler)
+
+        self.assertTrue(race.track == 'HOU')
+        self.assertTrue(race.race_num == 5)
+        self.assertEqual(date(2019, 1, 1), race.race_date)
 
     def test_sets_attributes_from_consolidated_races_table(self):
+        race_id = RaceID(date(self.year, self.month, self.day), self.track, self.race_num)
+        race = Race(race_id, self.db_handler)
+
         return_values = ([(None, 1320, 1320, 29, 0, 66, 'Showery', 'A', 'FT', 0, 7)],
                          ['race_name', 'distance', 'planned_distance', 'run_up_distance', 'temp_rail_distance',
                           'temperature', 'weather', 'surface', 'track_condition', 'off_turf', 'field_size'])
@@ -40,16 +43,19 @@ class TestRaceInit(unittest.TestCase):
         self.db_handler.query_db.return_value = return_values
 
         # Run the method we're testing
-        self.race._get_consolidated_races_data()
+        race._get_consolidated_races_data()
 
         # Check for the results we're expecting
         for control_value, column in zip(return_values[0][0], return_values[1]):
-            attribute_value = getattr(self.race, self.race.consolidated_races_mappings[column])
+            attribute_value = getattr(race, race.consolidated_races_mappings[column])
             self.assertEqual(attribute_value, control_value, f'Column: {column}. '
                                                              f'Attribute: {attribute_value}. '
                                                              f'Control value: {control_value}.')
 
     def test_gets_right_time_for_datetime_basic(self):
+        race_id = RaceID(date(self.year, self.month, self.day), self.track, self.race_num)
+        race = Race(race_id, self.db_handler)
+
         input_times: List[int] = ['4:15/(3:15)/2:15/1:15', '4:44/(3:44)/2:44/1:44',
                                   '5:17/(4:17)/3:17/2:17', '5:50/(4:50)/3:50/2:50']
         correct_times: List[datetime] = [datetime(self.year, self.month, self.day, 15, 15),
@@ -60,7 +66,7 @@ class TestRaceInit(unittest.TestCase):
 
         # For each testing time, call the method we're testing
         for test_time, control_time in zip(input_times, correct_times):
-            result: datetime = self.race._generate_race_datetime(test_time)
+            result: datetime = race._generate_race_datetime(test_time)
             self.assertEqual(result, control_time,
                              f'Incorrectly gave {result} for input {test_time}. Should have been {control_time}.')
 
@@ -75,7 +81,8 @@ class TestRaceInit(unittest.TestCase):
                  ('(12:56)/11:56/10:56/9:56', 956, time(12, 56))]
 
         # Set up Race
-        race = Race(self.race_id, self.db_handler)
+        race_id = RaceID(date(self.year, self.month, self.day), self.track, self.race_num)
+        race = Race(race_id, self.db_handler)
         race_date = date(self.year, self.month, self.day)
 
         for time_str, pacific_time, correct_time in pairs:
@@ -87,7 +94,8 @@ class TestRaceInit(unittest.TestCase):
                              f'Night race time not converted correctly: {correct_datetime}')
 
     def test_sets_distance_change_attribute(self):
-        race = Race(self.race_id, self.db_handler)
+        race_id = RaceID(date(self.year, self.month, self.day), self.track, self.race_num)
+        race = Race(race_id, self.db_handler)
         plan_v_actual_sets = [(1560, 1560, 0), (1560, 1610, 50), (1560, 1320, -240)]
 
         for planned, actual, distance_change in plan_v_actual_sets:
@@ -122,31 +130,35 @@ class TestRaceInit(unittest.TestCase):
              ('Unapologetic Me', '16005275', 12)]
         ]
 
-        for race in races:
+        race_id = RaceID(date(self.year, self.month, self.day), self.track, self.race_num)
+        race = Race(race_id, self.db_handler)
+
+        for race_data in races:
             self.db_handler.generate_query.return_value = 'This is a SQL query string'
-            self.db_handler.query_db.return_value = race
+            self.db_handler.query_db.return_value = race_data
 
-            self.race._get_horses_in_race()
+            race._get_horses_in_race()
 
-            for horse in race:
+            for horse in race_data:
                 horse_id = HorseID(horse[0], horse[1])
                 post_position = horse[2]
 
                 # Make sure horse is populating in Race.horses_in_race
-                self.assertTrue(horse_id in self.race.horses_in_race, f'Not populating horses in race (Horse {horse_id})')
+                self.assertTrue(horse_id in race.horses_in_race, f'Not populating horses in race (Horse {horse_id})')
+
 
                 # Make sure that each Horse's post position is populating or it is assigned to Race.horses_scratched
                 # or it's assigned to Race.post_position_missing if we don't have any info for it.
                 if horse[2] == 99:
-                    self.assertTrue(horse_id in self.race.horses_scratched,
+                    self.assertTrue(horse_id in race.horses_scratched,
                                     f'Scratched horse ({horse_id}) not put into Race.horses_scratched')
                 elif horse[2] is None:
-                    self.assertTrue(horse_id in self.race.post_position_missing,
+                    self.assertTrue(horse_id in race.post_position_missing,
                                     f'Horse ({horse_id}) with missing post position not assigned to post position 0')
                 else:
-                    if post_position not in self.race.post_positions:
+                    if post_position not in race.post_positions:
                         self.fail(f'No post position in Race.post_positions--should have been populated for {horse_id}')
-                    self.assertTrue(self.race.post_positions[post_position] == horse_id,
+                    self.assertTrue(race.post_positions[post_position] == horse_id,
                                     f'Horse ({horse_id}) not assigned correct post position.')
 
     def test_gets_time_splits(self):
@@ -166,11 +178,15 @@ class TestRaceInit(unittest.TestCase):
         distances = [440, 660, 880, 990, 1100, 1210, 1320, 1430, 1540, 1650, 1760, 1800, 1830, 1870, 1980, 2310, 2640,
                      3080, 3520]
 
+        # Set up SUT
+        race_id = RaceID(date(self.year, self.month, self.day), self.track, self.race_num)
+        race = Race(race_id, self.db_handler)
+
         for times in time_splits:
             self.db_handler.generate_query.return_value = 'This is a SQL query string'
             self.db_handler.query_db.return_value = (times, columns)
 
-            result: TimeSplits = self.race._get_time_splits()
+            result: TimeSplits = race._get_time_splits()
 
             for _time, distance in zip(times[0], distances):
                 self.assertTrue(result.time[distance] == _time,
@@ -186,15 +202,19 @@ class TestRaceInit(unittest.TestCase):
 
 
 
+        # Set up the SUT
+        race_id = RaceID(date(self.year, self.month, self.day), self.track, self.race_num)
+        race = Race(race_id, self.db_handler)
+
         # Run the SUT
-        self.race._get_placed_horses()
+        race._get_placed_horses()
 
         # Check the output
-        self.assertTrue(self.race.win == HorseID('Dark Artist', '15001360'))
-        self.assertTrue(self.race.place == HorseID('Too Charming', '15001119'))
-        self.assertTrue(self.race.show == HorseID('So Hi Society (IRE)', 'F0044820'))
-        self.assertTrue(self.race.fourth_place == HorseID('Lisa Limon', '15000251'))
-        self.assertTrue(self.race.fifth_place == HorseID('Stormologist', '15007318'))
+        self.assertTrue(race.win == HorseID('Dark Artist', '15001360'))
+        self.assertTrue(race.place == HorseID('Too Charming', '15001119'))
+        self.assertTrue(race.show == HorseID('So Hi Society (IRE)', 'F0044820'))
+        self.assertTrue(race.fourth_place == HorseID('Lisa Limon', '15000251'))
+        self.assertTrue(race.fifth_place == HorseID('Stormologist', '15007318'))
 
     def test_get_win_place_show_info_duplicates(self):
         self.db_handler.generate_query.return_value = 'This is a SQL query'
@@ -203,9 +223,13 @@ class TestRaceInit(unittest.TestCase):
                                                 ('SO HI SOCIETY', None, 3), ('So Hi Society (IRE)', 'F0044820', 3),
                                                 ('Stormologist', '15007318', 5), ('Too Charming', '15001119', 2)]
 
+        # Set up the SUT
+        race_id = RaceID(date(self.year, self.month, self.day), self.track, self.race_num)
+        race = Race(race_id, self.db_handler)
+
         # Run the SUT and expect an DuplicateHorseException to be thrown
         with self.assertRaises(DuplicateHorseException):
-            self.race._get_placed_horses()
+            race._get_placed_horses()
 
     def test_get_win_place_show_info_missing_some(self):
         # Set up data with no place horse in db
@@ -213,12 +237,15 @@ class TestRaceInit(unittest.TestCase):
         self.db_handler.query_db.return_value = [('Dark Artist', '15001360', 1), ('Lisa Limon', '15000251', 4),
                                                  ('So Hi Society (IRE)', 'F0044820', 3),
                                                  ('Stormologist', '15007318', 5)]
+        # Set up the SUT
+        race_id = RaceID(date(self.year, self.month, self.day), self.track, self.race_num)
+        race = Race(race_id, self.db_handler)
 
         # Run the SUT
-        self.race._get_placed_horses()
+        race._get_placed_horses()
 
         # Check the output state. Race.place should have a Horse.unknown_horse() in it
-        self.assertEqual(self.race.place, HorseID.unknown_horse())
+        self.assertEqual(race.place, HorseID.unknown_horse())
 
 if __name__ == '__main__':
     unittest.main()

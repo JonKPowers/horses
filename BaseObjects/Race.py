@@ -20,7 +20,7 @@ import re
 
 
 class Race:
-    def __init__(self, race_id: RaceID, db_handler: DBHandler):
+    def __init__(self, race_id: RaceID, db_handler: DBHandler, test_mode=False):
         self.db = db_handler
 
         # Mappings between db fields and Race attributes
