@@ -144,8 +144,23 @@ class TestPayouts(TestCase):
         for winner_string, expected_output in test_cases:
             self.assertEqual(sut._get_winning_nums(winner_string), expected_output)
 
-    def test_sets_exotic_payout_dicts(self):
-        self.fail('Write the test')
+    def test_exotic_naming_dict_has_all_names(self):
+        wagers = ['Trifecta', 'Exacta', 'Superfecta', 'Daily Double', 'Pick Three', 'Pick Four', 'Quinella',
+                  'Pick Five', 'Super High Five', 'Exactor', 'Triactor', 'Consolation Double', 'Consolation Pick Three',
+                  'Pick 6 Jackpot', 'Z-5 Super Hi-5', 'Pick Six', 'Perfecta', 'X-5 Super High Five',
+                  'Grand Slam', 'Place Pick All', 'Tri Super', 'Win Four', 'Pick Seven', 'Pick 9 Jackpot',
+                  'Pick 7 Jackpot', '123 racing', 'Twin Trifecta', 'Pick Nine', 'Classix', 'Jockey Challenge',
+                  'Head To Head', 'Pick Ten', 'Future Wager',
+                  ]
+
+        race_id: RaceID = RaceID(date(2011, 1, 1), 'CD', 5)
+        sut: Payouts = Payouts(race_id, self.db)
+
+        for wager in wagers:
+            try:
+                sut.exotic_names[wager]
+            except KeyError:
+                self.fail(f'{wager} not found in Payouts.exotic_names')
 
 if __name__ == '__main__':
     unittest.main()
