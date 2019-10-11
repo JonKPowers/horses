@@ -9,8 +9,8 @@ from Exceptions.exceptions import RaceNotFoundException, DuplicateHorseException
 from typing import List, Dict
 from DBHandler.DBHandler import DBHandler
 
-from constants.db_info import consolidated_races_db, consolidated_races_table, consolidated_performances_table
-
+from constants.db_info import horse_races_db, consolidated_races_db, \
+    consolidated_races_table, consolidated_performances_table
 
 from BaseObjects.race_db_mappings import consolidated_races_attribute_map, time_split_mappings
 
@@ -30,7 +30,7 @@ class Race:
         self.race_id = race_id
         self.track: str = race_id.track
         self.race_num: int = race_id.race_num
-        self.race_date : date = race_id.date
+        self.race_date: date = race_id.date
         self.race_time: datetime = None
 
         self.race_name: str = None
@@ -68,20 +68,28 @@ class Race:
         # Payout information
         self.payouts: Payouts = None
 
+        # Initialize the Race instance unless we're in test mode
+        if not test_mode:
+            self._get_consolidated_races_data()
+            self._set_distance_change()
+            self._get_horses_in_race()
+            self._get_time_splits()
+            self._get_placed_horses()
+
     def _get_consolidated_races_data(self):
         self.db.set_db(consolidated_races_db)
 
         fields = list(consolidated_races_attribute_map.keys())
         sql = self.db.generate_query(self.consolidated_races_table, fields,
                                      where=self._generate_where_for_race())
-        results, columns = self.db.query_db(sql)
+        results, columns = self.db.query_db(sql, return_col_names=True)
 
         try:
             for result, column in zip(results[0], columns):
                 setattr(self, self.consolidated_races_mappings[column], result)
         except IndexError as e:
             print(f'Race not found: {self.race_id}')
-            raise RaceNotFoundException
+            raise RaceNotFoundException(self.race_id)
 
     def _generate_race_datetime(self, time_str: str) -> datetime:
         """Takes in string in format 4:15/(3:15)/2:15/1:15 and generates datetime from time in parentheses
@@ -114,10 +122,10 @@ class Race:
         """Populates Race.horses_in_race, Race.horses_scratched, and Race.post_positions from db data"""
 
         # Get data from db
+        self.db.set_db(consolidated_races_db)
         sql = self.db.generate_query('horses_consolidated_performances',
                                      ['horse_name', 'horse_id', 'post_position'],
                                      where=self._generate_where_for_race())
-        self.db.set_db(consolidated_races_db)
         horses = self.db.query_db(sql)
 
         for horse in horses:
@@ -177,12 +185,8 @@ class Race:
             if getattr(self, place_spots[place]) is None:
                 setattr(self, place_spots[place], HorseID.unknown_horse())
 
-
-
-
-
-
     def _get_race_time_pacific(self) -> int:
+        self.db.set_db(horse_races_db)
         sql = self.db.generate_query('race_info', ['post_time_pacific'], where=self._generate_where_for_race())
         return int(self.db.query_db(sql)[0][0])
 

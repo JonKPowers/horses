@@ -26,7 +26,7 @@ class TestRaceInit(unittest.TestCase):
 
     def test_sets_race_info_from_RaceID(self):
         race_id = RaceID(date(self.year, self.month, self.day), self.track, self.race_num)
-        race = Race(race_id, self.db_handler)
+        race = Race(race_id, self.db_handler, test_mode=True)
 
         self.assertTrue(race.track == 'HOU')
         self.assertTrue(race.race_num == 5)
@@ -34,7 +34,7 @@ class TestRaceInit(unittest.TestCase):
 
     def test_sets_attributes_from_consolidated_races_table(self):
         race_id = RaceID(date(self.year, self.month, self.day), self.track, self.race_num)
-        race = Race(race_id, self.db_handler)
+        race = Race(race_id, self.db_handler, test_mode=True)
 
         return_values = ([(None, 1320, 1320, 29, 0, 66, 'Showery', 'A', 'FT', 0, 7)],
                          ['race_name', 'distance', 'planned_distance', 'run_up_distance', 'temp_rail_distance',
@@ -54,7 +54,7 @@ class TestRaceInit(unittest.TestCase):
 
     def test_gets_right_time_for_datetime_basic(self):
         race_id = RaceID(date(self.year, self.month, self.day), self.track, self.race_num)
-        race = Race(race_id, self.db_handler)
+        race = Race(race_id, self.db_handler, test_mode=True)
 
         input_times: List[int] = ['4:15/(3:15)/2:15/1:15', '4:44/(3:44)/2:44/1:44',
                                   '5:17/(4:17)/3:17/2:17', '5:50/(4:50)/3:50/2:50']
@@ -82,7 +82,7 @@ class TestRaceInit(unittest.TestCase):
 
         # Set up Race
         race_id = RaceID(date(self.year, self.month, self.day), self.track, self.race_num)
-        race = Race(race_id, self.db_handler)
+        race = Race(race_id, self.db_handler, test_mode=True)
         race_date = date(self.year, self.month, self.day)
 
         for time_str, pacific_time, correct_time in pairs:
@@ -95,7 +95,7 @@ class TestRaceInit(unittest.TestCase):
 
     def test_sets_distance_change_attribute(self):
         race_id = RaceID(date(self.year, self.month, self.day), self.track, self.race_num)
-        race = Race(race_id, self.db_handler)
+        race = Race(race_id, self.db_handler, test_mode=True)
         plan_v_actual_sets = [(1560, 1560, 0), (1560, 1610, 50), (1560, 1320, -240)]
 
         for planned, actual, distance_change in plan_v_actual_sets:
@@ -131,7 +131,7 @@ class TestRaceInit(unittest.TestCase):
         ]
 
         race_id = RaceID(date(self.year, self.month, self.day), self.track, self.race_num)
-        race = Race(race_id, self.db_handler)
+        race = Race(race_id, self.db_handler, test_mode=True)
 
         for race_data in races:
             self.db_handler.generate_query.return_value = 'This is a SQL query string'
@@ -180,7 +180,7 @@ class TestRaceInit(unittest.TestCase):
 
         # Set up SUT
         race_id = RaceID(date(self.year, self.month, self.day), self.track, self.race_num)
-        race = Race(race_id, self.db_handler)
+        race = Race(race_id, self.db_handler, test_mode=True)
 
         for times in time_splits:
             self.db_handler.generate_query.return_value = 'This is a SQL query string'
@@ -204,7 +204,7 @@ class TestRaceInit(unittest.TestCase):
 
         # Set up the SUT
         race_id = RaceID(date(self.year, self.month, self.day), self.track, self.race_num)
-        race = Race(race_id, self.db_handler)
+        race = Race(race_id, self.db_handler, test_mode=True)
 
         # Run the SUT
         race._get_placed_horses()
@@ -225,7 +225,7 @@ class TestRaceInit(unittest.TestCase):
 
         # Set up the SUT
         race_id = RaceID(date(self.year, self.month, self.day), self.track, self.race_num)
-        race = Race(race_id, self.db_handler)
+        race = Race(race_id, self.db_handler, test_mode=True)
 
         # Run the SUT and expect an DuplicateHorseException to be thrown
         with self.assertRaises(DuplicateHorseException):
@@ -239,7 +239,7 @@ class TestRaceInit(unittest.TestCase):
                                                  ('Stormologist', '15007318', 5)]
         # Set up the SUT
         race_id = RaceID(date(self.year, self.month, self.day), self.track, self.race_num)
-        race = Race(race_id, self.db_handler)
+        race = Race(race_id, self.db_handler, test_mode=True)
 
         # Run the SUT
         race._get_placed_horses()
