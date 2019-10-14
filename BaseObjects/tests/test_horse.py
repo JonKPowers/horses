@@ -345,6 +345,41 @@ class TestHorseRaceInfo(unittest.TestCase):
         for race in self.horse.trainers:
             self.assertTrue(isinstance(self.horse.trainers[race], TrainerID), 'Horse.trainers has non-TrainerID content')
 
+class TestDynamicFunctions(unittest.TestCase):
+    def setUp(self):
+        self.db = Mock()
+
+    def test_days_old_calculation_basic(self):
+        sut = Horse('Test Horse', self.db, test_mode=True)
+        sut.birthday = date(2019, 1, 1)
+
+        reference_date = date(2019, 2, 1)
+        control_days_between = 31
+
+        # Run SUT
+        test_days_between = sut.get_days_old(reference_date)
+
+        # Check the output
+        self.assertEqual(control_days_between, test_days_between,
+                         f'Days not being calculated correctly. Returned {test_days_between} between Jan 1 and Feb 1')
+
+    def test_days_old_calculation_too_early(self):
+        # Set up initial state
+        sut = Horse('Test Horse', self.db, test_mode=True)
+        sut.birthday = date(2019, 1, 1)
+
+        reference_date = date(2018, 12, 1)
+
+        # Run SUT
+        test_days_between = sut.get_days_old(reference_date)
+
+        # Check the output: If reference date if before birthday, it should return 0
+        self.assertEqual(0, test_days_between,
+                         f'Not returning 0 when reference date is before Horse.birthday')
+
+    def test_days_since_last_race(self):
+        self.fail('Write the test')
+
 
 if __name__ == '__main__':
     unittest.main()

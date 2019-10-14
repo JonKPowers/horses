@@ -19,7 +19,7 @@ from datetime import date
 
 
 class Horse:
-    def __init__(self, horse_name: str, db_handler: DBHandler, initalize_data=True):
+    def __init__(self, horse_name: str, db_handler: DBHandler, test_mode=False):
 
         # Uses a passed-in DBHandler to fetch data
         self.db = db_handler
@@ -68,6 +68,10 @@ class Horse:
 
         # Use birthday data to set birthday; assume born 1st day of month
         self.birthday = date(self._fix_birth_year(), self.birth_month, 1)
+
+    def get_days_old(self, reference_date: date) -> int:
+        days_old = (reference_date - self.birthday).days
+        return 0 if days_old < 0 else days_old
 
     def _get_races(self):
         queries = list()
