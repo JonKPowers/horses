@@ -377,9 +377,32 @@ class TestDynamicFunctions(unittest.TestCase):
         self.assertEqual(0, test_days_between,
                          f'Not returning 0 when reference date is before Horse.birthday')
 
-    def test_days_since_last_race(self):
-        self.fail('Write the test')
+    def test_days_since_last_race_basic(self):
+        # Set up SUT: Horse with races on 1/1/2019, 2/1/2019, and 3/1/2019
+        sut = Horse('Test horse', self.db, test_mode=True)
+        sut.races.append(RaceID(date(2019, 1, 1), 'CD', 1))
+        sut.races.append(RaceID(date(2019, 2, 1), 'CD', 2))
+        sut.races.append(RaceID(date(2019, 3, 1), 'CD', 3))
+        sut.races.sort(key=lambda x: x.date)
 
+        # Run SUT and check output
+        self.assertEqual(sut.get_days_since_last_race(date(2019, 1, 15)), 14)
+        self.assertEqual(sut.get_days_since_last_race(date(2019, 2, 15)), 14)
+        self.assertEqual(sut.get_days_since_last_race(date(2019, 3, 15)), 14)
+        self.assertEqual(sut.get_days_since_last_race(date(2018, 12, 1)), 0)
+
+
+    def test_days_since_last_race_first_race(self):
+        # Set up SUT: Horse with no previous races
+        sut = Horse('Test horse', self.db, test_mode=True)
+
+        # Run SUT and check output; should be zero when horse has no race history
+        self.assertEqual(sut.get_days_since_last_race(date(2019, 1, 1)), 0)
+
+    def test_get_weight_as_of_particular_date(self):
+        self.fail('Write the test')
+        # Might be able to refactor code to separate out the search function and apply it to both
+        # weight and days_since_last_race search
 
 if __name__ == '__main__':
     unittest.main()

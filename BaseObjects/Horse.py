@@ -73,6 +73,32 @@ class Horse:
         days_old = (reference_date - self.birthday).days
         return 0 if days_old < 0 else days_old
 
+    def get_days_since_last_race(self, reference_date:date) -> int:
+        """Determines how many days have elapsed between horse's last race and the reference date.
+        Returns 0 if this is its first race."""
+
+        len_races = len(self.races)
+
+        # Base case 1: No previous races -> return 0
+        if len_races == 0:
+            return 0
+
+        # Base case 2: reference_date is before the earliest race on record:
+        if reference_date < self.races[0].date:
+            return 0
+
+        # The general case: linear search of self.races
+        for i in range(len(self.races)):
+            try:
+                if self.races[i].date < reference_date < self.races[i + 1].date:
+                    return (reference_date - self.races[i].date).days
+            except IndexError:
+                if i == len_races - 1 and self.races[i].date < reference_date:
+                    return (reference_date - self.races[i].date).days
+
+    def get_weight(self, reference_date: date) -> int:
+        pass
+
     def _get_races(self):
         queries = list()
         for table in horse_races_tables:
